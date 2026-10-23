@@ -1,0 +1,39 @@
+{
+  "name": "readergo-plugins",
+  "version": "1.0.0",
+  "description": "Official and community plugins for ReaderGo document platform",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "node scripts/compile-plugins.mjs && node scripts/build-catalog.mjs",
+    "compile": "node scripts/compile-plugins.mjs",
+    "catalog": "node scripts/build-catalog.mjs",
+    "serve": "node scripts/serve.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "readergo",
+    "plugins",
+    "marketplace"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@tiptap/core": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "clsx": "^2.1.1",
+    "esbuild": "^0.25.0",
+    "lucide-react": "^1.16.0",
+    "nanoid": "^6.0.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

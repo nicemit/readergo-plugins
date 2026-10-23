@@ -1,0 +1,22 @@
+{
+  "id": "readergo.tools.note-digest",
+  "name": "Note Digest",
+  "version": "0.1.0",
+  "description": "Adds a note_digest tool the agent can call for one note.",
+  "category": "ai",
+  "provides": [],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

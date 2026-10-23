@@ -1,0 +1,30 @@
+{
+  "id": "readergo.sftp-space",
+  "name": "SFTP Space",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "Store notes on an SFTP server (host, user, remote folder).",
+  "category": "storage",
+  "provides": [
+    "filesystem.sftp"
+  ],
+  "requires": [],
+  "permissions": [
+    "filesystem:read",
+    "filesystem:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "boot": "early",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/ui.ts",
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "ui": "./dist/ui.js",
+    "runtime": "./dist/runtime.mjs"
+  }
+}

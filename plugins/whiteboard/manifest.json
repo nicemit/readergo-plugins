@@ -1,0 +1,18 @@
+{
+  "id": "readergo.editor.whiteboard",
+  "name": "Whiteboard",
+  "version": "1.0.0",
+  "description": "Infinite canvas whiteboard documents",
+  "category": "editor",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

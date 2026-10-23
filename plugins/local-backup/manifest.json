@@ -1,0 +1,22 @@
+{
+  "id": "readergo.plugin.readergolocalbackup",
+  "name": "Local Backup Plugin",
+  "version": "1.0.0",
+  "description": "Periodically exports notes to JSON via the storage capabilities.",
+  "category": "feature",
+  "provides": [],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

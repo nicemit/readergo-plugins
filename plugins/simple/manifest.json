@@ -1,0 +1,18 @@
+{
+  "id": "readergo.editor.simple",
+  "name": "Simple Text Editor",
+  "version": "1.0.0",
+  "description": "A simple textarea-based editor for verification",
+  "category": "editor",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

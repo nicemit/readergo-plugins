@@ -1,0 +1,18 @@
+{
+  "id": "readergo.examples.settings-panel",
+  "name": "Settings Panel Example",
+  "version": "1.0.0",
+  "description": "Demonstrates registering a declarative UI extension without React.",
+  "category": "feature",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": false,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "id": "demo.external.plugin",
+    "name": "Demo External Plugin",
+    "version": "1.0.0",
+    "main": "index.js",
+    "runtime": "local"
+}

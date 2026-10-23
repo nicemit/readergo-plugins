@@ -1,0 +1,31 @@
+{
+  "id": "readergo.agent.pi",
+  "name": "Pi",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
+  "category": "ai",
+  "provides": [
+    "agent-sdk.pi"
+  ],
+  "requires": [
+    "agent-sdk",
+    "llm-chat",
+    "remote-call",
+    "chat-store",
+    "embeddings",
+    "vector-store"
+  ],
+  "permissions": [
+    "ai:use"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}

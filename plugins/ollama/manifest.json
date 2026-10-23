@@ -1,0 +1,23 @@
+{
+  "id": "readergo.ai.ollama",
+  "name": "Ollama AI Insights",
+  "version": "1.0.0",
+  "description": "Provides AI-powered insights using Ollama (local or cloud)",
+  "category": "ai",
+  "provides": [
+    "insight-provider",
+    "center-pane"
+  ],
+  "requires": [],
+  "permissions": [
+    "ai:use"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

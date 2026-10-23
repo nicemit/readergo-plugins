@@ -1,0 +1,23 @@
+{
+  "id": "readergo.features.pollinations",
+  "name": "Pollinations AI Beautify",
+  "version": "1.0.0",
+  "description": "Beautify notes using Pollinations AI",
+  "category": "feature",
+  "provides": [
+    "sidebar-panel"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "readergo.plugin.readergodevtools",
+  "name": "Plugin Dev Tools",
+  "version": "1.0.0",
+  "description": "Validates runtime introspection by rendering a live dashboard widget.",
+  "category": "feature",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

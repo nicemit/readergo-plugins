@@ -1,0 +1,21 @@
+{
+  "id": "readergo.editor.mindmap",
+  "name": "Mindmap",
+  "version": "0.1.0",
+  "description": "Create, edit, and save mind maps.",
+  "category": "editor",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

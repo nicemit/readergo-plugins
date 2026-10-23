@@ -1,0 +1,26 @@
+{
+  "id": "readergo.chat-store.sqlite",
+  "name": "Chat Store (SQLite)",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "Stores agent conversations in SQLite under ~/.readergo/agent.",
+  "category": "ai",
+  "provides": [
+    "chat-store.sqlite"
+  ],
+  "requires": [
+    "chat-store"
+  ],
+  "permissions": [
+    "ai:use"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}

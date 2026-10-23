@@ -1,0 +1,23 @@
+{
+  "id": "readergo.features.link-clipper",
+  "name": "Link Clipper",
+  "version": "1.0.0",
+  "description": "Clip links to create new notes with parsed content",
+  "category": "feature",
+  "provides": [
+    "sidebar-panel"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:write",
+    "network:request"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

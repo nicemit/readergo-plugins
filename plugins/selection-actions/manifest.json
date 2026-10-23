@@ -1,0 +1,18 @@
+{
+  "id": "readergo.features.selection-actions",
+  "name": "Selection Actions",
+  "version": "1.0.0",
+  "description": "Contribution Places demo: Copy and Log on text selection",
+  "category": "feature",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

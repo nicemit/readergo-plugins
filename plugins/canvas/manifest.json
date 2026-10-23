@@ -1,0 +1,18 @@
+{
+  "id": "readergo.editor.canvas",
+  "name": "Canvas",
+  "version": "1.0.0",
+  "description": "Structured infinite canvas for organizing documents",
+  "category": "editor",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

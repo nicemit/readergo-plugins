@@ -1,0 +1,9 @@
+{
+  "name": "@readergo/plugin-pi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "1.3.0"
+  }
+}

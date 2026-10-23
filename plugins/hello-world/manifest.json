@@ -1,0 +1,18 @@
+{
+  "id": "readergo.examples.hello-world",
+  "name": "Hello World Example",
+  "version": "1.0.0",
+  "description": "A minimal plugin demonstrating activation and logging.",
+  "category": "feature",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": false,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

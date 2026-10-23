@@ -1,0 +1,14 @@
+{
+    "name": "@readergo/plugin-sdk",
+    "version": "1.0.0",
+    "description": "ReaderGo Plugin SDK definitions and boundaries",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0"
+    },
+    "dependencies": {}
+}

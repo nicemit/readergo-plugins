@@ -1,0 +1,27 @@
+{
+  "id": "readergo.embeddings.openrouter",
+  "name": "Embeddings (OpenRouter)",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "OpenRouter embeddings API provider for agent memory.",
+  "category": "ai",
+  "provides": [
+    "embeddings.openrouter"
+  ],
+  "requires": [
+    "embeddings"
+  ],
+  "permissions": [
+    "ai:use",
+    "network:request"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "readergo.features.zettelkasten",
+  "name": "Zettelkasten",
+  "version": "1.0.0",
+  "description": "Bidirectional note linking via [[Note Title]], link autocomplete, backlinks, and forward links",
+  "category": "feature",
+  "provides": [
+    "editor-extension",
+    "sidebar-panel",
+    "zettelkasten-service"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "readergo.editor.spreadsheet",
+  "name": "Spreadsheet",
+  "version": "1.0.0",
+  "description": "A basic grid-based editor for spreadsheet data",
+  "category": "editor",
+  "provides": [],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

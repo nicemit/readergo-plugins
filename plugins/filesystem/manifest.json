@@ -1,0 +1,15 @@
+{
+  "id": "readergo.filesystem",
+  "name": "Filesystem (Runtime)",
+  "version": "0.3.0",
+  "sdkVersion": "0.1.0",
+  "description": "Runtime filesystem capability for Spaces. Requires Local Runtime Host.",
+  "category": "storage",
+  "provides": ["filesystem-ui"],
+  "requires": [],
+  "permissions": ["filesystem:read", "filesystem:write"],
+  "trust": "trusted",
+  "source": "external",
+  "main": "index.js",
+  "runtime": "local"
+}

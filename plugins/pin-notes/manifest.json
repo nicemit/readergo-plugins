@@ -1,0 +1,23 @@
+{
+  "id": "readergo.features.pin-notes",
+  "name": "Pin Notes",
+  "version": "1.0.0",
+  "description": "Pin important notes to your dashboard for quick access",
+  "category": "feature",
+  "provides": [
+    "center-pane-content",
+    "pin-note-service"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

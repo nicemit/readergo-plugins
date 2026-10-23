@@ -1,0 +1,22 @@
+{
+  "id": "readergo.examples.sync-style",
+  "name": "Sync Style Example",
+  "version": "1.0.0",
+  "description": "Demonstrates obtaining generic capabilities from the host platform.",
+  "category": "feature",
+  "provides": [],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": false,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

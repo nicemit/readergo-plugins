@@ -1,0 +1,26 @@
+{
+  "id": "readergo.embeddings.local",
+  "name": "Embeddings (Local)",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "Offline local embeddings for agent memory. No API key.",
+  "category": "ai",
+  "provides": [
+    "embeddings.local"
+  ],
+  "requires": [
+    "embeddings"
+  ],
+  "permissions": [
+    "ai:use"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}

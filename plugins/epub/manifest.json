@@ -1,0 +1,21 @@
+{
+  "id": "readergo.editor.epub",
+  "name": "EPUB Reader",
+  "version": "1.0.0",
+  "description": "Read EPUB books in ReaderGo",
+  "category": "editor",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

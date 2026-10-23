@@ -1,0 +1,27 @@
+{
+  "id": "readergo.llm.openrouter",
+  "name": "OpenRouter",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "OpenRouter model provider for agent chat. Asks for an API key when selected.",
+  "category": "ai",
+  "provides": [
+    "llm-chat.openrouter"
+  ],
+  "requires": [
+    "llm-chat"
+  ],
+  "permissions": [
+    "ai:use",
+    "network:request"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}
