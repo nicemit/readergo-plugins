@@ -12,8 +12,8 @@ export function LinkClipperComponent() {
     const [success, setSuccess] = useState<string | null>(null);
 
     useEffect(() => {
-        executeCommand('readergo.core.listFolders')
-            .then(setFolders)
+        executeCommand('readergo.folder.list')
+            .then((res) => setFolders(Array.isArray(res) ? res : []))
             .catch(err => console.error('[LinkClipper] Failed to load folders:', err));
     }, []);
 
@@ -85,7 +85,7 @@ export function LinkClipperComponent() {
                     className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                     <option value="">No Folder (Root)</option>
-                    {folders.map(f => (
+                    {(folders || []).map(f => (
                         <option key={f.id} value={f.id}>{f.name}</option>
                     ))}
                 </select>

@@ -76,7 +76,7 @@
       "name": "Link Clipper",
       "description": "Clip links to create new notes with parsed content",
       "category": "feature",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bundleUrl": "link-clipper.bundle.json"
     },
     {
