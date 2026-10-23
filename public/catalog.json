@@ -124,7 +124,7 @@
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
       "category": "ai",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "runtimeBundleUrl": "pi.runtime.json"
     },
     {

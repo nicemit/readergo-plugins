@@ -126,7 +126,7 @@ async function compileRuntime(entryPath, outfile) {
     format: "esm",
     platform: "node",
     target: ["node20"],
-    packages: "external",
+    external: ["ssh2", "@readergo/plugin-contracts", "@readergo/*"],
     minify: false,
     sourcemap: false,
     logLevel: "warning",
