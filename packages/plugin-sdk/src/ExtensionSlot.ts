@@ -10,11 +10,14 @@ export interface ExtensionSlotProvider {
     /** Unique identifier for this specific provider registration */
     id: string;
 
-    /** The ID of the slot this component injects into (e.g., "editor-toolbar-left") */
+    /** The ID of the slot this component injects into (e.g., "editor-toolbar") */
     slotId: string;
 
-    /** The ID mapping to a Host React component to render in the slot */
-    componentId: string;
+    /** React component to render directly in the slot */
+    component?: ComponentType<any>;
+
+    /** Legacy ID mapping to a component */
+    componentId?: string;
 
     /** Order to sort multiple components in the same slot (lower renders first) */
     order?: number;
