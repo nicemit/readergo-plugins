@@ -42,6 +42,12 @@ function isNativeEpub(note: CurrentNote | null | undefined): boolean {
   return note?.metadata?.source === NATIVE_FILE_SOURCE
 }
 
+function hasZipSignature(bytes: ArrayBuffer): boolean {
+  if (bytes.byteLength < 4) return false
+  const header = new Uint8Array(bytes, 0, 4)
+  return header[0] === 0x50 && header[1] === 0x4b
+}
+
 function locationKey(note: CurrentNote | null | undefined): string | null {
   if (!note?.id) return null
   return `${note.spaceId || 'space'}:${note.id}`
@@ -167,10 +173,17 @@ export function EpubDocumentEditor(props: EditorProps) {
       setLoading(true)
       setError(null)
       try {
+        if (!hasZipSignature(bytes)) {
+          throw new Error('This file is not a valid EPUB archive.')
+        }
         const parsed = await parseEpub(bytes)
         await applyBook(parsed, location)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not read this EPUB')
+        const msg = err instanceof Error ? err.message : 'Could not read this EPUB'
+        const cleanMsg = msg.includes('central directory') || msg.includes('zip file')
+          ? 'This file is not a valid EPUB archive.'
+          : msg
+        setError(cleanMsg)
         setBook(null)
       } finally {
         setLoading(false)
@@ -200,6 +213,14 @@ export function EpubDocumentEditor(props: EditorProps) {
         return
       }
 
+      // Non-native stub/placeholder notes created in the UI do not contain EPUB bytes yet.
+      // Immediately show the "Choose EPUB" placeholder view without loading non-existent bytes.
+      if (!native) {
+        setLoading(false)
+        loadedIdRef.current = id
+        return
+      }
+
       const storage = await pluginContext.getCapability<NoteStorageCapability>(
         'document-storage',
       )
@@ -209,6 +230,12 @@ export function EpubDocumentEditor(props: EditorProps) {
         const bytes = await storage?.readBytes?.(id)
         if (cancelled) return
         if (bytes && bytes.byteLength > 0) {
+          if (!hasZipSignature(bytes)) {
+            setError('This file is not a valid EPUB archive.')
+            setLoading(false)
+            loadedIdRef.current = id
+            return
+          }
           loadedIdRef.current = id
           await loadBytes(bytes, saved)
           return
@@ -423,7 +450,16 @@ export function EpubDocumentEditor(props: EditorProps) {
           {loading ? (
             <p className="text-sm text-gray-500">Opening book…</p>
           ) : error ? (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>
+              <button
+                type="button"
+                className="rounded bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose EPUB
+              </button>
+            </div>
           ) : chapter ? (
             <article
               ref={articleRef}
