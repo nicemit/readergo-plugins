@@ -6,7 +6,21 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, "public");
-const port = process.env.PORT || 3001;
+
+function parsePort() {
+  const args = process.argv.slice(2);
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--port" || args[i] === "-p") {
+      const val = parseInt(args[i + 1], 10);
+      if (!isNaN(val)) return val;
+    }
+    const val = parseInt(args[i], 10);
+    if (!isNaN(val) && val > 0 && val < 65536) return val;
+  }
+  return parseInt(process.env.PORT, 10) || 3002;
+}
+
+let port = parsePort();
 
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -34,6 +48,18 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(filePath).pipe(res);
 });
 
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.warn(`Port ${port} is in use, trying ${port + 1}...`);
+    port++;
+    server.listen(port);
+  } else {
+    console.error("Server error:", err);
+    process.exit(1);
+  }
+});
+
 server.listen(port, () => {
-  console.log(`ReaderGo Plugin Catalog Server running at http://localhost:${port}/catalog.json`);
+  console.log(`\x1b[32m✔ ReaderGo Plugin Catalog Server running at http://localhost:${port}/catalog.json\x1b[0m`);
+  console.log(`  Available bundles: http://localhost:${port}/<plugin-name>.bundle.json`);
 });
