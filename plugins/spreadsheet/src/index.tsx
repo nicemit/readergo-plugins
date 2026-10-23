@@ -1,3 +1,4 @@
+import { SpreadsheetToolbar } from './editor/SpreadsheetToolbar';
 import { PluginContext, EditorProvider, EditorCapability, ExtensionSlotProvider, definePlugin } from '@readergo/plugin-sdk';
 import { Table } from 'lucide-react';
 import { SpreadsheetDocumentEditor } from './SpreadsheetDocumentEditor';
@@ -131,7 +132,7 @@ export default definePlugin({
         context.registerCapability<ExtensionSlotProvider>('extension-slot', {
             id: 'spreadsheet-toolbar',
             slotId: 'editor-toolbar',
-            componentId: 'SpreadsheetToolbar',
+            component: SpreadsheetToolbar,
             order: 10
         });
         context.log.info('Registered spreadsheet toolbar extension slot');

@@ -1,3 +1,5 @@
+import React from "react";
+import { PluginDevPanel } from "./PluginDevPanel";
 import { Plugin } from '@readergo/plugin-sdk';
 import { PluginContext, SidebarExtensionDescriptor } from '@readergo/plugin-sdk';
 
@@ -17,19 +19,14 @@ export const ReadergoDevToolsPlugin: Plugin = {
   async activate(context: PluginContext) {
     context.log.info('Dev Tools Introspection plugin activating...');
 
-    // Register dev widget targeting the new host-supported PluginDevPanel
-    await context.registerExtension({
+    // Register dev panel capability
+    context.registerCapability('sidebar-panel', {
       id: `${manifest.id}.dashboard`,
-      type: 'sidebar.panel',
-      title: 'Dev Registry',
-      renderStrategy: 'host',
-      schema: {
-        target: 'PluginDevPanel',
-        config: {}
-      },
+      name: 'Dev Registry',
       position: 'right',
-      order: 1 // Push to top
-    } as SidebarExtensionDescriptor);
+      order: 1,
+      render: () => React.createElement(PluginDevPanel),
+    });
 
   },
   deactivate(context: PluginContext) {

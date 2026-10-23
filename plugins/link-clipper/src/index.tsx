@@ -1,3 +1,5 @@
+import React from "react";
+import { LinkClipperComponent } from "./LinkClipperComponent";
 import { Plugin } from '@readergo/plugin-sdk';
 import { PluginContext } from '@readergo/plugin-sdk';
 
@@ -71,14 +73,12 @@ export const LinkClipperPlugin: Plugin = {
             }
         });
 
-        // 2. Register Panel
-        await context.registerExtension({
+        // 2. Register Panel capability
+        context.registerCapability('sidebar-panel', {
             id: 'readergo.link-clipper.panel',
-            type: 'sidebar.panel',
-            title: 'Link Clipper',
-            renderStrategy: 'host',
-            schema: { target: 'LinkClipperComponent' },
-            position: 'left'
+            name: 'Link Clipper',
+            position: 'left',
+            render: () => <LinkClipperComponent />,
         });
     },
     deactivate(context: PluginContext) {

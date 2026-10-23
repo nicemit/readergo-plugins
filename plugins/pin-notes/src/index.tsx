@@ -1,3 +1,5 @@
+import React from "react";
+import { PinnedNotesWidget } from "./PinnedNotesWidget";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -37,19 +39,19 @@ export const PinNotesPlugin: Plugin = {
             context.registerCapability('pin-note-service', pinService);
             context.log.info('✅ Registered pin-note-service capability');
 
-            // Register the central UI widget via an Extension Descriptor
-            await context.registerExtension({
-                id: 'readergo.pin-notes.widget',
-                type: 'center.pane',
-                title: 'Pinned Notes',
-                icon: 'pin',
-                renderStrategy: 'host',
+            // Register center pane content & extension-slot capabilities
+            context.registerCapability('center-pane-content', {
+                id: 'readergo.pin-notes.center-pane',
+                name: 'Pinned Notes',
                 viewModes: ['dashboard'],
                 order: 0,
-                schema: {
-                    target: 'PinnedNotesWidget',
-                    commandId: 'readergo.pin-notes.open'
-                }
+                renderDashboard: () => <PinnedNotesWidget />,
+            });
+            context.registerCapability('extension-slot', {
+                id: 'readergo.pin-notes.dashboard-slot',
+                slotId: 'dashboard-pinned',
+                order: 0,
+                component: (props: any) => <PinnedNotesWidget onNoteClick={props.onOpenNoteById} />,
             });
             context.log.info('✅ Registered center.pane extension');
 

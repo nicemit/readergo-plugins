@@ -1,3 +1,5 @@
+import React from "react";
+import { PollinationsSidebarPanel } from "./PollinationsSidebarPanel";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Pollinations Beautify Plugin
@@ -25,17 +27,14 @@ export const PollinationsPlugin: Plugin = {
     async activate(context: PluginContext) {
         context.log.info('Pollinations Beautify plugin activated');
 
-        // Register the UI schema for the host to render
-        await context.registerExtension({
+        // Register sidebar panel capability directly
+        context.registerCapability('sidebar-panel', {
             id: 'readergo.pollinations.panel',
-            type: 'sidebar.panel',
-            title: 'AI Assistant',
-            renderStrategy: 'host',
-            schema: {
-                target: 'PollinationsSidebarPanel',
-                actionId: 'readergo.pollinations.beautify'
-            },
-            position: 'right'
+            name: 'AI Assistant',
+            position: 'right',
+            render: ({ noteId }: any) => (
+                <PollinationsSidebarPanel noteId={noteId} actionId="readergo.pollinations.beautify" />
+            ),
         });
 
         // Register the beautify command
