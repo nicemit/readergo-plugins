@@ -41,4 +41,6 @@ export type {
   PluginEngine,
 } from './engine/types';
 export { useEngine } from './engine/useEngine';
+export * from './PinNoteService';
+export * from './SpreadsheetCapability';
 export { PluginRuntimeProvider, usePlugin, useHistory, usePluginHost } from './v2/runtime';
