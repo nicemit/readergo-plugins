@@ -2,23 +2,14 @@
 
 import { EditorProps } from '@readergo/plugin-sdk';
 import { executeCommand } from '@/lib/platform/actions';
-import { usePluginManager } from '@/app/providers/PluginProvider';
-import type { SpreadsheetCapability } from '../index';
 
 export function SpreadsheetToolbar(props: EditorProps) {
-    const manager = usePluginManager();
     if (props.currentNote?.type !== 'spreadsheet' && props.currentNote?.type !== 'grid') {
         return null; // Only show this toolbar when a spreadsheet is active
     }
 
     const editorInstanceId = props.currentNote?.id ? `spreadsheet-${props.currentNote.id}` : undefined;
-    const withEditor = (run: (editor: SpreadsheetCapability) => void, commandId: string) => {
-        const editor = manager.getActiveEditor({ editorInstanceId }) as SpreadsheetCapability | undefined;
-        if (editor) {
-            run(editor);
-            return;
-        }
-        // Fallback path if capability registration lags.
+    const runCommand = (commandId: string) => {
         executeCommand(commandId, { editorInstanceId });
     };
 
@@ -26,13 +17,13 @@ export function SpreadsheetToolbar(props: EditorProps) {
         <div className="flex items-center gap-1.5 p-2 bg-white/50 dark:bg-slate-900/30 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/10 shrink-0 overflow-x-auto">
             <div className="flex items-center gap-1 pr-2 border-r border-slate-200 dark:border-slate-700">
                 <button
-                    onClick={() => withEditor((editor) => editor.addRowBelow(), 'readergo.spreadsheet.addRow')}
+                    onClick={() => runCommand('readergo.spreadsheet.addRow')}
                     className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded hover:bg-blue-100 hover:text-blue-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-colors"
                 >
                     + Row
                 </button>
                 <button
-                    onClick={() => withEditor((editor) => editor.deleteRow(), 'readergo.spreadsheet.deleteRow')}
+                    onClick={() => runCommand('readergo.spreadsheet.deleteRow')}
                     className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300 transition-colors"
                 >
                     - Row
@@ -41,13 +32,13 @@ export function SpreadsheetToolbar(props: EditorProps) {
 
             <div className="flex items-center gap-1 pr-2 border-r border-slate-200 dark:border-slate-700 pl-1">
                 <button
-                    onClick={() => withEditor((editor) => editor.addColumnRight(), 'readergo.spreadsheet.addColumn')}
+                    onClick={() => runCommand('readergo.spreadsheet.addColumn')}
                     className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900/30 dark:hover:text-purple-300 transition-colors"
                 >
                     + Col
                 </button>
                 <button
-                    onClick={() => withEditor((editor) => editor.deleteColumn(), 'readergo.spreadsheet.deleteColumn')}
+                    onClick={() => runCommand('readergo.spreadsheet.deleteColumn')}
                     className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900/30 dark:hover:text-red-300 transition-colors"
                 >
                     - Col
@@ -56,7 +47,7 @@ export function SpreadsheetToolbar(props: EditorProps) {
 
             <div className="flex items-center gap-1 pl-1">
                 <button
-                    onClick={() => withEditor((editor) => editor.clearCell(), 'readergo.spreadsheet.clearCell')}
+                    onClick={() => runCommand('readergo.spreadsheet.clearCell')}
                     className="px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                     Clear Cell

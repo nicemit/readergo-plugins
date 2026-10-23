@@ -140,7 +140,7 @@
       "name": "Plugin Dev Tools",
       "description": "Validates runtime introspection by rendering a live dashboard widget.",
       "category": "feature",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bundleUrl": "dev-tools.bundle.json"
     },
     {
@@ -189,7 +189,7 @@
       "name": "Spreadsheet",
       "description": "A basic grid-based editor for spreadsheet data",
       "category": "editor",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bundleUrl": "spreadsheet.bundle.json"
     },
     {

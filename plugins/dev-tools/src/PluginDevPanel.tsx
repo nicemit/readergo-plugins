@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PluginManager } from '@/plugins/core/PluginManager';
+function getManager() {
+    if (typeof window !== 'undefined' && (window as any).readergo?.manager) {
+        return (window as any).readergo.manager;
+    }
+    return null;
+}
 
 export function PluginDevPanel() {
     const [data, setData] = useState<any>({
@@ -16,7 +21,8 @@ export function PluginDevPanel() {
 
     // Refactored to avoid stale closures
     const updateState = () => {
-        const manager = PluginManager.getInstance();
+        const manager = getManager();
+        if (!manager) return;
         setData((prev: any) => ({
             ...prev,
             plugins: manager.listPluginIntrospection(),
@@ -29,7 +35,8 @@ export function PluginDevPanel() {
     };
 
     useEffect(() => {
-        const manager = PluginManager.getInstance();
+        const manager = getManager();
+        if (!manager) return;
         updateState();
 
         const logEvent = (eventName: string) => {

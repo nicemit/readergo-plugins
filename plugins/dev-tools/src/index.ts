@@ -6,7 +6,7 @@ import { PluginContext, SidebarExtensionDescriptor } from '@readergo/plugin-sdk'
 const manifest = {
   id: 'readergo.plugin.readergodevtools',
   name: 'Plugin Dev Tools',
-  version: '1.0.0',
+  version: '1.0.1',
   description: 'Validates runtime introspection by rendering a live dashboard widget.',
   category: 'feature' as const,
   provides: [],

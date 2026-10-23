@@ -21,7 +21,7 @@ export interface SpreadsheetCapability extends EditorCapability {
 const manifest = {
     id: 'readergo.editor.spreadsheet',
     name: 'Simple Spreadsheet',
-    version: '1.0.0',
+    version: '1.0.1',
     description: 'A basic grid-based editor for spreadsheet data',
     category: 'editor' as const,
     provides: ['editor-provider', 'activity-bar-item', 'extension-slot'],
