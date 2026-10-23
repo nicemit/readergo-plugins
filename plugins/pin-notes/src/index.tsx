@@ -17,9 +17,9 @@ import { getPinNoteService, PinNoteService } from './PinNoteService';
 const manifest = {
     id: 'readergo.features.pin-notes',
     name: 'Pin Notes',
-    version: '1.0.0',
+    version: '1.0.1',
     description: 'Pin important notes to your dashboard for quick access',
-    provides: ['center-pane-content', 'pin-note-service'] as string[],
+    provides: ['extension-slot', 'pin-note-service'] as string[],
     permissions: ['note:read' as const],
 };
 
@@ -39,14 +39,7 @@ export const PinNotesPlugin: Plugin = {
             context.registerCapability('pin-note-service', pinService);
             context.log.info('✅ Registered pin-note-service capability');
 
-            // Register center pane content & extension-slot capabilities
-            context.registerCapability('center-pane-content', {
-                id: 'readergo.pin-notes.center-pane',
-                name: 'Pinned Notes',
-                viewModes: ['dashboard'],
-                order: 0,
-                renderDashboard: () => <PinnedNotesWidget />,
-            });
+            // Register dashboard extension-slot capability
             context.registerCapability('extension-slot', {
                 id: 'readergo.pin-notes.dashboard-slot',
                 slotId: 'dashboard-pinned',

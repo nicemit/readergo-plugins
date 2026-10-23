@@ -132,7 +132,7 @@
       "name": "Pin Notes",
       "description": "Pin important notes to your dashboard for quick access",
       "category": "feature",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bundleUrl": "pin-notes.bundle.json"
     },
     {

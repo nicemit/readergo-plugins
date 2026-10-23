@@ -1,11 +1,11 @@
 {
   "id": "readergo.features.pin-notes",
   "name": "Pin Notes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pin important notes to your dashboard for quick access",
   "category": "feature",
   "provides": [
-    "center-pane-content",
+    "extension-slot",
     "pin-note-service"
   ],
   "requires": [],
