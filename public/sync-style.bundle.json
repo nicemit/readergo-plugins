@@ -1,0 +1,25 @@
+{
+  "manifest": {
+    "id": "readergo.examples.sync-style",
+    "name": "Sync Style Example",
+    "version": "1.0.0",
+    "description": "Demonstrates obtaining generic capabilities from the host platform.",
+    "category": "feature",
+    "provides": [],
+    "requires": [
+      "document-storage"
+    ],
+    "permissions": [
+      "note:read"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": false,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n// plugins/sync-style/src/index.ts\nvar manifest = {\n  id: \"readergo.examples.sync-style\",\n  name: \"Sync Style Example\",\n  version: \"1.0.0\",\n  description: \"Demonstrates obtaining generic capabilities from the host platform.\",\n  category: \"feature\",\n  provides: [],\n  requires: [\"document-storage\"],\n  // Declares we need the document-storage capability to function\n  permissions: [\"note:read\"]\n};\nvar SyncStylePlugin = {\n  manifest,\n  async activate(context) {\n    context.log.info(\"\\u{1F504} Sync Style plugin activating...\");\n    const storageManager = await context.getCapability(\"document-storage\");\n    if (storageManager) {\n      context.log.info(\"Successfully connected to document-storage capability!\");\n    } else {\n      context.log.warn(\"Could not find document-storage capability. Is it loaded?\");\n    }\n  },\n  deactivate(context) {\n    context.log.info(\"\\u{1F504} Sync Style plugin deactivated.\");\n  }\n};\n\n\n  return { SyncStylePlugin: SyncStylePlugin };\n}\n"
+}

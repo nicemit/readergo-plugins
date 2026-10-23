@@ -1,0 +1,31 @@
+{
+  "manifest": {
+    "id": "readergo.vector-store.lancedb",
+    "name": "Vector Store (Local)",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
+    "category": "ai",
+    "provides": [
+      "vector-store.lancedb"
+    ],
+    "requires": [
+      "vector-store"
+    ],
+    "permissions": [
+      "ai:use"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "runtime": "local",
+    "compile": {
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/vector-store-lancedb/src/runtime.ts\nimport fs from \"node:fs\";\nimport os from \"node:os\";\nimport path from \"node:path\";\nimport { VECTOR_STORE_CAPABILITY_ID } from \"@readergo/plugin-contracts\";\nvar LANCEDB_VECTOR_STORE_ID = \"lancedb\";\nfunction agentVectorsRoot() {\n  const fromEnv = process.env.READERGO_AGENT_DATA_DIR?.trim();\n  const root = fromEnv ? path.resolve(fromEnv) : path.join(os.homedir(), \".readergo\", \"agent\");\n  const dir = path.join(root, \"vectors\");\n  fs.mkdirSync(dir, { recursive: true });\n  return dir;\n}\nfunction namespacePath(namespace) {\n  const safe = namespace.replace(/[^a-zA-Z0-9:_-]+/g, \"_\").slice(0, 180);\n  return path.join(agentVectorsRoot(), `${safe}.json`);\n}\nfunction loadNamespace(namespace) {\n  const file = namespacePath(namespace);\n  if (!fs.existsSync(file)) return [];\n  try {\n    const parsed = JSON.parse(fs.readFileSync(file, \"utf8\"));\n    return Array.isArray(parsed) ? parsed : [];\n  } catch {\n    return [];\n  }\n}\nfunction saveNamespace(namespace, records) {\n  fs.writeFileSync(namespacePath(namespace), JSON.stringify(records), \"utf8\");\n}\nfunction cosine(a, b) {\n  const n = Math.min(a.length, b.length);\n  if (n === 0) return 0;\n  let dot = 0;\n  let na = 0;\n  let nb = 0;\n  for (let i = 0; i < n; i += 1) {\n    const x = a[i] ?? 0;\n    const y = b[i] ?? 0;\n    dot += x * y;\n    na += x * x;\n    nb += y * y;\n  }\n  const denom = Math.sqrt(na) * Math.sqrt(nb);\n  return denom === 0 ? 0 : dot / denom;\n}\nfunction createFileVectorStore() {\n  return {\n    id: LANCEDB_VECTOR_STORE_ID,\n    name: \"Local vectors (file)\",\n    async upsert(input) {\n      const namespace = input.namespace?.trim();\n      if (!namespace) throw new Error(\"namespace is required\");\n      const existing = loadNamespace(namespace);\n      const byId = new Map(existing.map((record) => [record.id, record]));\n      for (const record of input.records ?? []) {\n        if (!record?.id || !Array.isArray(record.vector)) continue;\n        byId.set(record.id, {\n          id: String(record.id),\n          vector: record.vector.map(Number),\n          text: String(record.text ?? \"\").slice(0, 16e3),\n          metadata: record.metadata && typeof record.metadata === \"object\" ? record.metadata : void 0\n        });\n      }\n      saveNamespace(namespace, [...byId.values()]);\n    },\n    async query(input) {\n      const namespace = input.namespace?.trim();\n      if (!namespace) throw new Error(\"namespace is required\");\n      const limit = Math.min(Math.max(input.limit ?? 8, 1), 40);\n      const query = Array.isArray(input.vector) ? input.vector.map(Number) : [];\n      const records = loadNamespace(namespace);\n      const hits = records.map((record) => ({\n        id: record.id,\n        score: cosine(query, record.vector),\n        text: record.text,\n        metadata: record.metadata\n      })).sort((a, b) => b.score - a.score).slice(0, limit);\n      return hits;\n    },\n    async delete(input) {\n      const namespace = input.namespace?.trim();\n      if (!namespace) throw new Error(\"namespace is required\");\n      if (!input.ids || input.ids.length === 0) {\n        const file = namespacePath(namespace);\n        if (fs.existsSync(file)) fs.unlinkSync(file);\n        return;\n      }\n      const remove = new Set(input.ids.map(String));\n      const next = loadNamespace(namespace).filter((record) => !remove.has(record.id));\n      saveNamespace(namespace, next);\n    }\n  };\n}\nvar plugin = {\n  manifest: {\n    id: \"readergo.vector-store.lancedb\",\n    name: \"Vector Store (Local)\",\n    version: \"0.1.0\",\n    sdkVersion: \"0.1.0\",\n    description: \"Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).\",\n    category: \"ai\",\n    provides: [\"vector-store.lancedb\"],\n    requires: [VECTOR_STORE_CAPABILITY_ID],\n    permissions: [\"ai:use\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const registry = await context.getCapability(\n      VECTOR_STORE_CAPABILITY_ID\n    );\n    if (!registry) throw new Error(\"vector-store capability is not available\");\n    registry.register(createFileVectorStore());\n    context.log.info(\"Local vector-store registered\");\n  }\n};\nvar runtime_default = plugin;\nexport {\n  LANCEDB_VECTOR_STORE_ID,\n  runtime_default as default\n};\n"
+  }
+}

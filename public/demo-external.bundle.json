@@ -1,0 +1,10 @@
+{
+  "manifest": {
+    "id": "demo.external.plugin",
+    "name": "Demo External Plugin",
+    "version": "1.0.0",
+    "main": "index.js",
+    "runtime": "local"
+  },
+  "entryCode": "export const MyPlugin = {\n    manifest: {\n        id: \"demo.external.plugin\",\n        name: \"Demo External Plugin\",\n        version: \"1.0.0\",\n        main: \"index.js\",\n        runtime: \"local\"\n    },\n    activate: async (context) => {\n        context.log.info(\"Hello from an safely loaded external ESM module!\");\n\n        await context.registerExtension({\n            id: `demo.external.plugin.widget`,\n            type: 'sidebar.panel',\n            title: 'External Widget',\n            renderStrategy: 'iframe',\n            schema: {\n                url: 'data:text/html,<h3 style=\"color:white;font-family:sans-serif\">External Plugin Active!</h3><p style=\"color:silver;font-family:sans-serif\">I was dynamically loaded directly via a native <code>import()</code> URL resolving back to the host!</p>',\n                config: {}\n            },\n            position: 'left',\n            order: 2\n        });\n    },\n    deactivate: (context) => {\n        context.log.info(\"External plugin suspended safely.\");\n    }\n}\n"
+}

@@ -1,0 +1,31 @@
+{
+  "manifest": {
+    "id": "readergo.embeddings.local",
+    "name": "Embeddings (Local)",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "Offline local embeddings for agent memory. No API key.",
+    "category": "ai",
+    "provides": [
+      "embeddings.local"
+    ],
+    "requires": [
+      "embeddings"
+    ],
+    "permissions": [
+      "ai:use"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "runtime": "local",
+    "compile": {
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/embeddings-local/src/runtime.ts\nimport { EMBEDDINGS_CAPABILITY_ID } from \"@readergo/plugin-contracts\";\nvar LOCAL_EMBEDDINGS_ID = \"local\";\nvar DIMENSIONS = 384;\nvar MODEL_NAME = \"local-hash-v1\";\nfunction hashEmbed(text) {\n  const vector = new Array(DIMENSIONS).fill(0);\n  const tokens = text.toLowerCase().split(/[^a-z0-9]+/g).filter(Boolean);\n  if (tokens.length === 0) return vector;\n  for (const token of tokens) {\n    let h = 2166136261;\n    for (let i = 0; i < token.length; i += 1) {\n      h ^= token.charCodeAt(i);\n      h = Math.imul(h, 16777619);\n    }\n    const index = Math.abs(h) % DIMENSIONS;\n    const sign = h & 1 ? 1 : -1;\n    vector[index] += sign;\n  }\n  let norm = 0;\n  for (const value of vector) norm += value * value;\n  norm = Math.sqrt(norm) || 1;\n  return vector.map((value) => value / norm);\n}\nfunction createLocalEmbeddings() {\n  return {\n    id: LOCAL_EMBEDDINGS_ID,\n    name: \"Local (offline)\",\n    async embed(req) {\n      const texts = (req.texts ?? []).map((text) => String(text ?? \"\").slice(0, 8e3));\n      const vectors = texts.map(hashEmbed);\n      return {\n        vectors,\n        dimensions: DIMENSIONS,\n        model: req.model?.trim() || MODEL_NAME\n      };\n    }\n  };\n}\nvar plugin = {\n  manifest: {\n    id: \"readergo.embeddings.local\",\n    name: \"Embeddings (Local)\",\n    version: \"0.1.0\",\n    sdkVersion: \"0.1.0\",\n    description: \"Offline local embeddings for agent memory. No API key.\",\n    category: \"ai\",\n    provides: [\"embeddings.local\"],\n    requires: [EMBEDDINGS_CAPABILITY_ID],\n    permissions: [\"ai:use\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const registry = await context.getCapability(\n      EMBEDDINGS_CAPABILITY_ID\n    );\n    if (!registry) throw new Error(\"embeddings capability is not available\");\n    registry.register(createLocalEmbeddings());\n    context.log.info(\"Local embeddings registered\");\n  }\n};\nvar runtime_default = plugin;\nexport {\n  LOCAL_EMBEDDINGS_ID,\n  runtime_default as default\n};\n"
+  }
+}

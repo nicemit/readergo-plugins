@@ -1,0 +1,35 @@
+{
+  "manifest": {
+    "id": "readergo.sftp-space",
+    "name": "SFTP Space",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "Store notes on an SFTP server (host, user, remote folder).",
+    "category": "storage",
+    "provides": [
+      "filesystem.sftp"
+    ],
+    "requires": [],
+    "permissions": [
+      "filesystem:read",
+      "filesystem:write"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "boot": "early",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/ui.ts",
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "ui": "./dist/ui.js",
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/sftp-space/sftpClient.mjs\nimport ssh2 from \"ssh2\";\nvar { Client } = ssh2;\nfunction remotePath(root, input) {\n  const base = String(root || \"/\").replace(/\\/$/, \"\") || \"/\";\n  const rel = String(input || \".\").replace(/^\\/+/, \"\");\n  if (!rel || rel === \".\") return base === \"\" ? \"/\" : base;\n  if (base === \"/\") return `/${rel}`;\n  return `${base}/${rel}`;\n}\nfunction call(sftp, method, args) {\n  return new Promise((resolve, reject) => {\n    sftp[method](...args, (err, result) => {\n      if (err) reject(err);\n      else resolve(result);\n    });\n  });\n}\nasync function connectSftp(config) {\n  const conn = new Client();\n  const sftp = await new Promise((resolve, reject) => {\n    conn.on(\"ready\", () => {\n      conn.sftp((err, session) => {\n        if (err) reject(err);\n        else resolve(session);\n      });\n    });\n    conn.on(\"error\", reject);\n    conn.connect({\n      host: String(config.host || \"127.0.0.1\"),\n      port: Number(config.port || 22),\n      username: String(config.username || \"\"),\n      password: config.password != null ? String(config.password) : void 0,\n      readyTimeout: 1e4\n    });\n  });\n  return {\n    conn,\n    sftp,\n    close() {\n      try {\n        conn.end();\n      } catch {\n      }\n    }\n  };\n}\nfunction statToEntry(relPath, st) {\n  const isDirectory = (st.mode & 61440) === 16384;\n  return {\n    path: relPath,\n    size: Number(st.size || 0),\n    modifiedAt: Number(st.mtime || 0) * (st.mtime > 1e10 ? 1 : 1e3),\n    isDirectory,\n    isFile: !isDirectory\n  };\n}\nfunction createSftpFilesystem(session, rootPath) {\n  const root = rootPath || \"/\";\n  const { sftp } = session;\n  return {\n    async read(inputPath, options) {\n      const abs = remotePath(root, inputPath);\n      const encoding = options?.encoding === \"base64\" ? \"base64\" : \"utf8\";\n      const st = await call(sftp, \"stat\", [abs]);\n      const size = Number(st?.size || 0);\n      if (size > 32 * 1024 * 1024) {\n        const err = new Error(\n          `File exceeds ${32 * 1024 * 1024} bytes (ranged reads are not in this pass)`\n        );\n        err.code = \"FS_TOO_LARGE\";\n        throw err;\n      }\n      if (encoding === \"base64\") {\n        const buf = await call(sftp, \"readFile\", [abs]);\n        const bytes = Buffer.isBuffer(buf) ? buf : Buffer.from(buf);\n        return {\n          path: inputPath,\n          content: bytes.toString(\"base64\"),\n          encoding: \"base64\"\n        };\n      }\n      const content = await call(sftp, \"readFile\", [abs, { encoding: \"utf8\" }]);\n      return { path: inputPath, content: String(content), encoding: \"utf8\" };\n    },\n    async write(inputPath, content, options) {\n      const abs = remotePath(root, inputPath);\n      const encoding = options?.encoding === \"base64\" ? \"base64\" : \"utf8\";\n      const dir = abs.split(\"/\").slice(0, -1).join(\"/\") || \"/\";\n      try {\n        await call(sftp, \"mkdir\", [dir]);\n      } catch {\n      }\n      const text = String(content ?? \"\");\n      const data = encoding === \"base64\" ? Buffer.from(text, \"base64\") : Buffer.from(text, \"utf8\");\n      if (data.length > 32 * 1024 * 1024) {\n        const err = new Error(\n          `File exceeds ${32 * 1024 * 1024} bytes (ranged reads are not in this pass)`\n        );\n        err.code = \"FS_TOO_LARGE\";\n        throw err;\n      }\n      await call(sftp, \"writeFile\", [abs, data]);\n      return { path: inputPath, bytesWritten: data.length };\n    },\n    async list(inputPath = \".\") {\n      const abs = remotePath(root, inputPath);\n      const names = await call(sftp, \"readdir\", [abs]);\n      return names.filter((n) => n.filename !== \".\" && n.filename !== \"..\").map((n) => {\n        const rel = !inputPath || inputPath === \".\" ? n.filename : `${String(inputPath).replace(/\\/$/, \"\")}/${n.filename}`;\n        return statToEntry(rel, n.attrs || {});\n      });\n    },\n    async exists(inputPath) {\n      try {\n        await call(sftp, \"stat\", [remotePath(root, inputPath)]);\n        return true;\n      } catch {\n        return false;\n      }\n    },\n    async stat(inputPath) {\n      const st = await call(sftp, \"stat\", [remotePath(root, inputPath)]);\n      return statToEntry(inputPath, st);\n    },\n    async delete(inputPath) {\n      const abs = remotePath(root, inputPath);\n      try {\n        await call(sftp, \"unlink\", [abs]);\n      } catch (err) {\n        await call(sftp, \"rmdir\", [abs]);\n      }\n    },\n    async registerSpaceRoot() {\n    },\n    async unregisterSpaceRoot() {\n    },\n    async listSpaceRoots() {\n      return [];\n    }\n  };\n}\n\n// plugins/sftp-space/src/runtime.ts\nvar sessions = /* @__PURE__ */ new Map();\nvar plugin = {\n  manifest: {\n    id: \"readergo.sftp-space\",\n    name: \"SFTP Space\",\n    version: \"0.1.0\",\n    description: \"Store notes on an SFTP server\",\n    provides: [\"filesystem.sftp\"],\n    permissions: [\"filesystem:read\", \"filesystem:write\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const api = await context.getCapability(\"space-sessions\");\n    if (!api) {\n      throw new Error(\"space-sessions capability missing (filesystem plugin)\");\n    }\n    api.registerBindHandler(\"filesystem.sftp\", {\n      async bind(spaceId, config) {\n        const resolved = {\n          host: String(config.host || \"127.0.0.1\"),\n          port: String(config.port || \"2222\"),\n          username: String(config.username || \"readergo\"),\n          password: config.password != null && String(config.password) !== \"\" ? String(config.password) : \"readergo\",\n          rootPath: String(config.rootPath || \"/\")\n        };\n        const connected = await connectSftp(resolved);\n        sessions.set(spaceId, connected);\n        const fsImpl = createSftpFilesystem(connected, resolved.rootPath);\n        api.attachFilesystem(spaceId, fsImpl);\n      },\n      async unbind(spaceId) {\n        api.detachFilesystem(spaceId);\n        const existing = sessions.get(spaceId);\n        existing?.close();\n        sessions.delete(spaceId);\n      }\n    });\n    context.log.info(\"SFTP Space Runtime plugin ready\");\n  }\n};\nvar runtime_default = plugin;\nexport {\n  runtime_default as default,\n  plugin\n};\n"
+  }
+}

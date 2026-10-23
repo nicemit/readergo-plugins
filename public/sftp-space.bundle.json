@@ -1,0 +1,33 @@
+{
+  "manifest": {
+    "id": "readergo.sftp-space",
+    "name": "SFTP Space",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "Store notes on an SFTP server (host, user, remote folder).",
+    "category": "storage",
+    "provides": [
+      "filesystem.sftp"
+    ],
+    "requires": [],
+    "permissions": [
+      "filesystem:read",
+      "filesystem:write"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "boot": "early",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/ui.ts",
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "ui": "./dist/ui.js",
+      "runtime": "./dist/runtime.mjs"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n// plugins/sftp-space/src/ui.ts\nvar SftpSpacePlugin = {\n  manifest: {\n    id: \"readergo.sftp-space\",\n    name: \"SFTP Space\",\n    version: \"0.1.0\",\n    description: \"Store notes on an SFTP server (host, user, remote folder).\",\n    category: \"storage\",\n    provides: [\"filesystem.sftp\"],\n    requires: [],\n    permissions: [\"filesystem:read\", \"filesystem:write\"],\n    source: \"external\",\n    trust: \"trusted\",\n    main: \"dist/ui.js\",\n    runtime: \"local\",\n    boot: \"early\",\n    components: { ui: \"./dist/ui.js\", runtime: \"./dist/runtime.mjs\" }\n  },\n  async activate(context) {\n    if (typeof context.registerRuntimeFilesystemBackend !== \"function\") {\n      throw new Error(\"Host does not support registerRuntimeFilesystemBackend\");\n    }\n    await context.registerRuntimeFilesystemBackend({\n      id: \"filesystem.sftp\",\n      name: \"SFTP\",\n      description: \"Notes on an SFTP server. Start the local fixture or point at your own host.\",\n      configFields: [\n        { key: \"host\", label: \"Host\", kind: \"text\", required: true, placeholder: \"127.0.0.1\" },\n        { key: \"port\", label: \"Port\", kind: \"text\", required: true, placeholder: \"2222\" },\n        { key: \"username\", label: \"Username\", kind: \"text\", required: true, placeholder: \"readergo\" },\n        { key: \"password\", label: \"Password\", kind: \"text\", required: true, placeholder: \"readergo\" },\n        { key: \"rootPath\", label: \"Remote folder\", kind: \"text\", required: true, placeholder: \"/\" }\n      ]\n    });\n    await context.log.info(\"SFTP Space backend registered\");\n  },\n  async deactivate(context) {\n    await context.log.info(\"SFTP Space UI deactivated\");\n  }\n};\nvar ui_default = SftpSpacePlugin;\n\n\n  return { SftpSpacePlugin: SftpSpacePlugin, default: ui_default };\n}\n"
+}

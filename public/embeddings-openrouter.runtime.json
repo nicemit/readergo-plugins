@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "id": "readergo.embeddings.openrouter",
+    "name": "Embeddings (OpenRouter)",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "OpenRouter embeddings API provider for agent memory.",
+    "category": "ai",
+    "provides": [
+      "embeddings.openrouter"
+    ],
+    "requires": [
+      "embeddings"
+    ],
+    "permissions": [
+      "ai:use",
+      "network:request"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "runtime": "local",
+    "compile": {
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/embeddings-openrouter/src/runtime.ts\nimport { EMBEDDINGS_CAPABILITY_ID } from \"@readergo/plugin-contracts\";\nvar OPENROUTER_EMBEDDINGS_ID = \"openrouter\";\nvar OPENROUTER_URL = \"https://openrouter.ai/api/v1/embeddings\";\nvar DEFAULT_MODEL = \"openai/text-embedding-3-small\";\nfunction createOpenRouterEmbeddings() {\n  return {\n    id: OPENROUTER_EMBEDDINGS_ID,\n    name: \"OpenRouter\",\n    async embed(req, signal) {\n      const apiKey = req.apiKey?.trim();\n      if (!apiKey) {\n        throw new Error(\"OpenRouter embeddings need an API key\");\n      }\n      const model = req.model?.trim() || DEFAULT_MODEL;\n      const texts = (req.texts ?? []).map((text) => String(text ?? \"\").slice(0, 8e3));\n      if (texts.length === 0) {\n        return { vectors: [], dimensions: 0, model };\n      }\n      const response = await fetch(OPENROUTER_URL, {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n          Authorization: `Bearer ${apiKey}`,\n          \"X-Title\": \"ReaderGo\"\n        },\n        body: JSON.stringify({ model, input: texts }),\n        signal\n      });\n      if (!response.ok) {\n        const errText = await response.text().catch(() => response.statusText);\n        throw new Error(\n          `OpenRouter embeddings failed (${response.status}): ${errText.slice(0, 400)}`\n        );\n      }\n      const json = await response.json();\n      if (json.error?.message) {\n        throw new Error(`OpenRouter embeddings failed: ${json.error.message}`);\n      }\n      const sorted = [...json.data ?? []].sort(\n        (a, b) => (a.index ?? 0) - (b.index ?? 0)\n      );\n      const vectors = sorted.map(\n        (item) => Array.isArray(item.embedding) ? item.embedding.map(Number) : []\n      );\n      const dimensions = vectors[0]?.length ?? 0;\n      return { vectors, dimensions, model };\n    }\n  };\n}\nvar plugin = {\n  manifest: {\n    id: \"readergo.embeddings.openrouter\",\n    name: \"Embeddings (OpenRouter)\",\n    version: \"0.1.0\",\n    sdkVersion: \"0.1.0\",\n    description: \"OpenRouter embeddings API provider for agent memory.\",\n    category: \"ai\",\n    provides: [\"embeddings.openrouter\"],\n    requires: [EMBEDDINGS_CAPABILITY_ID],\n    permissions: [\"ai:use\", \"network:request\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const registry = await context.getCapability(\n      EMBEDDINGS_CAPABILITY_ID\n    );\n    if (!registry) throw new Error(\"embeddings capability is not available\");\n    registry.register(createOpenRouterEmbeddings());\n    context.log.info(\"OpenRouter embeddings registered\");\n  }\n};\nvar runtime_default = plugin;\nexport {\n  OPENROUTER_EMBEDDINGS_ID,\n  runtime_default as default\n};\n"
+  }
+}

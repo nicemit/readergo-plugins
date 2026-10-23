@@ -1,0 +1,21 @@
+{
+  "manifest": {
+    "id": "readergo.features.selection-actions",
+    "name": "Selection Actions",
+    "version": "1.0.0",
+    "description": "Contribution Places demo: Copy and Log on text selection",
+    "category": "feature",
+    "provides": [],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n// plugins/selection-actions/src/index.ts\nconst { WellKnownPlaces } = __readergoModule(\"@readergo/plugin-sdk\");\nvar manifest = {\n  id: \"readergo.features.selection-actions\",\n  name: \"Selection Actions\",\n  version: \"1.0.0\",\n  description: \"Contribution Places demo: Copy and Log on text selection\",\n  category: \"feature\",\n  provides: [],\n  requires: [],\n  permissions: []\n};\nvar SelectionActionsPlugin = {\n  manifest,\n  async activate(context) {\n    context.log.info(\"Selection Actions plugin activating...\");\n    await context.registerCommand({\n      id: \"readergo.selection.copy\",\n      title: \"Copy Selection\",\n      handler: async (payload) => {\n        const text = payload?.text || \"\";\n        if (!text) return { success: false, error: \"No selection\" };\n        try {\n          await navigator.clipboard.writeText(text);\n          context.log.info(`Copied ${text.length} characters`);\n          return { success: true };\n        } catch (err) {\n          const message = err instanceof Error ? err.message : String(err);\n          return { success: false, error: message };\n        }\n      }\n    });\n    await context.registerCommand({\n      id: \"readergo.selection.log\",\n      title: \"Log Selection\",\n      handler: async (payload) => {\n        context.log.info(\n          `Selection (${payload?.editorType || \"unknown\"} / ${payload?.documentId || \"-\"}):`,\n          payload?.text || \"\"\n        );\n        return { success: true, length: payload?.text?.length || 0 };\n      }\n    });\n    await context.registerContribution({\n      id: \"readergo.selection-actions.copy\",\n      place: WellKnownPlaces.EDITOR_SELECTION_MENU,\n      title: \"Copy\",\n      order: 10,\n      requires: [\"text-range\"],\n      when: { hasSelection: true },\n      commandId: \"readergo.selection.copy\"\n    });\n    await context.registerContribution({\n      id: \"readergo.selection-actions.log\",\n      place: WellKnownPlaces.EDITOR_SELECTION_MENU,\n      title: \"Log\",\n      order: 20,\n      requires: [\"text-range\"],\n      when: { hasSelection: true },\n      commandId: \"readergo.selection.log\"\n    });\n    context.log.info(\"Registered editor/selection-menu contributions\");\n  },\n  deactivate(context) {\n    context.log.info(\"Selection Actions plugin deactivated\");\n  }\n};\n\n\n  return { SelectionActionsPlugin: SelectionActionsPlugin };\n}\n"
+}

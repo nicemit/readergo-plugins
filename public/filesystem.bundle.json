@@ -1,0 +1,23 @@
+{
+  "manifest": {
+    "id": "readergo.filesystem",
+    "name": "Filesystem (Runtime)",
+    "version": "0.3.0",
+    "sdkVersion": "0.1.0",
+    "description": "Runtime filesystem capability for Spaces. Requires Local Runtime Host.",
+    "category": "storage",
+    "provides": [
+      "filesystem-ui"
+    ],
+    "requires": [],
+    "permissions": [
+      "filesystem:read",
+      "filesystem:write"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "main": "index.js",
+    "runtime": "local"
+  },
+  "entryCode": "/**\n * Sideload entry for Filesystem UI marker.\n * Filesystem ops run in the Runtime Host.\n */\nexport const FilesystemUiPlugin = {\n  manifest: {\n    id: 'readergo.filesystem',\n    name: 'Filesystem (Runtime)',\n    category: 'storage',\n    version: '0.3.0',\n    description:\n      'Runtime filesystem capability for Spaces. Requires Local Runtime Host.',\n    provides: ['filesystem-ui'],\n    requires: [],\n    permissions: ['filesystem:read', 'filesystem:write'],\n    source: 'external',\n    trust: 'trusted',\n    main: 'index.js',\n    runtime: 'local',\n  },\n  async activate(context) {\n    await context.log.info(\n      'Filesystem UI plugin activated (Runtime Spaces + /fs-demo harness)',\n    );\n  },\n  async deactivate(context) {\n    await context.log.info('Filesystem UI plugin deactivated');\n  },\n};\n\nexport default FilesystemUiPlugin;\n"
+}

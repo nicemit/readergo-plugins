@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "id": "readergo.llm.openrouter",
+    "name": "OpenRouter",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "OpenRouter model provider for agent chat. Asks for an API key when selected.",
+    "category": "ai",
+    "provides": [
+      "llm-chat.openrouter"
+    ],
+    "requires": [
+      "llm-chat"
+    ],
+    "permissions": [
+      "ai:use",
+      "network:request"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "runtime": "local",
+    "compile": {
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/openrouter/src/runtime.ts\nimport { LLM_CHAT_CAPABILITY_ID } from \"@readergo/plugin-contracts\";\nvar OPENROUTER_URL = \"https://openrouter.ai/api/v1/chat/completions\";\nvar DEFAULT_MODEL = \"openai/gpt-4o-mini\";\nvar OPENROUTER_PROVIDER_ID = \"openrouter\";\nfunction createOpenRouterProvider() {\n  return {\n    id: OPENROUTER_PROVIDER_ID,\n    name: \"OpenRouter\",\n    async complete(req, signal) {\n      const model = req.model?.trim() || DEFAULT_MODEL;\n      const body = {\n        model,\n        messages: req.messages.map(toOpenAIMessage)\n      };\n      if (req.tools.length > 0) {\n        body.tools = req.tools.map((tool) => ({\n          type: \"function\",\n          function: {\n            name: tool.name,\n            description: tool.description,\n            parameters: tool.inputSchema\n          }\n        }));\n        body.tool_choice = \"auto\";\n      }\n      const response = await fetch(OPENROUTER_URL, {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/json\",\n          Authorization: `Bearer ${req.apiKey}`,\n          \"X-Title\": \"ReaderGo\"\n        },\n        body: JSON.stringify(body),\n        signal\n      });\n      if (!response.ok) {\n        const errText = await response.text().catch(() => response.statusText);\n        throw new Error(`OpenRouter request failed (${response.status}): ${clip(errText)}`);\n      }\n      const json = await response.json();\n      if (json.error?.message) {\n        throw new Error(`OpenRouter request failed: ${json.error.message}`);\n      }\n      const message = json.choices?.[0]?.message;\n      const toolCalls = (message?.tool_calls ?? []).map(parseToolCall).filter((call) => call !== null);\n      return {\n        text: typeof message?.content === \"string\" ? message.content : \"\",\n        toolCalls: toolCalls.length > 0 ? toolCalls : void 0\n      };\n    }\n  };\n}\nvar plugin = {\n  manifest: {\n    id: \"readergo.llm.openrouter\",\n    name: \"OpenRouter\",\n    version: \"0.1.0\",\n    sdkVersion: \"0.1.0\",\n    description: \"OpenRouter model provider for agent chat\",\n    category: \"ai\",\n    provides: [\"llm-chat.openrouter\"],\n    requires: [LLM_CHAT_CAPABILITY_ID],\n    permissions: [\"ai:use\", \"network:request\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const llm = await context.getCapability(LLM_CHAT_CAPABILITY_ID);\n    if (!llm) {\n      throw new Error(\"llm-chat capability is not available\");\n    }\n    llm.register(createOpenRouterProvider());\n    context.log.info(\"OpenRouter provider registered\");\n  }\n};\nvar runtime_default = plugin;\nfunction toOpenAIMessage(message) {\n  if (message.role === \"tool\") {\n    return {\n      role: \"tool\",\n      tool_call_id: message.toolCallId,\n      content: message.content\n    };\n  }\n  if (message.role === \"assistant\" && message.toolCalls && message.toolCalls.length > 0) {\n    return {\n      role: \"assistant\",\n      content: message.content || null,\n      tool_calls: message.toolCalls.map((call) => ({\n        id: call.id,\n        type: \"function\",\n        function: {\n          name: call.name,\n          arguments: JSON.stringify(call.arguments ?? {})\n        }\n      }))\n    };\n  }\n  return { role: message.role, content: message.content };\n}\nfunction parseToolCall(raw) {\n  const name = raw.function?.name;\n  if (!name) return null;\n  let args = {};\n  const text = raw.function?.arguments;\n  if (typeof text === \"string\" && text.trim()) {\n    try {\n      const parsed = JSON.parse(text);\n      if (parsed && typeof parsed === \"object\" && !Array.isArray(parsed)) {\n        args = parsed;\n      }\n    } catch {\n      args = {};\n    }\n  }\n  return {\n    id: raw.id || `call_${name}`,\n    name,\n    arguments: args\n  };\n}\nfunction clip(text) {\n  return text.replace(/\\s+/g, \" \").trim().slice(0, 300);\n}\nexport {\n  OPENROUTER_PROVIDER_ID,\n  createOpenRouterProvider,\n  runtime_default as default\n};\n"
+  }
+}

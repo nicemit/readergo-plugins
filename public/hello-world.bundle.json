@@ -1,0 +1,21 @@
+{
+  "manifest": {
+    "id": "readergo.examples.hello-world",
+    "name": "Hello World Example",
+    "version": "1.0.0",
+    "description": "A minimal plugin demonstrating activation and logging.",
+    "category": "feature",
+    "provides": [],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": false,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n// plugins/hello-world/src/index.ts\nvar manifest = {\n  id: \"readergo.examples.hello-world\",\n  name: \"Hello World Example\",\n  version: \"1.0.0\",\n  description: \"A minimal plugin demonstrating activation and logging.\",\n  category: \"feature\",\n  provides: [],\n  requires: [],\n  permissions: []\n};\nvar HelloWorldPlugin = {\n  manifest,\n  async activate(context) {\n    context.log.info(\"\\u{1F44B} Hello World plugin has activated!\");\n    await context.subscribe(\"system:ready\", () => {\n      context.log.info(\"System is ready, acknowledged by Hello World.\");\n    });\n  },\n  deactivate(context) {\n    context.log.info(\"\\u{1F44B} Hello World plugin has deactivated!\");\n  }\n};\n\n\n  return { HelloWorldPlugin: HelloWorldPlugin };\n}\n"
+}
