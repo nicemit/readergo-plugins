@@ -84,8 +84,8 @@ function descendants(data: MindmapData, id: string): string[] {
 }
 
 export function MindmapEditor(props: EditorProps) {
-  const note = props.currentNote as { id?: string; data?: unknown } | null | undefined;
-  const [data, setData] = useState<MindmapData>(() => normalizeMindmap(note?.data));
+  const note = props.currentNote as { id?: string; data?: unknown; content?: string } | null | undefined;
+  const [data, setData] = useState<MindmapData>(() => normalizeMindmap(note?.data, note?.content));
   const [selected, setSelected] = useState(MINDMAP_ROOT_ID);
   const [view, setView] = useState({ x: 80, y: 80, zoom: 1 });
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -101,13 +101,13 @@ export function MindmapEditor(props: EditorProps) {
   onChangeRef.current = props.onChange;
 
   useEffect(() => {
-    const next = normalizeMindmap(note?.data);
+    const next = normalizeMindmap(note?.data, note?.content);
     const snap = JSON.stringify(next);
     if (snap === incomingRef.current) return;
     incomingRef.current = snap;
     dataRef.current = next;
     setData(next);
-  }, [note?.id, note?.data]);
+  }, [note?.id, note?.data, note?.content]);
 
   useEffect(() => {
     focusRef.current = MINDMAP_ROOT_ID;

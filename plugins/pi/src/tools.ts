@@ -390,6 +390,18 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
   if (req.memory?.embeddingsId && req.memory?.vectorStoreId) {
     lines.push('You can search indexed chat memory with memory_search.');
   }
+  if (browserTools.some((t) => t.name === 'create_document')) {
+    lines.push(
+      'Document creation & editing capabilities:\n' +
+        '- You can create new documents or notes using `create_document`. Supported document types include "note", "spreadsheet", "whiteboard", "graph", "canvas".\n' +
+        '- To check which document types and structured data templates are available before creating complex documents, call `get_available_document_types`.\n' +
+        '- When specialized plugins provide dedicated tools (such as `mindmap_create` for mindmaps), ALWAYS prefer calling those dedicated tools to create and structure the document directly.\n' +
+        '- You can update existing documents using `update_document`. For text notes, specify mode "append" or "replace" for content. For structured documents, pass updated `data`.\n' +
+        '- You can inspect the currently open document in the editor with `get_active_document`.\n' +
+        '- You can delete documents with `delete_document` when explicitly asked.',
+    );
+  }
+
   if (browserTools.length > 0) {
     lines.push(`Extra tools: ${browserTools.map((item) => item.name).join(', ')}.`);
   }

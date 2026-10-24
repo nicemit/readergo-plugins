@@ -1,7 +1,7 @@
 {
   "id": "readergo.editor.mindmap",
   "name": "Mindmap",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Create, edit, and save mind maps.",
   "category": "editor",
   "provides": [

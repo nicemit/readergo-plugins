@@ -4,6 +4,7 @@ import { StandardCapabilities } from './Capabilities';
 import { CommandRegistration } from './Command';
 import { EditorRegistration, EditorCapability } from './Document';
 import { PlaceContribution } from './ContributionPlace';
+import { AgentToolRegistration } from './AgentTool';
 
 import type { ComponentType } from 'react';
 import { Document } from './Document';
@@ -103,7 +104,15 @@ export interface PluginContext {
      */
     registerContribution(contribution: PlaceContribution): Promise<void>;
 
+    /**
+     * Register an Agent / MCP tool that AI agents and LLMs can call.
+     * The tool is exposed to the agent runtime and executed by the plugin handler.
+     */
+    registerTool(tool: AgentToolRegistration): Promise<void>;
+    registerAgentTool?(tool: AgentToolRegistration): Promise<void>;
+
     /** Execute a registered command by ID */
+
     executeCommand(commandId: string, payload?: unknown): Promise<any>;
 
     /** Event bus for Pub/Sub across the platform */
