@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.nord",
+  "name": "Nord Frost Theme",
+  "version": "1.0.0",
+  "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": false,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

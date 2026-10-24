@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.amber",
+  "name": "Amber CRT Terminal",
+  "version": "1.0.0",
+  "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": false,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}
