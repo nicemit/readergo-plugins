@@ -14,7 +14,7 @@
   "source": "external",
   "main": "dist/ui.js",
   "runtime": "local",
-  "autoActivate": false,
+  "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
   }
