@@ -1,6 +1,14 @@
 {
   "plugins": [
     {
+      "id": "readergo.theme.amber",
+      "name": "Amber CRT Terminal",
+      "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-amber-terminal.bundle.json"
+    },
+    {
       "id": "readergo.editor.canvas",
       "name": "Canvas",
       "description": "Structured infinite canvas for organizing documents",
@@ -94,6 +102,14 @@
       "category": "editor",
       "version": "0.1.0",
       "bundleUrl": "mindmap.bundle.json"
+    },
+    {
+      "id": "readergo.theme.nord",
+      "name": "Nord Frost Theme",
+      "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-nord.bundle.json"
     },
     {
       "id": "readergo.tools.note-digest",

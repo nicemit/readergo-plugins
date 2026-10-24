@@ -1,0 +1,24 @@
+{
+  "manifest": {
+    "id": "readergo.theme.nord",
+    "name": "Nord Frost Theme",
+    "version": "1.0.0",
+    "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
+    "category": "feature",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": false,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n// plugins/theme-nord/src/index.ts\nvar JAKARTA_FONT = {\n  id: \"plus-jakarta-sans\",\n  name: \"Plus Jakarta Sans\",\n  family: \"'Plus Jakarta Sans', sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap\",\n  targets: [\"all\"]\n};\nvar NORD_THEME = {\n  id: \"nord-frost\",\n  name: \"Nord Frost\",\n  type: \"dark\",\n  author: \"Arctic Ice Studio\",\n  description: \"An arctic, north-bluish palette engineered for calm focus with clean Plus Jakarta Sans typography.\",\n  colors: {\n    background: \"220 16% 14%\",\n    // Nord 0 #2e3440\n    foreground: \"218 27% 92%\",\n    // Nord 6 #eceff4\n    card: \"222 16% 19%\",\n    // Nord 1 #3b4252\n    cardForeground: \"218 27% 92%\",\n    border: \"220 17% 28%\",\n    // Nord 2 #434c5e\n    primary: \"193 43% 67%\",\n    // Nord 8 #88c0d0 Frost Cyan\n    primaryForeground: \"220 16% 14%\",\n    secondary: \"220 16% 22%\",\n    // Nord 2\n    secondaryForeground: \"218 27% 92%\",\n    muted: \"222 16% 19%\",\n    mutedForeground: \"219 14% 65%\",\n    // Nord 4 #d8dee9\n    accent: \"179 25% 65%\",\n    // Nord 7 #8fbcbb Phosphor Mint\n    accentForeground: \"220 16% 14%\",\n    destructive: \"354 42% 56%\",\n    // Nord 11 #bf616a Aurora Red\n    destructiveForeground: \"218 27% 92%\",\n    success: \"92 28% 65%\",\n    // Nord 14 #a3be8c Aurora Green\n    successForeground: \"220 16% 14%\",\n    warning: \"40 71% 73%\",\n    // Nord 13 #ebcb8b Aurora Yellow\n    warningForeground: \"220 16% 14%\",\n    info: \"193 43% 67%\",\n    // Nord 8 #88c0d0 Frost Cyan\n    infoForeground: \"220 16% 14%\",\n    input: \"222 16% 19%\",\n    ring: \"193 43% 67%\",\n    heading1: \"193 43% 75%\",\n    heading2: \"213 32% 72%\",\n    heading3: \"179 25% 72%\"\n  },\n  fonts: {\n    display: JAKARTA_FONT,\n    body: JAKARTA_FONT\n  }\n};\nvar NordThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.nord\",\n    name: \"Nord Frost Theme\",\n    version: \"1.1.0\",\n    description: \"Arctic, north-bluish clean palette engineered for calm focus with Plus Jakarta Sans typography.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    context.log.info(\"\\u2744\\uFE0F Nord Frost theme plugin activating with typography...\");\n    await context.registerCapability(\"theme-provider\", {\n      getThemes: () => [NORD_THEME]\n    });\n    await context.registerCapability(\"font-provider\", {\n      getFonts: () => [JAKARTA_FONT]\n    });\n  },\n  deactivate(context) {\n    context.log.info(\"\\u2744\\uFE0F Nord Frost theme plugin deactivated.\");\n  }\n};\nvar index_default = NordThemePlugin;\n\n\n  return { NordThemePlugin: NordThemePlugin, default: index_default };\n}\n"
+}
