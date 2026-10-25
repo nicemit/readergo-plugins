@@ -172,7 +172,7 @@
       "category": "ai",
       "version": "0.2.0",
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "ce79aadca70320e3"
+      "runtimeBundleHash": "5c54ef8d0a5c9a1a"
     },
     {
       "id": "readergo.features.pin-notes",

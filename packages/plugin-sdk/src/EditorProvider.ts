@@ -7,6 +7,8 @@
 import { ComponentType } from 'react';
 
 export interface EditorProps {
+    /** Unique tab / pane editor instance identifier (Rule 11) */
+    instanceId?: string;
     content?: string;
     onChange?: (content: string) => void;
     onSave?: (content: string) => void;
