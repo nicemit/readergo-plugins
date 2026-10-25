@@ -251,10 +251,10 @@
       "name": "Spreadsheet",
       "description": "A basic grid-based editor for spreadsheet data",
       "category": "editor",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "bundleUrl": "spreadsheet.bundle.json",
-      "bundleHash": "bd5bebd3abce485e",
-      "hash": "bd5bebd3abce485e"
+      "bundleHash": "25f5e423954c4f6f",
+      "hash": "25f5e423954c4f6f"
     },
     {
       "id": "readergo.examples.sync-style",
