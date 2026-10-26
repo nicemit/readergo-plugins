@@ -1,18 +1,60 @@
 export const MINDMAP_ROOT_ID = 'root';
 
+export type MindmapLayout = 'balanced' | 'right' | 'down';
+
 export type MindNode = {
   id: string;
   parentId: string | null;
   text: string;
   order: number;
+  color?: string;
+  collapsed?: boolean;
+  callout?: string;
+  note?: string;
 };
 
 export type MindmapData = {
   nodes: Record<string, MindNode>;
+  layout?: MindmapLayout;
+  theme?: string;
 };
+
+export const BRANCH_PALETTE = [
+  '#3b82f6', // Sky Blue
+  '#10b981', // Mint Emerald
+  '#8b5cf6', // Electric Violet
+  '#f59e0b', // Warm Amber
+  '#f43f5e', // Vibrant Rose
+  '#06b6d4', // Teal Cyan
+  '#d946ef', // Neon Magenta
+  '#6366f1', // Indigo
+];
+
+export function getBranchColor(nodeId: string, data: MindmapData): string {
+  if (nodeId === MINDMAP_ROOT_ID) return 'hsl(var(--primary))';
+  const node = data.nodes[nodeId];
+  if (!node) return BRANCH_PALETTE[0];
+  if (node.color) return node.color;
+
+  let current: MindNode = node;
+  while (current.parentId && current.parentId !== MINDMAP_ROOT_ID) {
+    const parent = data.nodes[current.parentId];
+    if (!parent) break;
+    current = parent;
+  }
+  if (current.color) return current.color;
+
+  const rootChildren = Object.values(data.nodes)
+    .filter((n) => n.parentId === MINDMAP_ROOT_ID)
+    .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+
+  const idx = rootChildren.findIndex((k) => k.id === current.id);
+  return BRANCH_PALETTE[(idx >= 0 ? idx : 0) % BRANCH_PALETTE.length];
+}
 
 export function emptyMindmap(): MindmapData {
   return {
+    layout: 'balanced',
     nodes: {
       [MINDMAP_ROOT_ID]: {
         id: MINDMAP_ROOT_ID,
@@ -130,11 +172,20 @@ function normalizeNodeMap(nodesRaw: Record<string, unknown>): MindmapData {
     const text = typeof row.text === 'string' ? row.text : (typeof row.title === 'string' ? row.title : '');
     const order = typeof row.order === 'number' ? row.order : 0;
 
+    const color = typeof row.color === 'string' ? row.color : undefined;
+    const collapsed = typeof row.collapsed === 'boolean' ? row.collapsed : undefined;
+    const callout = typeof row.callout === 'string' ? row.callout : undefined;
+    const note = typeof row.note === 'string' ? row.note : undefined;
+
     nodes[assignedId] = {
       id: assignedId,
       parentId,
       text,
       order,
+      ...(color ? { color } : {}),
+      ...(collapsed ? { collapsed } : {}),
+      ...(callout ? { callout } : {}),
+      ...(note ? { note } : {}),
     };
   }
 
@@ -295,6 +346,11 @@ export function normalizeMindmap(raw: unknown, fallbackContent?: string): Mindma
     return normalizeTree(rawObj);
   }
 
+  const layout =
+    rawObj.layout === 'balanced' || rawObj.layout === 'right' || rawObj.layout === 'down'
+      ? rawObj.layout
+      : 'balanced';
+
   const nodesRaw = rawObj.nodes;
   if (nodesRaw && typeof nodesRaw === 'object' && !Array.isArray(nodesRaw)) {
     const normalized = normalizeNodeMap(nodesRaw as Record<string, unknown>);
@@ -304,18 +360,18 @@ export function normalizeMindmap(raw: unknown, fallbackContent?: string): Mindma
       if (typeof fallbackContent === 'string' && fallbackContent.trim()) {
         const outlineParsed = parseMindmapOutline(fallbackContent);
         if (Object.keys(outlineParsed.nodes).length > 1 || outlineParsed.nodes[MINDMAP_ROOT_ID]?.text !== 'Central idea') {
-          return outlineParsed;
+          return { ...outlineParsed, layout };
         }
       }
     }
-    return normalized;
+    return { ...normalized, layout };
   }
 
   if (typeof fallbackContent === 'string' && fallbackContent.trim()) {
-    return parseMindmapOutline(fallbackContent);
+    return { ...parseMindmapOutline(fallbackContent), layout };
   }
 
-  return base;
+  return { ...base, layout };
 }
 
 export function childrenOf(data: MindmapData, parentId: string): MindNode[] {
