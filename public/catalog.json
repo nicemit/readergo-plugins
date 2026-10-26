@@ -267,6 +267,16 @@
       "hash": "52a6d05a5241e19a"
     },
     {
+      "id": "readergo.features.thinking-partner",
+      "name": "Thinking Partner",
+      "description": "In-editor intelligence: automatic knowledge connection discovery, unlinked mention linking, and dynamic content-aware actions",
+      "category": "ai",
+      "version": "1.0.7",
+      "bundleUrl": "thinking-partner.bundle.json",
+      "bundleHash": "8d5200d22c6dc056",
+      "hash": "8d5200d22c6dc056"
+    },
+    {
       "id": "readergo.vector-store.lancedb",
       "name": "Vector Store (Local)",
       "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
