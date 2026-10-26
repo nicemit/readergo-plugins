@@ -273,8 +273,8 @@
       "category": "ai",
       "version": "1.0.9",
       "bundleUrl": "thinking-partner.bundle.json",
-      "bundleHash": "31d3e1f56d889d20",
-      "hash": "31d3e1f56d889d20"
+      "bundleHash": "fedb8bb191502a98",
+      "hash": "fedb8bb191502a98"
     },
     {
       "id": "readergo.vector-store.lancedb",

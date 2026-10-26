@@ -132,9 +132,12 @@ export function ThinkingPartnerPanel({
         setProfile(docProfile);
 
         const allSummaries = (await storage.list()) || [];
+        // Zero HTTP N+1: Local-first SQLite storage returns full document content.
+        // Fallback to storage.get only if content is missing.
         const hydratedNotes = await Promise.all(
-          allSummaries.slice(0, 40).map(async (doc: any) => {
-            if (doc.id === noteId) return null;
+          allSummaries.slice(0, 50).map(async (doc: any) => {
+            if (!doc || doc.id === noteId) return null;
+            if (typeof doc.content === 'string' && doc.content.length > 0) return doc;
             try {
               return await storage.get(doc.id);
             } catch {
@@ -143,7 +146,24 @@ export function ThinkingPartnerPanel({
           })
         );
 
+        // Fetch local backlinks in < 1ms via indexed SQLite link graph if capability supports it
+        let directBacklinks: any[] = [];
+        if (typeof storage.getBacklinks === 'function' && currentDoc.title) {
+          try {
+            directBacklinks = await storage.getBacklinks(currentDoc.title);
+          } catch {
+            // graceful fallback
+          }
+        }
+
         const validOtherNotes = hydratedNotes.filter(Boolean);
+        // Include any backlinked documents in the candidate pool
+        for (const bl of directBacklinks) {
+          if (bl && bl.id !== noteId && !validOtherNotes.some((n: any) => n.id === bl.id)) {
+            validOtherNotes.push(bl);
+          }
+        }
+
         const discovered = findRelatedNotes(noteId, docProfile, validOtherNotes, cfg);
         setRelatedNotes(discovered);
 
