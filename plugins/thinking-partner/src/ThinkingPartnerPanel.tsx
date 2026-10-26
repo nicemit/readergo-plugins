@@ -204,15 +204,16 @@ export function ThinkingPartnerPanel({
     try {
       setLinkingNoteId(related.id);
 
-      const linkText = `\n\nRelated: [[${related.title}]]\n`;
-      const updatedContent = currentContent + linkText;
+      const linkBlock = `Related: [[${related.title}]]`;
 
-      await context.executeCommand('readergo.note.update', {
+      // Use document update tool through canonical command
+      await context.executeCommand('readergo.document.update', {
         id: noteId,
-        content: updatedContent,
+        content: linkBlock,
+        mode: 'append',
       });
 
-      setCurrentContent(updatedContent);
+      setCurrentContent((prev) => `${prev}\n\n${linkBlock}`);
 
       const toast = await context.getCapability<any>('toast-service');
       if (toast?.success) {
@@ -223,7 +224,8 @@ export function ThinkingPartnerPanel({
         actionId: `link-${related.id}`,
         result: {
           title: `Linked [[${related.title}]]`,
-          content: updatedContent,
+          content: linkBlock,
+          mode: 'append',
           type: 'insert',
           summary: `Added bidirectional reference to [[${related.title}]]`,
           details: [`Injected "Related: [[${related.title}]]" at current position`],
@@ -250,13 +252,20 @@ export function ThinkingPartnerPanel({
       await new Promise((r) => setTimeout(r, 200));
 
       const result = await action.execute();
+      const mode = result.mode || (result.type === 'replace' ? 'replace' : 'append');
 
-      await context.executeCommand('readergo.note.update', {
+      // Use document update tool through canonical command
+      await context.executeCommand('readergo.document.update', {
         id: noteId,
         content: result.content,
+        mode,
       });
 
-      setCurrentContent(result.content);
+      if (mode === 'append') {
+        setCurrentContent((prev) => `${prev}\n\n${result.content}`);
+      } else {
+        setCurrentContent(result.content);
+      }
 
       // Save execution state for inline feedback & undo
       setLastActionResult({
@@ -282,9 +291,11 @@ export function ThinkingPartnerPanel({
   const handleUndo = async () => {
     if (!noteId || !lastActionResult) return;
     try {
-      await context.executeCommand('readergo.note.update', {
+      // Revert using document update tool with mode replace
+      await context.executeCommand('readergo.document.update', {
         id: noteId,
         content: lastActionResult.previousContent,
+        mode: 'replace',
       });
 
       setCurrentContent(lastActionResult.previousContent);
@@ -426,6 +437,21 @@ export function ThinkingPartnerPanel({
         </div>
       )}
 
+      {/* Document Intent & Classification Badge */}
+      {profile && (
+        <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-muted/30 border border-border/30">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="font-medium text-foreground/90">{profile.intentLabel}</span>
+            <span className="text-[10px] text-muted-foreground/60">({profile.wordCount} words)</span>
+          </div>
+          {profile.detectedDuplicates.length > 0 && (
+            <span className="text-[10px] font-mono font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+              {profile.detectedDuplicates.length} dupe{profile.detectedDuplicates.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Discovered Topic & Entity Tags (Zero Pure Numbers) */}
       {profile && profile.topics.length > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -559,19 +585,41 @@ export function ThinkingPartnerPanel({
               return (
                 <div
                   key={rel.id}
-                  className="group rounded-lg border border-border/40 bg-card/60 p-2 hover:border-primary/30 hover:bg-card/90 transition-all space-y-1.5"
+                  className="group rounded-lg border border-border/40 bg-card/60 p-2.5 hover:border-primary/30 hover:bg-card/90 transition-all space-y-1.5"
                 >
                   <div className="flex items-start justify-between gap-1.5">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                           {rel.title}
                         </span>
+                        {isLinked && (
+                          <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-muted text-muted-foreground border border-border/40">
+                            Linked
+                          </span>
+                        )}
                       </div>
-                      {rel.reason === 'unlinked-mention' && (
-                        <span className="inline-block text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 mt-0.5">
-                          Unlinked Mention: "{rel.matchTerm}"
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span
+                          className={`inline-block text-[9px] font-mono px-1.5 py-0.2 rounded border ${
+                            isLinked
+                              ? 'bg-muted text-muted-foreground border-border/30'
+                              : rel.reason === 'unlinked-mention'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              : 'bg-primary/10 text-primary border-primary/20'
+                          }`}
+                        >
+                          {isLinked
+                            ? `🔗 Linked: "${rel.matchTerm}"`
+                            : rel.reason === 'unlinked-mention'
+                            ? `💡 Mention: "${rel.matchTerm}"`
+                            : `⚡ Shared Topic: "${rel.matchTerm}"`}
                         </span>
+                      </div>
+                      {rel.description && (
+                        <p className="text-[10px] text-muted-foreground/90 mt-1 leading-relaxed">
+                          {rel.description}
+                        </p>
                       )}
                     </div>
 
@@ -620,7 +668,7 @@ export function ThinkingPartnerPanel({
                   </div>
 
                   {rel.snippet && (
-                    <p className="text-[10px] text-muted-foreground/80 line-clamp-2 italic bg-muted/20 p-1.5 rounded border border-border/20">
+                    <p className="text-[10px] text-muted-foreground/80 line-clamp-2 italic bg-muted/20 p-1.5 rounded border border-border/20 mt-1">
                       "{rel.snippet}"
                     </p>
                   )}

@@ -271,10 +271,10 @@
       "name": "Thinking Partner",
       "description": "In-editor intelligence: automatic knowledge connection discovery, unlinked mention linking, and dynamic content-aware actions",
       "category": "ai",
-      "version": "1.0.7",
+      "version": "1.0.9",
       "bundleUrl": "thinking-partner.bundle.json",
-      "bundleHash": "8d5200d22c6dc056",
-      "hash": "8d5200d22c6dc056"
+      "bundleHash": "31d3e1f56d889d20",
+      "hash": "31d3e1f56d889d20"
     },
     {
       "id": "readergo.vector-store.lancedb",

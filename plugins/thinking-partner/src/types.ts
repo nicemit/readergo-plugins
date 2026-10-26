@@ -3,6 +3,7 @@ export interface RelatedNote {
   title: string;
   snippet: string;
   reason: 'unlinked-mention' | 'keyword-overlap' | 'shared-topic';
+  description: string;
   matchTerm: string;
   isAlreadyLinked: boolean;
   score: number;
@@ -13,6 +14,7 @@ export type ActionCategory = 'linking' | 'tasks' | 'critique' | 'summary' | 'str
 export interface ActionResult {
   title: string;
   content: string;
+  mode?: 'append' | 'replace';
   type: 'insert' | 'replace' | 'toast';
   summary?: string;
   details?: string[];
@@ -29,16 +31,33 @@ export interface DynamicAction {
   execute: () => Promise<ActionResult>;
 }
 
+export type DocumentIntent =
+  | 'article'
+  | 'technical-spec'
+  | 'meeting'
+  | 'list-catalog'
+  | 'task-tracker'
+  | 'brainstorm';
+
+export interface DetectedDuplicate {
+  item: string;
+  count: number;
+}
+
 export interface DocumentProfile {
   title: string;
   rawText: string;
   wordCount: number;
+  intent: DocumentIntent;
+  intentConfidence: number;
+  intentLabel: string;
   hasTasks: boolean;
   isTechnical: boolean;
   isMeeting: boolean;
   isProposal: boolean;
   isListOrCatalog: boolean;
   hasDuplicatesMentioned: boolean;
+  detectedDuplicates: DetectedDuplicate[];
   topics: string[];
   entities: string[];
   headings: string[];
