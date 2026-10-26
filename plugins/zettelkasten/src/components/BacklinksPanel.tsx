@@ -15,7 +15,7 @@ import { useNotesStore } from '@/lib/store';
 // audit-ignore: sdk-boundary
 import { extractContext, countLinkOccurrences, stripHtml } from '@/lib/utils/link-parsing';
 // audit-ignore: sdk-boundary
-import { executeCommand } from '@/lib/platform/actions';
+import { executeCommand, usePluginEvent } from '@/lib/platform/actions';
 
 interface BacklinksPanelProps {
     noteId: string | null;
@@ -27,31 +27,110 @@ const INITIAL_SHOWN = 5;
 
 export function BacklinksPanel({ noteId, onNavigateToNote, className = '' }: BacklinksPanelProps) {
     const [showAll, setShowAll] = useState(false);
+    const [graphBacklinks, setGraphBacklinks] = useState<any[] | null>(null);
+    const [unlinkedMentions, setUnlinkedMentions] = useState<any[]>([]);
+    const [linkingDocId, setLinkingDocId] = useState<string | null>(null);
+    const [fetchedDoc, setFetchedDoc] = useState<any | null>(null);
     const { notes, linkGraph } = useNotesStore();
+
+    useEffect(() => {
+        if (!noteId) {
+            setFetchedDoc(null);
+            return;
+        }
+        const existing = notes.find((n) => n.id === noteId);
+        if (existing) {
+            setFetchedDoc(existing);
+            return;
+        }
+        void executeCommand('readergo.note.get', { id: noteId }).then((res: any) => {
+            if (res && res.success && res.data) {
+                setFetchedDoc(res.data);
+            }
+        });
+    }, [noteId, notes]);
 
     const currentNote = useMemo(() => {
         if (!noteId) return null;
-        return notes.find((n) => n.id === noteId) || null;
-    }, [noteId, notes]);
+        return notes.find((n) => n.id === noteId) || fetchedDoc || null;
+    }, [noteId, notes, fetchedDoc]);
+
+    // Query high-speed indexed backlinks and unlinked mentions via canonical commands
+    const fetchGraphData = React.useCallback(() => {
+        if (!currentNote?.title) {
+            setGraphBacklinks(null);
+            setUnlinkedMentions([]);
+            return;
+        }
+
+        void executeCommand('readergo.graph.backlinks', { title: currentNote.title, detailed: true })
+            .then((res: any) => {
+                if (res && res.success && Array.isArray(res.data)) {
+                    setGraphBacklinks(res.data);
+                }
+            })
+            .catch(() => {});
+
+        void executeCommand('readergo.graph.unlinkedMentions', {
+            title: currentNote.title,
+            excludeDocId: currentNote.id,
+            limit: 8,
+        })
+            .then((res: any) => {
+                if (res && res.success && Array.isArray(res.data)) {
+                    setUnlinkedMentions(res.data);
+                }
+            })
+            .catch(() => {});
+    }, [currentNote?.title, currentNote?.id]);
+
+    React.useEffect(() => {
+        fetchGraphData();
+    }, [fetchGraphData]);
+
+    // Auto-refresh when graph or document updates are emitted across the system
+    usePluginEvent('graph:updated', fetchGraphData);
+    usePluginEvent('note:updated', fetchGraphData);
 
     const backlinks = useMemo(() => {
         if (!currentNote || !currentNote.title) return [];
 
         const lowerTitle = currentNote.title.toLowerCase();
-        const sourceIds = linkGraph.backlinks[lowerTitle] || [];
+        const liveSourceIds = linkGraph.backlinks[lowerTitle] || [];
 
-        // In addition to store linkGraph, also scan notes in case graph is rebuilding
-        const foundSourceIds = new Set(sourceIds);
-        notes.forEach((n) => {
-            if (n.id !== currentNote.id && n.content) {
-                const plain = stripHtml(n.content);
-                if (countLinkOccurrences(plain, currentNote.title) > 0) {
-                    foundSourceIds.add(n.id);
+        if (graphBacklinks !== null) {
+            const items = graphBacklinks
+                .filter((gb) => gb.sourceId !== currentNote.id)
+                .map((gb) => ({
+                    noteId: gb.sourceId,
+                    noteTitle: gb.sourceTitle,
+                    context: gb.contextSnippet || '',
+                    linkCount: 1,
+                    linkType: gb.linkType || 'wiki',
+                }));
+
+            // Merge ephemeral draft backlinks from in-memory linkGraph (e.g. actively typed in editor)
+            const existingIds = new Set(items.map((i) => i.noteId));
+            for (const liveId of liveSourceIds) {
+                if (liveId !== currentNote.id && !existingIds.has(liveId)) {
+                    const sourceNote = notes.find((n) => n.id === liveId);
+                    if (sourceNote) {
+                        const plainText = stripHtml(sourceNote.content || '');
+                        items.push({
+                            noteId: sourceNote.id,
+                            noteTitle: sourceNote.title,
+                            context: extractContext(plainText, currentNote.title),
+                            linkCount: countLinkOccurrences(plainText, currentNote.title) || 1,
+                            linkType: 'wiki',
+                        });
+                    }
                 }
             }
-        });
 
-        return Array.from(foundSourceIds)
+            return items;
+        }
+
+        return Array.from(new Set(liveSourceIds))
             .filter((id) => id !== currentNote.id)
             .map((id) => {
                 const sourceNote = notes.find((n) => n.id === id);
@@ -63,11 +142,12 @@ export function BacklinksPanel({ noteId, onNavigateToNote, className = '' }: Bac
                     noteTitle: sourceNote.title,
                     context: extractContext(plainText, currentNote.title),
                     linkCount: countLinkOccurrences(plainText, currentNote.title) || 1,
+                    linkType: 'wiki',
                 };
             })
             .filter((b): b is NonNullable<typeof b> => b !== null)
             .sort((a, b) => b.linkCount - a.linkCount);
-    }, [currentNote, notes, linkGraph]);
+    }, [currentNote, notes, linkGraph, graphBacklinks]);
 
     if (!noteId || !currentNote) return null;
 
@@ -150,6 +230,72 @@ export function BacklinksPanel({ noteId, onNavigateToNote, className = '' }: Bac
                             {showAll ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                         </button>
                     )}
+                </div>
+            )}
+
+            {/* Unlinked Mentions Section */}
+            {unlinkedMentions.length > 0 && (
+                <div className="mt-4 pt-3 border-t border-gray-200/60 dark:border-gray-700/60">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Unlinked Mentions
+                        </span>
+                        <span className="text-[11px] px-1.5 py-0.2 rounded-full font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                            {unlinkedMentions.length}
+                        </span>
+                    </div>
+                    <div className="space-y-1.5">
+                        {unlinkedMentions.map(({ document: doc, snippet }) => (
+                            <div
+                                key={doc.id}
+                                className="p-2 rounded-lg hover:bg-white dark:hover:bg-gray-700/70 border border-transparent hover:border-gray-200 dark:hover:border-gray-600 transition-all group"
+                            >
+                                <div className="flex items-center justify-between min-w-0 mb-1">
+                                    <div
+                                        onClick={() => handleNavigate(doc.id)}
+                                        className="flex items-center space-x-2 min-w-0 cursor-pointer flex-1"
+                                    >
+                                        <FileText className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                                        <span className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-amber-600 dark:group-hover:text-amber-400">
+                                            {doc.title || 'Untitled'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        disabled={linkingDocId === doc.id}
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            setLinkingDocId(doc.id);
+                                            try {
+                                                const res: any = await executeCommand('readergo.graph.linkMention', {
+                                                    sourceDocId: doc.id,
+                                                    targetTitle: currentNote.title,
+                                                });
+                                                if (res && res.success) {
+                                                    fetchGraphData();
+                                                }
+                                            } finally {
+                                                setLinkingDocId(null);
+                                            }
+                                        }}
+                                        className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 transition-colors flex items-center space-x-1 flex-shrink-0"
+                                        title="Link mention with [[WikiLink]]"
+                                    >
+                                        <Link2 className="w-3 h-3" />
+                                        <span>{linkingDocId === doc.id ? '...' : 'Link'}</span>
+                                    </button>
+                                </div>
+                                {snippet && (
+                                    <p
+                                        onClick={() => handleNavigate(doc.id)}
+                                        className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 pl-5 italic cursor-pointer"
+                                    >
+                                        {snippet}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
