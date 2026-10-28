@@ -59,12 +59,12 @@
     {
       "id": "readergo.editor.epub",
       "name": "EPUB Reader",
-      "description": "Professional e-reader with custom typography, 6 reading atmospheres, in-book search, bookmarks, and chapter progress scrubber",
+      "description": "Professional e-reader with responsive margins, custom typography, 6 reading atmospheres, in-book search, bookmarks, and chapter progress scrubber",
       "category": "editor",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "dc8b242410500eed",
-      "hash": "dc8b242410500eed"
+      "bundleHash": "f4c7152f3ac6f7ab",
+      "hash": "f4c7152f3ac6f7ab"
     },
     {
       "id": "readergo.filesystem",

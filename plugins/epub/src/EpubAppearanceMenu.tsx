@@ -232,9 +232,9 @@ export function EpubAppearanceMenu({
             <div className="flex rounded-xl border p-1" style={{ borderColor: currentTheme.border, backgroundColor: `${currentTheme.bg}88` }}>
               {(
                 [
-                  { id: 'compact', label: 'Narrow' },
-                  { id: 'normal', label: 'Normal' },
-                  { id: 'wide', label: 'Wide' },
+                  { id: 'compact', label: 'Narrow', title: 'Narrow margins (full-width text)' },
+                  { id: 'normal', label: 'Normal', title: 'Balanced margins' },
+                  { id: 'wide', label: 'Wide', title: 'Wide margins (focused text)' },
                 ] as const
               ).map((m) => {
                 const isSelected = (settings.margins || 'normal') === m.id
@@ -248,6 +248,7 @@ export function EpubAppearanceMenu({
                       backgroundColor: isSelected ? currentTheme.border : 'transparent',
                       color: isSelected ? currentTheme.text : currentTheme.muted,
                     }}
+                    title={m.title}
                   >
                     {m.label}
                   </button>

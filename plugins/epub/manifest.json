@@ -1,8 +1,8 @@
 {
   "id": "readergo.editor.epub",
   "name": "EPUB Reader",
-  "version": "1.1.0",
-  "description": "Professional e-reader with custom typography, 6 reading atmospheres, in-book search, bookmarks, and chapter progress scrubber",
+  "version": "1.1.1",
+  "description": "Professional e-reader with responsive margins, custom typography, 6 reading atmospheres, in-book search, bookmarks, and chapter progress scrubber",
   "category": "editor",
   "provides": [
     "editor-provider",

@@ -137,8 +137,33 @@ function loadSavedSettings(): EpubSettings {
   if (typeof window === 'undefined') return DEFAULT_EPUB_SETTINGS
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
-    if (!raw) return DEFAULT_EPUB_SETTINGS
-    return { ...DEFAULT_EPUB_SETTINGS, ...JSON.parse(raw) }
+    let parsed: Partial<EpubSettings> = {}
+    if (raw) {
+      parsed = JSON.parse(raw)
+    }
+
+    // If margins not explicitly set in EPUB settings, adapt host's editor-margin setting if present
+    if (!parsed.margins) {
+      const hostMargin = localStorage.getItem('editor-margin')
+      if (hostMargin) {
+        const num = parseFloat(hostMargin)
+        if (!isNaN(num)) {
+          if (num <= 0.15) parsed.margins = 'compact'
+          else if (num >= 0.28) parsed.margins = 'wide'
+          else parsed.margins = 'normal'
+        }
+      }
+    }
+
+    // Support legacy contentWidth migration if margins is still unset
+    if (!parsed.margins && (parsed as any).contentWidth) {
+      const cw = (parsed as any).contentWidth
+      if (cw === 'wide' || cw === 'full') parsed.margins = 'compact'
+      else if (cw === 'narrow') parsed.margins = 'wide'
+      else parsed.margins = 'normal'
+    }
+
+    return { ...DEFAULT_EPUB_SETTINGS, ...parsed }
   } catch {
     return DEFAULT_EPUB_SETTINGS
   }
@@ -245,35 +270,46 @@ export function EpubDocumentEditor(props: EditorProps) {
 
   // Compute exact page width, page height, and column gaps based on margins setting
   const pageMetrics = useMemo(() => {
-    const containerW = viewportDimensions.width || 800
-    const containerH = viewportDimensions.height || 600
+    const containerW =
+      viewportDimensions.width ||
+      (typeof window !== 'undefined' ? window.innerWidth : 800)
+    const containerH =
+      viewportDimensions.height ||
+      (typeof window !== 'undefined' ? window.innerHeight - 110 : 600)
 
-    let horizontalMargin = 24
-    let verticalMargin = 20
-    let maxPageW = 680
+    let horizontalMargin = 18
+    let verticalMargin = 18
+    let maxPageW = 760
     let columnGap = 40
 
     if (margins === 'compact') {
-      horizontalMargin = containerW < 640 ? 12 : 24
-      verticalMargin = 14
-      maxPageW = 860
-      columnGap = 28
+      horizontalMargin = containerW < 640 ? 10 : Math.max(20, Math.round(containerW * 0.05))
+      verticalMargin = containerW < 640 ? 12 : 16
+      maxPageW = 960
+      columnGap = containerW < 640 ? 20 : 32
     } else if (margins === 'wide') {
-      horizontalMargin = containerW < 640 ? 32 : 80
-      verticalMargin = 28
-      maxPageW = 540
-      columnGap = 56
+      horizontalMargin = containerW < 640 ? 28 : Math.max(54, Math.round(containerW * 0.16))
+      verticalMargin = containerW < 640 ? 24 : 32
+      maxPageW = 620
+      columnGap = containerW < 640 ? 36 : 56
     } else {
       // normal
-      horizontalMargin = containerW < 640 ? 20 : 48
-      verticalMargin = 20
-      maxPageW = 680
-      columnGap = 40
+      horizontalMargin = containerW < 640 ? 18 : Math.max(36, Math.round(containerW * 0.10))
+      verticalMargin = containerW < 640 ? 18 : 24
+      maxPageW = 760
+      columnGap = containerW < 640 ? 28 : 44
     }
 
-    const availableW = Math.max(280, containerW - 2 * horizontalMargin)
+    const availableW = Math.max(240, containerW - 2 * horizontalMargin)
     const pageWidth = Math.min(maxPageW, availableW)
-    const pageHeight = Math.max(200, containerH - 2 * verticalMargin)
+
+    // Snap page height to integer multiple of line-height so bottom lines are never sliced in half
+    const computedLineHeight = settings.fontSize * (
+      settings.lineHeight === 'compact' ? 1.35 : settings.lineHeight === 'relaxed' ? 1.85 : 1.58
+    )
+    const rawHeight = Math.max(180, containerH - 2 * verticalMargin)
+    const snappedLines = Math.max(4, Math.floor(rawHeight / computedLineHeight))
+    const pageHeight = Math.round(snappedLines * computedLineHeight)
 
     return {
       pageWidth,
@@ -282,7 +318,13 @@ export function EpubDocumentEditor(props: EditorProps) {
       horizontalMargin,
       verticalMargin,
     }
-  }, [viewportDimensions.width, viewportDimensions.height, margins])
+  }, [
+    viewportDimensions.width,
+    viewportDimensions.height,
+    margins,
+    settings.fontSize,
+    settings.lineHeight,
+  ])
 
   const applyBook = useCallback(
     async (nextBook: EpubBook, location: EpubLocation) => {
@@ -915,16 +957,28 @@ export function EpubDocumentEditor(props: EditorProps) {
     }
   }, [settings.lineHeight])
 
-  // Column width class for continuous scroll mode
-  const scrollColumnWidthClass = useMemo(() => {
+  // Responsive layout and margin styling for continuous scroll mode
+  const scrollMetrics = useMemo(() => {
     switch (margins) {
       case 'compact':
-        return 'max-w-3xl'
+        return {
+          containerPadding: 'px-2 sm:px-6 md:px-10 py-6 md:py-10',
+          maxWidthClass: 'max-w-5xl',
+          articleStyle: { maxWidth: '96%' },
+        }
       case 'wide':
-        return 'max-w-xl'
+        return {
+          containerPadding: 'px-6 sm:px-14 md:px-24 py-10 md:py-14',
+          maxWidthClass: 'max-w-xl',
+          articleStyle: { maxWidth: '80%' },
+        }
       case 'normal':
       default:
-        return 'max-w-2xl'
+        return {
+          containerPadding: 'px-4 sm:px-10 md:px-16 py-8 md:py-12',
+          maxWidthClass: 'max-w-3xl',
+          articleStyle: { maxWidth: '88%' },
+        }
     }
   }, [margins])
 
@@ -1132,6 +1186,24 @@ export function EpubDocumentEditor(props: EditorProps) {
           text-rendering: optimizeLegibility;
           word-break: break-word;
           user-select: text;
+          box-sizing: border-box;
+        }
+        .epub-chapter * {
+          box-sizing: border-box;
+        }
+        /* Neutralize excessive outer container margins injected by EPUB creators */
+        .epub-chapter > div,
+        .epub-chapter > section,
+        .epub-chapter > article {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        .epub-chapter > :first-child {
+          margin-top: 0 !important;
         }
         .epub-chapter h1 {
           font-size: 1.85em;
@@ -1359,14 +1431,15 @@ export function EpubDocumentEditor(props: EditorProps) {
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-8 md:py-12"
+            className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden ${scrollMetrics.containerPadding}`}
           >
             <article
               ref={articleRef}
-              className={`epub-chapter mx-auto transition-all duration-200 ${scrollColumnWidthClass} ${
+              className={`epub-chapter mx-auto transition-all duration-200 ${scrollMetrics.maxWidthClass} ${
                 settings.indentParagraphs ? '[&_p+p]:indent-6' : ''
               }`}
               style={{
+                ...scrollMetrics.articleStyle,
                 fontFamily: fontFamilyCss,
                 fontSize: `${settings.fontSize}px`,
                 lineHeight: lineHeightCss,
