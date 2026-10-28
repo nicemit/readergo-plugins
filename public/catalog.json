@@ -63,8 +63,8 @@
       "category": "editor",
       "version": "1.1.0",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "450a453db1b1bf1e",
-      "hash": "450a453db1b1bf1e"
+      "bundleHash": "dc8b242410500eed",
+      "hash": "dc8b242410500eed"
     },
     {
       "id": "readergo.filesystem",

@@ -18,6 +18,8 @@ import {
   EpubLineHeight,
   EpubContentWidth,
   EpubTextAlign,
+  EpubMargins,
+  EpubReadingMode,
   EPUB_THEMES,
   DEFAULT_EPUB_SETTINGS,
 } from './types'
@@ -190,7 +192,7 @@ export function EpubAppearanceMenu({
           </div>
         </div>
 
-        {/* 4. Line Spacing & Width */}
+        {/* 4. Line Spacing & Margins */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: currentTheme.muted }}>
@@ -225,33 +227,64 @@ export function EpubAppearanceMenu({
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: currentTheme.muted }}>
-              Page Width
+              Margins
             </label>
             <div className="flex rounded-xl border p-1" style={{ borderColor: currentTheme.border, backgroundColor: `${currentTheme.bg}88` }}>
               {(
                 [
-                  { id: 'narrow', label: 'Narrow' },
-                  { id: 'medium', label: 'Medium' },
+                  { id: 'compact', label: 'Narrow' },
+                  { id: 'normal', label: 'Normal' },
                   { id: 'wide', label: 'Wide' },
                 ] as const
-              ).map((w) => {
-                const isSelected = settings.contentWidth === w.id
+              ).map((m) => {
+                const isSelected = (settings.margins || 'normal') === m.id
                 return (
                   <button
-                    key={w.id}
+                    key={m.id}
                     type="button"
-                    onClick={() => update({ contentWidth: w.id as EpubContentWidth })}
+                    onClick={() => update({ margins: m.id as EpubMargins })}
                     className="flex-1 py-1 rounded-lg text-xs font-medium transition-all text-center"
                     style={{
                       backgroundColor: isSelected ? currentTheme.border : 'transparent',
                       color: isSelected ? currentTheme.text : currentTheme.muted,
                     }}
                   >
-                    {w.label}
+                    {m.label}
                   </button>
                 )
               })}
             </div>
+          </div>
+        </div>
+
+        {/* 5. Reading Flow (Paged / Kindle vs Continuous Scroll) */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: currentTheme.muted }}>
+            Reading Flow
+          </label>
+          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl border" style={{ borderColor: currentTheme.border, backgroundColor: `${currentTheme.bg}88` }}>
+            <button
+              type="button"
+              onClick={() => update({ readingMode: 'paginated' })}
+              className="py-1.5 px-3 rounded-lg text-xs font-medium transition-all text-center flex items-center justify-center gap-1.5"
+              style={{
+                backgroundColor: (settings.readingMode || 'paginated') === 'paginated' ? currentTheme.border : 'transparent',
+                color: (settings.readingMode || 'paginated') === 'paginated' ? currentTheme.text : currentTheme.muted,
+              }}
+            >
+              <span>Paged (Kindle)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => update({ readingMode: 'scroll' })}
+              className="py-1.5 px-3 rounded-lg text-xs font-medium transition-all text-center flex items-center justify-center gap-1.5"
+              style={{
+                backgroundColor: settings.readingMode === 'scroll' ? currentTheme.border : 'transparent',
+                color: settings.readingMode === 'scroll' ? currentTheme.text : currentTheme.muted,
+              }}
+            >
+              <span>Continuous Scroll</span>
+            </button>
           </div>
         </div>
 

@@ -3,6 +3,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -26,6 +27,8 @@ import {
   Clock,
   Sparkles,
   FileText,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { findChapterIndex, parseEpub, splitEpubHref } from './parseEpub'
 import type {
@@ -33,6 +36,8 @@ import type {
   EpubLocation,
   EpubSettings,
   EpubBookmark,
+  EpubMargins,
+  EpubReadingMode,
 } from './types'
 import {
   DEFAULT_EPUB_SETTINGS,
@@ -185,18 +190,32 @@ export function EpubDocumentEditor(props: EditorProps) {
   const [showSearch, setShowSearch] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [bookmarks, setBookmarks] = useState<EpubBookmark[]>(() => loadSavedBookmarks(note))
+  const [isControlsVisible, setIsControlsVisible] = useState(true)
 
-  // Reading Scroll Metrics
+  // Paginated Kindle Engine State
+  const [pageIndex, setPageIndex] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isTurningPage, setIsTurningPage] = useState(false)
+  const [viewportDimensions, setViewportDimensions] = useState({ width: 0, height: 0 })
+
+  // Reading Scroll Metrics (used when readingMode is 'scroll')
   const [scrollProgress, setScrollProgress] = useState(0)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const articleRef = useRef<HTMLElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const paginatedViewportRef = useRef<HTMLDivElement>(null)
+  const columnFlowRef = useRef<HTMLDivElement>(null)
   const loadedIdRef = useRef<string | null>(null)
   const pendingHashRef = useRef<string | null>(null)
+  const pendingTargetRef = useRef<'start' | 'end' | number | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
+  const wheelDebounceRef = useRef<number | null>(null)
 
   const theme = EPUB_THEMES[settings.theme] || EPUB_THEMES.paper
+  const margins = settings.margins || 'normal'
+  const isPaginated = (settings.readingMode || 'paginated') === 'paginated'
 
   const handleUpdateSettings = useCallback((newSettings: EpubSettings) => {
     setSettings(newSettings)
@@ -208,6 +227,63 @@ export function EpubDocumentEditor(props: EditorProps) {
     setBookmarks(loadSavedBookmarks(note))
   }, [note])
 
+  // Track viewport dimensions with ResizeObserver for exact screen-fitting columns
+  useEffect(() => {
+    const el = paginatedViewportRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          setViewportDimensions({ width, height })
+        }
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isPaginated, isControlsVisible])
+
+  // Compute exact page width, page height, and column gaps based on margins setting
+  const pageMetrics = useMemo(() => {
+    const containerW = viewportDimensions.width || 800
+    const containerH = viewportDimensions.height || 600
+
+    let horizontalMargin = 24
+    let verticalMargin = 20
+    let maxPageW = 680
+    let columnGap = 40
+
+    if (margins === 'compact') {
+      horizontalMargin = containerW < 640 ? 12 : 24
+      verticalMargin = 14
+      maxPageW = 860
+      columnGap = 28
+    } else if (margins === 'wide') {
+      horizontalMargin = containerW < 640 ? 32 : 80
+      verticalMargin = 28
+      maxPageW = 540
+      columnGap = 56
+    } else {
+      // normal
+      horizontalMargin = containerW < 640 ? 20 : 48
+      verticalMargin = 20
+      maxPageW = 680
+      columnGap = 40
+    }
+
+    const availableW = Math.max(280, containerW - 2 * horizontalMargin)
+    const pageWidth = Math.min(maxPageW, availableW)
+    const pageHeight = Math.max(200, containerH - 2 * verticalMargin)
+
+    return {
+      pageWidth,
+      pageHeight,
+      columnGap,
+      horizontalMargin,
+      verticalMargin,
+    }
+  }, [viewportDimensions.width, viewportDimensions.height, margins])
+
   const applyBook = useCallback(
     async (nextBook: EpubBook, location: EpubLocation) => {
       const max = Math.max(0, nextBook.chapters.length - 1)
@@ -217,6 +293,7 @@ export function EpubDocumentEditor(props: EditorProps) {
       const next = Math.max(0, Math.min(max, fromHref >= 0 ? fromHref : location.chapterIndex))
       const hash = location.href ? splitEpubHref(location.href).hash : ''
       pendingHashRef.current = hash || null
+      pendingTargetRef.current = 'start'
       setBook(nextBook)
       setChapterIndex(next)
     },
@@ -340,8 +417,69 @@ export function EpubDocumentEditor(props: EditorProps) {
     return Math.max(1, Math.round(words / 225))
   }, [chapter?.text])
 
-  // Scroll to anchor after chapter renders
+  // Recalculate columns and pagination whenever chapter, dimensions, or font size change
+  const updateLayout = useCallback(() => {
+    if (!isPaginated) return
+    const el = columnFlowRef.current
+    if (!el) return
+
+    const step = pageMetrics.pageWidth + pageMetrics.columnGap
+    if (step <= 0) return
+
+    // scrollWidth includes all columns and gaps
+    const calculatedPages = Math.max(
+      1,
+      Math.round((el.scrollWidth + pageMetrics.columnGap) / step),
+    )
+    setTotalPages(calculatedPages)
+
+    if (pendingTargetRef.current === 'end') {
+      setPageIndex(calculatedPages - 1)
+      pendingTargetRef.current = null
+    } else if (pendingTargetRef.current === 'start') {
+      setPageIndex(0)
+      pendingTargetRef.current = null
+    } else if (typeof pendingTargetRef.current === 'number') {
+      setPageIndex(Math.max(0, Math.min(calculatedPages - 1, pendingTargetRef.current)))
+      pendingTargetRef.current = null
+    } else {
+      setPageIndex((prev) => Math.max(0, Math.min(calculatedPages - 1, prev)))
+    }
+
+    // Scroll to hash / anchor if pending
+    if (pendingHashRef.current) {
+      const hash = pendingHashRef.current
+      pendingHashRef.current = null
+      const target =
+        el.querySelector(`#${CSS.escape(hash)}`) ||
+        el.querySelector(`[name="${CSS.escape(hash)}"]`)
+      if (target instanceof HTMLElement) {
+        const page = Math.floor(target.offsetLeft / step)
+        setPageIndex(Math.max(0, Math.min(calculatedPages - 1, page)))
+      }
+    }
+  }, [isPaginated, pageMetrics.pageWidth, pageMetrics.columnGap])
+
+  useLayoutEffect(() => {
+    if (!isPaginated) return
+    const frame = window.requestAnimationFrame(updateLayout)
+    return () => window.cancelAnimationFrame(frame)
+  }, [
+    isPaginated,
+    chapter,
+    chapterIndex,
+    pageMetrics.pageWidth,
+    pageMetrics.pageHeight,
+    pageMetrics.columnGap,
+    settings.fontSize,
+    settings.lineHeight,
+    settings.fontFamily,
+    updateLayout,
+  ])
+
+  // Scroll to anchor in continuous scroll mode
   useEffect(() => {
+    if (isPaginated) return
     const hash = pendingHashRef.current
     if (!hash || !chapter) return
     pendingHashRef.current = null
@@ -349,17 +487,18 @@ export function EpubDocumentEditor(props: EditorProps) {
       scrollToHash(articleRef.current, hash)
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [chapter, chapterIndex])
+  }, [chapter, chapterIndex, isPaginated])
 
-  // Reset scroll on chapter change if no hash
+  // Reset scroll on chapter change in scroll mode
   useEffect(() => {
+    if (isPaginated) return
     if (!pendingHashRef.current && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'instant' })
       setScrollProgress(0)
     }
-  }, [chapterIndex])
+  }, [chapterIndex, isPaginated])
 
-  // Track scroll percentage within chapter
+  // Track scroll percentage within chapter in scroll mode
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current
     if (!el) return
@@ -372,21 +511,30 @@ export function EpubDocumentEditor(props: EditorProps) {
   }, [])
 
   const goTo = useCallback(
-    (index: number, href?: string) => {
+    (index: number, href?: string, targetPage?: 'start' | 'end' | number) => {
       if (!book) return
       const next = Math.max(0, Math.min(book.chapters.length - 1, index))
       const { hash } = href ? splitEpubHref(href) : { hash: '' }
       pendingHashRef.current = hash || null
+      pendingTargetRef.current = targetPage ?? 'start'
+
       if (next === chapterIndex) {
         if (hash) {
-          window.requestAnimationFrame(() => scrollToHash(articleRef.current, hash))
+          if (!isPaginated && articleRef.current) {
+            window.requestAnimationFrame(() => scrollToHash(articleRef.current, hash))
+          } else if (columnFlowRef.current) {
+            updateLayout()
+          }
+        }
+        if (typeof targetPage === 'number') {
+          setPageIndex(targetPage)
         }
       } else {
         setChapterIndex(next)
       }
       void writeLocation(note, next, href || book.chapters[next]?.href)
     },
-    [book, chapterIndex, note],
+    [book, chapterIndex, isPaginated, note, updateLayout],
   )
 
   const openHref = useCallback(
@@ -395,15 +543,134 @@ export function EpubDocumentEditor(props: EditorProps) {
       const { path, hash } = splitEpubHref(href)
       if (!path && hash) {
         pendingHashRef.current = hash
-        scrollToHash(articleRef.current, hash)
+        if (!isPaginated) {
+          scrollToHash(articleRef.current, hash)
+        } else if (columnFlowRef.current) {
+          const step = pageMetrics.pageWidth + pageMetrics.columnGap
+          const target =
+            columnFlowRef.current.querySelector(`#${CSS.escape(hash)}`) ||
+            columnFlowRef.current.querySelector(`[name="${CSS.escape(hash)}"]`)
+          if (target instanceof HTMLElement) {
+            const page = Math.floor(target.offsetLeft / step)
+            setPageIndex(Math.max(0, Math.min(totalPages - 1, page)))
+          }
+        }
         void writeLocation(note, chapterIndex, `${chapter?.href || ''}#${hash}`)
         return
       }
       const index = findChapterIndex(book.chapters, href, fromHref || chapter?.href)
       if (index < 0) return
-      goTo(index, href)
+      goTo(index, href, 'start')
     },
-    [book, chapter, chapterIndex, goTo, note],
+    [book, chapter, chapterIndex, goTo, isPaginated, note, pageMetrics, totalPages],
+  )
+
+  // Turn to Next Page (Kindle Style: advances to next chapter if at end)
+  const turnNextPage = useCallback(() => {
+    if (pageIndex < totalPages - 1) {
+      setIsTurningPage(true)
+      setPageIndex((p) => p + 1)
+      window.setTimeout(() => setIsTurningPage(false), 240)
+    } else if (book && chapterIndex < book.chapters.length - 1) {
+      pendingTargetRef.current = 'start'
+      goTo(chapterIndex + 1, undefined, 'start')
+    }
+  }, [pageIndex, totalPages, book, chapterIndex, goTo])
+
+  // Turn to Previous Page (Kindle Style: moves to last page of prev chapter if at start)
+  const turnPrevPage = useCallback(() => {
+    if (pageIndex > 0) {
+      setIsTurningPage(true)
+      setPageIndex((p) => p - 1)
+      window.setTimeout(() => setIsTurningPage(false), 240)
+    } else if (chapterIndex > 0) {
+      pendingTargetRef.current = 'end'
+      goTo(chapterIndex - 1, undefined, 'end')
+    }
+  }, [pageIndex, chapterIndex, goTo])
+
+  // Tap handler on the reading area: left 25% prev, right 25% next, center 50% toggle controls
+  const handleReadingAreaClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement | null
+      if (target?.closest('a') || target?.closest('button') || target?.closest('input')) {
+        return
+      }
+
+      const selection = window.getSelection()?.toString()
+      if (selection && selection.trim().length > 0) {
+        return
+      }
+
+      const rect = e.currentTarget.getBoundingClientRect()
+      const clickX = e.clientX - rect.left
+      const ratio = clickX / rect.width
+
+      if (ratio < 0.25) {
+        turnPrevPage()
+      } else if (ratio > 0.75) {
+        turnNextPage()
+      } else {
+        setIsControlsVisible((v) => !v)
+      }
+    },
+    [turnPrevPage, turnNextPage],
+  )
+
+  // Touch gesture handling for smooth mobile / tablet swiping
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        time: Date.now(),
+      }
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current || e.changedTouches.length === 0) return
+      const start = touchStartRef.current
+      touchStartRef.current = null
+
+      const deltaX = e.changedTouches[0].clientX - start.x
+      const deltaY = e.changedTouches[0].clientY - start.y
+      const elapsed = Date.now() - start.time
+
+      if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) && elapsed < 800) {
+        if (deltaX < 0) {
+          turnNextPage()
+        } else {
+          turnPrevPage()
+        }
+      }
+    },
+    [turnNextPage, turnPrevPage],
+  )
+
+  // Mouse wheel page turn (debounced)
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (!isPaginated) return
+      e.preventDefault()
+
+      const now = Date.now()
+      if (wheelDebounceRef.current && now - wheelDebounceRef.current < 280) {
+        return
+      }
+
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+      if (Math.abs(delta) > 20) {
+        wheelDebounceRef.current = now
+        if (delta > 0) {
+          turnNextPage()
+        } else {
+          turnPrevPage()
+        }
+      }
+    },
+    [isPaginated, turnNextPage, turnPrevPage],
   )
 
   const onChapterClick = useCallback(
@@ -558,17 +825,29 @@ export function EpubDocumentEditor(props: EditorProps) {
     return () => document.removeEventListener('fullscreenchange', onFsChange)
   }, [])
 
-  // Keyboard Navigation
+  // Keyboard Navigation (Kindle style page flips in paginated mode)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       // Ignore if typing in inputs
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return
 
-      if (e.key === 'ArrowLeft' || e.key === 'k') {
-        if (chapterIndex > 0) goTo(chapterIndex - 1)
-      } else if (e.key === 'ArrowRight' || e.key === 'j') {
-        if (book && chapterIndex < book.chapters.length - 1) goTo(chapterIndex + 1)
-      } else if (e.key === 't' || e.key === 'T') {
+      if (isPaginated) {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && !e.shiftKey) || e.key === 'j') {
+          e.preventDefault()
+          turnNextPage()
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.key === ' ' && e.shiftKey) || e.key === 'k') {
+          e.preventDefault()
+          turnPrevPage()
+        }
+      } else {
+        if (e.key === 'ArrowLeft' || e.key === 'k') {
+          if (chapterIndex > 0) goTo(chapterIndex - 1)
+        } else if (e.key === 'ArrowRight' || e.key === 'j') {
+          if (book && chapterIndex < book.chapters.length - 1) goTo(chapterIndex + 1)
+        }
+      }
+
+      if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setShowToc((v) => !v)
       } else if (e.key === 'a' || e.key === 'A') {
@@ -583,12 +862,24 @@ export function EpubDocumentEditor(props: EditorProps) {
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault()
         toggleFullscreen()
+      } else if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault()
+        setIsControlsVisible((v) => !v)
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [book, chapterIndex, goTo, toggleBookmark, toggleFullscreen])
+  }, [
+    isPaginated,
+    book,
+    chapterIndex,
+    goTo,
+    turnNextPage,
+    turnPrevPage,
+    toggleBookmark,
+    toggleFullscreen,
+  ])
 
   // Overall book percentage progress
   const bookPercentage = useMemo(() => {
@@ -624,20 +915,18 @@ export function EpubDocumentEditor(props: EditorProps) {
     }
   }, [settings.lineHeight])
 
-  // Column width class
-  const columnWidthClass = useMemo(() => {
-    switch (settings.contentWidth) {
-      case 'narrow':
-        return 'max-w-xl'
+  // Column width class for continuous scroll mode
+  const scrollColumnWidthClass = useMemo(() => {
+    switch (margins) {
+      case 'compact':
+        return 'max-w-3xl'
       case 'wide':
-        return 'max-w-4xl'
-      case 'full':
-        return 'max-w-none px-4 md:px-12'
-      case 'medium':
+        return 'max-w-xl'
+      case 'normal':
       default:
         return 'max-w-2xl'
     }
-  }, [settings.contentWidth])
+  }, [margins])
 
   return (
     <div
@@ -645,7 +934,7 @@ export function EpubDocumentEditor(props: EditorProps) {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="relative flex h-full min-h-0 w-full flex-col select-text transition-colors duration-200"
+      className="relative flex h-full min-h-0 w-full flex-col select-text transition-colors duration-200 overflow-hidden"
       style={{
         backgroundColor: theme.bg,
         color: theme.text,
@@ -675,275 +964,406 @@ export function EpubDocumentEditor(props: EditorProps) {
       )}
 
       {/* Top Ambient Reader Header */}
-      <header
-        className="shrink-0 flex items-center justify-between gap-3 px-3 sm:px-6 h-13 border-b backdrop-blur-md transition-colors z-20"
-        style={{
-          borderColor: theme.border,
-          backgroundColor: theme.headerBg,
-        }}
-      >
-        {/* Left: Table of Contents & Book Title */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <button
-            type="button"
-            onClick={() => setShowToc((v) => !v)}
-            disabled={!book}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border hover:opacity-80 disabled:opacity-30 transition-all text-xs font-medium shrink-0 cursor-pointer"
-            style={{
-              borderColor: theme.border,
-              backgroundColor: `${theme.cardBg}aa`,
-            }}
-            title="Table of Contents (T)"
-          >
-            <BookOpen className="w-4 h-4" style={{ color: theme.accent }} />
-            <span className="hidden sm:inline">Contents</span>
-          </button>
-
-          <div className="min-w-0 flex flex-col justify-center">
-            <h2 className="truncate text-xs sm:text-sm font-semibold tracking-tight">
-              {book?.title || note?.title || 'EPUB Reader'}
-            </h2>
-            {chapter && (
-              <p className="truncate text-[11px] opacity-65 flex items-center gap-1.5 font-medium">
-                <span>Ch. {chapterIndex + 1}/{book?.chapters.length}</span>
-                <span>·</span>
-                <span className="truncate">{chapter.title}</span>
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Quick Action Controls */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {/* Bookmark Button */}
-          {book && (
+      {isControlsVisible ? (
+        <header
+          className="shrink-0 flex items-center justify-between gap-3 px-3 sm:px-6 h-13 border-b backdrop-blur-md transition-colors z-20"
+          style={{
+            borderColor: theme.border,
+            backgroundColor: theme.headerBg,
+          }}
+        >
+          {/* Left: Table of Contents & Book Title */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
-              onClick={toggleBookmark}
-              className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer"
+              onClick={() => setShowToc((v) => !v)}
+              disabled={!book}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border hover:opacity-80 disabled:opacity-30 transition-all text-xs font-medium shrink-0 cursor-pointer"
               style={{
                 borderColor: theme.border,
-                backgroundColor: isCurrentChapterBookmarked ? `${theme.accent}20` : `${theme.cardBg}aa`,
-                color: isCurrentChapterBookmarked ? theme.accent : theme.text,
+                backgroundColor: `${theme.cardBg}aa`,
               }}
-              title={isCurrentChapterBookmarked ? 'Remove Bookmark (B)' : 'Bookmark Chapter (B)'}
+              title="Table of Contents (T)"
             >
-              {isCurrentChapterBookmarked ? (
-                <BookmarkCheck className="w-4 h-4" />
-              ) : (
-                <Bookmark className="w-4 h-4 opacity-75" />
-              )}
+              <BookOpen className="w-4 h-4" style={{ color: theme.accent }} />
+              <span className="hidden sm:inline">Contents</span>
             </button>
-          )}
 
-          {/* Search Button */}
-          {book && (
+            <div className="min-w-0 flex flex-col justify-center">
+              <h2 className="truncate text-xs sm:text-sm font-semibold tracking-tight">
+                {book?.title || note?.title || 'EPUB Reader'}
+              </h2>
+              {chapter && (
+                <p className="truncate text-[11px] opacity-65 flex items-center gap-1.5 font-medium">
+                  <span>Ch. {chapterIndex + 1}/{book?.chapters.length}</span>
+                  <span>·</span>
+                  <span className="truncate">{chapter.title}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Quick Action Controls */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Bookmark Button */}
+            {book && (
+              <button
+                type="button"
+                onClick={toggleBookmark}
+                className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: isCurrentChapterBookmarked ? `${theme.accent}20` : `${theme.cardBg}aa`,
+                  color: isCurrentChapterBookmarked ? theme.accent : theme.text,
+                }}
+                title={isCurrentChapterBookmarked ? 'Remove Bookmark (B)' : 'Bookmark Chapter (B)'}
+              >
+                {isCurrentChapterBookmarked ? (
+                  <BookmarkCheck className="w-4 h-4" />
+                ) : (
+                  <Bookmark className="w-4 h-4 opacity-75" />
+                )}
+              </button>
+            )}
+
+            {/* Search Button */}
+            {book && (
+              <button
+                type="button"
+                onClick={() => setShowSearch(true)}
+                className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: `${theme.cardBg}aa`,
+                }}
+                title="Search Book (/ or S)"
+              >
+                <Search className="w-4 h-4 opacity-75" />
+              </button>
+            )}
+
+            {/* Typography & Appearance Button */}
             <button
               type="button"
-              onClick={() => setShowSearch(true)}
+              onClick={() => setShowAppearance((v) => !v)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border hover:opacity-80 transition-all text-xs font-semibold cursor-pointer"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: showAppearance ? `${theme.accent}20` : `${theme.cardBg}aa`,
+                color: showAppearance ? theme.accent : theme.text,
+              }}
+              title="Reader Typography, Margins & Atmosphere (A)"
+            >
+              <Type className="w-3.5 h-3.5" />
+              <span className="text-[11px] tracking-tight">Aa</span>
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer hidden sm:flex"
+              style={{
+                borderColor: theme.border,
+                backgroundColor: `${theme.cardBg}aa`,
+              }}
+              title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen Focus (F)'}
+            >
+              {isFullscreen ? (
+                <Minimize2 className="w-4 h-4 opacity-75" />
+              ) : (
+                <Maximize2 className="w-4 h-4 opacity-75" />
+              )}
+            </button>
+
+            {/* Hide Controls for Immersive Reading */}
+            {book && (
+              <button
+                type="button"
+                onClick={() => setIsControlsVisible(false)}
+                className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer hidden sm:flex"
+                style={{
+                  borderColor: theme.border,
+                  backgroundColor: `${theme.cardBg}aa`,
+                }}
+                title="Hide Chrome Controls for Focus (H or tap center of page)"
+              >
+                <EyeOff className="w-4 h-4 opacity-75" />
+              </button>
+            )}
+
+            {/* File Picker */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer"
               style={{
                 borderColor: theme.border,
                 backgroundColor: `${theme.cardBg}aa`,
               }}
-              title="Search Book (/ or S)"
+              title={book ? 'Replace EPUB File' : 'Open EPUB File'}
             >
-              <Search className="w-4 h-4 opacity-75" />
+              <Upload className="w-4 h-4 opacity-75" />
             </button>
-          )}
+          </div>
+        </header>
+      ) : (
+        /* Floating Unhide Controls Button when reading in immersive mode */
+        <button
+          type="button"
+          onClick={() => setIsControlsVisible(true)}
+          className="absolute top-3 right-3 z-30 p-2 rounded-xl border backdrop-blur-md opacity-30 hover:opacity-100 transition-opacity cursor-pointer shadow-sm text-xs flex items-center gap-1.5"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.border,
+            color: theme.text,
+          }}
+          title="Show Navigation Controls (H or tap center)"
+        >
+          <Eye className="w-3.5 h-3.5" />
+          <span className="text-[10px] hidden sm:inline">Controls</span>
+        </button>
+      )}
 
-          {/* Typography & Appearance Button */}
-          <button
-            type="button"
-            onClick={() => setShowAppearance((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border hover:opacity-80 transition-all text-xs font-semibold cursor-pointer"
-            style={{
-              borderColor: theme.border,
-              backgroundColor: showAppearance ? `${theme.accent}20` : `${theme.cardBg}aa`,
-              color: showAppearance ? theme.accent : theme.text,
-            }}
-            title="Reader Typography & Atmosphere (A)"
-          >
-            <Type className="w-3.5 h-3.5" />
-            <span className="text-[11px] tracking-tight">Aa</span>
-          </button>
+      {/* Shared Chapter Stylesheet for Typography & Book Layout */}
+      <style>{`
+        .epub-chapter {
+          hyphens: auto;
+          text-rendering: optimizeLegibility;
+          word-break: break-word;
+          user-select: text;
+        }
+        .epub-chapter h1 {
+          font-size: 1.85em;
+          font-weight: 700;
+          line-height: 1.25;
+          margin-top: 1.6em;
+          margin-bottom: 0.8em;
+          letter-spacing: -0.02em;
+          break-after: avoid;
+          break-inside: avoid;
+        }
+        .epub-chapter h2 {
+          font-size: 1.45em;
+          font-weight: 600;
+          line-height: 1.3;
+          margin-top: 1.4em;
+          margin-bottom: 0.6em;
+          letter-spacing: -0.01em;
+          break-after: avoid;
+          break-inside: avoid;
+        }
+        .epub-chapter h3 {
+          font-size: 1.2em;
+          font-weight: 600;
+          margin-top: 1.2em;
+          margin-bottom: 0.5em;
+          break-after: avoid;
+          break-inside: avoid;
+        }
+        .epub-chapter p {
+          margin-bottom: 1.15em;
+          orphans: 2;
+          widows: 2;
+        }
+        .epub-chapter blockquote {
+          font-style: italic;
+          border-left: 3px solid ${theme.accent};
+          padding-left: 1.25rem;
+          margin: 1.5rem 0;
+          opacity: 0.9;
+          break-inside: avoid;
+        }
+        .epub-chapter img {
+          max-width: 100%;
+          max-height: calc(100% - 2.5rem);
+          height: auto;
+          object-fit: contain;
+          display: block;
+          margin: 1.5rem auto;
+          border-radius: 0.5rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          break-inside: avoid;
+        }
+        .epub-chapter hr {
+          border: 0;
+          border-top: 1px solid ${theme.border};
+          margin: 2rem auto;
+          width: 25%;
+          opacity: 0.6;
+        }
+        .epub-chapter a {
+          color: ${theme.accent};
+          text-decoration: underline;
+          text-underline-offset: 3px;
+          opacity: 0.9;
+          transition: opacity 0.15s ease;
+        }
+        .epub-chapter a:hover {
+          opacity: 1;
+        }
+        .epub-chapter table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          font-size: 0.9em;
+          break-inside: avoid;
+        }
+        .epub-chapter th, .epub-chapter td {
+          border: 1px solid ${theme.border};
+          padding: 0.6rem 0.85rem;
+          text-align: left;
+        }
+        .epub-chapter th {
+          font-weight: 600;
+          background-color: ${theme.cardBg};
+        }
+        .epub-chapter code, .epub-chapter pre {
+          font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+          font-size: 0.88em;
+          background-color: ${theme.cardBg};
+          border: 1px solid ${theme.border};
+          border-radius: 0.35rem;
+          padding: 0.15rem 0.35rem;
+          break-inside: avoid;
+        }
+        .epub-chapter pre {
+          padding: 0.85rem 1rem;
+          overflow-x: auto;
+          margin: 1.5rem 0;
+        }
+        .epub-chapter pre code {
+          border: 0;
+          padding: 0;
+          background-color: transparent;
+        }
+      `}</style>
 
-          {/* Fullscreen Toggle */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer hidden sm:flex"
-            style={{
-              borderColor: theme.border,
-              backgroundColor: `${theme.cardBg}aa`,
-            }}
-            title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen Focus (F)'}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="w-4 h-4 opacity-75" />
-            ) : (
-              <Maximize2 className="w-4 h-4 opacity-75" />
-            )}
-          </button>
-
-          {/* File Picker */}
+      {/* Main Reading Flow Container */}
+      {loading ? (
+        <div className="flex-1 flex min-h-[300px] flex-col items-center justify-center text-center space-y-4">
+          <div className="relative flex h-10 w-10">
+            <span
+              className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
+              style={{ backgroundColor: theme.accent }}
+            />
+            <span
+              className="relative inline-flex rounded-full h-10 w-10 items-center justify-center border"
+              style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
+            >
+              <BookOpen className="w-5 h-5 animate-pulse" style={{ color: theme.accent }} />
+            </span>
+          </div>
+          <p className="text-xs font-medium tracking-wide uppercase opacity-75">
+            Preparing your book...
+          </p>
+        </div>
+      ) : error ? (
+        <div className="flex-1 flex min-h-[300px] flex-col items-center justify-center text-center p-6 max-w-md mx-auto">
+          <div className="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 mb-3">
+            <FileText className="w-6 h-6" />
+          </div>
+          <p className="text-sm font-semibold text-red-500 mb-1">Could not read EPUB</p>
+          <p className="text-xs opacity-70 mb-5 leading-relaxed">{error}</p>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-xl border hover:opacity-80 transition-all cursor-pointer"
-            style={{
-              borderColor: theme.border,
-              backgroundColor: `${theme.cardBg}aa`,
-            }}
-            title={book ? 'Replace EPUB File' : 'Open EPUB File'}
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-md hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: theme.accent }}
           >
-            <Upload className="w-4 h-4 opacity-75" />
+            Choose Another EPUB
           </button>
         </div>
-      </header>
-
-      {/* Main Reading Flow Container */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-8 md:py-12"
-      >
-        {loading ? (
-          <div className="flex h-full min-h-[300px] flex-col items-center justify-center text-center space-y-4">
-            <div className="relative flex h-10 w-10">
-              <span
-                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
-                style={{ backgroundColor: theme.accent }}
-              />
-              <span
-                className="relative inline-flex rounded-full h-10 w-10 items-center justify-center border"
-                style={{ backgroundColor: theme.cardBg, borderColor: theme.border }}
-              >
-                <BookOpen className="w-5 h-5 animate-pulse" style={{ color: theme.accent }} />
-              </span>
-            </div>
-            <p className="text-xs font-medium tracking-wide uppercase opacity-75">
-              Preparing your book…
-            </p>
-          </div>
-        ) : error ? (
-          <div className="flex h-full min-h-[300px] flex-col items-center justify-center text-center p-6 max-w-md mx-auto">
-            <div className="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 mb-3">
-              <FileText className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-semibold text-red-500 mb-1">Could not read EPUB</p>
-            <p className="text-xs opacity-70 mb-5 leading-relaxed">{error}</p>
+      ) : chapter ? (
+        isPaginated ? (
+          /* KINDLE PAGINATED MODE: Screen-fit pages, zero vertical scrolling, page-flip engine */
+          <div
+            ref={paginatedViewportRef}
+            onClick={handleReadingAreaClick}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+            className="flex-1 min-h-0 w-full relative flex items-center justify-center overflow-hidden cursor-default select-text"
+          >
+            {/* Subtle Edge Navigation Chevrons */}
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-md hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: theme.accent }}
+              onClick={(e) => {
+                e.stopPropagation()
+                turnPrevPage()
+              }}
+              disabled={pageIndex === 0 && chapterIndex === 0}
+              className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full items-center justify-center border shadow-sm opacity-20 hover:opacity-90 disabled:opacity-0 transition-opacity cursor-pointer"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                color: theme.text,
+              }}
+              title="Previous Page (← or PageUp)"
             >
-              Choose Another EPUB
+              <ChevronLeft className="w-5 h-5" />
             </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                turnNextPage()
+              }}
+              disabled={pageIndex >= totalPages - 1 && (!book || chapterIndex >= book.chapters.length - 1)}
+              className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full items-center justify-center border shadow-sm opacity-20 hover:opacity-90 disabled:opacity-0 transition-opacity cursor-pointer"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.border,
+                color: theme.text,
+              }}
+              title="Next Page (→ or Space)"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            {/* Exactly Sized Screen Page Frame */}
+            <div
+              style={{
+                width: `${pageMetrics.pageWidth}px`,
+                height: `${pageMetrics.pageHeight}px`,
+                overflow: 'hidden',
+                position: 'relative',
+              }}
+            >
+              <div
+                ref={columnFlowRef}
+                onLoadCapture={updateLayout}
+                className={`epub-chapter transition-transform ${
+                  isTurningPage ? 'duration-200 ease-out' : 'duration-0'
+                } ${settings.indentParagraphs ? '[&_p+p]:indent-6' : ''}`}
+                style={{
+                  height: `${pageMetrics.pageHeight}px`,
+                  width: `${pageMetrics.pageWidth}px`,
+                  columnWidth: `${pageMetrics.pageWidth}px`,
+                  columnGap: `${pageMetrics.columnGap}px`,
+                  columnFill: 'auto',
+                  transform: `translateX(-${pageIndex * (pageMetrics.pageWidth + pageMetrics.columnGap)}px)`,
+                  fontFamily: fontFamilyCss,
+                  fontSize: `${settings.fontSize}px`,
+                  lineHeight: lineHeightCss,
+                  textAlign: settings.textAlign,
+                }}
+                onClickCapture={onChapterClick}
+                dangerouslySetInnerHTML={{ __html: chapter.html }}
+              />
+            </div>
           </div>
-        ) : chapter ? (
-          <>
-            <style>{`
-              .epub-chapter {
-                hyphens: auto;
-                text-rendering: optimizeLegibility;
-                word-break: break-word;
-              }
-              .epub-chapter h1 {
-                font-size: 1.85em;
-                font-weight: 700;
-                line-height: 1.25;
-                margin-top: 2em;
-                margin-bottom: 0.8em;
-                letter-spacing: -0.02em;
-              }
-              .epub-chapter h2 {
-                font-size: 1.45em;
-                font-weight: 600;
-                line-height: 1.3;
-                margin-top: 1.75em;
-                margin-bottom: 0.6em;
-                letter-spacing: -0.01em;
-              }
-              .epub-chapter h3 {
-                font-size: 1.2em;
-                font-weight: 600;
-                margin-top: 1.4em;
-                margin-bottom: 0.5em;
-              }
-              .epub-chapter p {
-                margin-bottom: 1.15em;
-              }
-              .epub-chapter blockquote {
-                font-style: italic;
-                border-left: 3px solid ${theme.accent};
-                padding-left: 1.25rem;
-                margin: 1.5rem 0;
-                opacity: 0.9;
-              }
-              .epub-chapter img {
-                max-width: 100%;
-                height: auto;
-                display: block;
-                margin: 2rem auto;
-                border-radius: 0.5rem;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-              }
-              .epub-chapter hr {
-                border: 0;
-                border-top: 1px solid ${theme.border};
-                margin: 2.5rem auto;
-                width: 25%;
-                opacity: 0.6;
-              }
-              .epub-chapter a {
-                color: ${theme.accent};
-                text-decoration: underline;
-                text-underline-offset: 3px;
-                opacity: 0.9;
-                transition: opacity 0.15s ease;
-              }
-              .epub-chapter a:hover {
-                opacity: 1;
-              }
-              .epub-chapter table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 1.75rem 0;
-                font-size: 0.9em;
-              }
-              .epub-chapter th, .epub-chapter td {
-                border: 1px solid ${theme.border};
-                padding: 0.6rem 0.85rem;
-                text-align: left;
-              }
-              .epub-chapter th {
-                font-weight: 600;
-                background-color: ${theme.cardBg};
-              }
-              .epub-chapter code, .epub-chapter pre {
-                font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
-                font-size: 0.88em;
-                background-color: ${theme.cardBg};
-                border: 1px solid ${theme.border};
-                border-radius: 0.35rem;
-                padding: 0.15rem 0.35rem;
-              }
-              .epub-chapter pre {
-                padding: 0.85rem 1rem;
-                overflow-x: auto;
-                margin: 1.5rem 0;
-              }
-              .epub-chapter pre code {
-                border: 0;
-                padding: 0;
-                background-color: transparent;
-              }
-            `}</style>
+        ) : (
+          /* CONTINUOUS SCROLL MODE */
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 sm:px-8 py-8 md:py-12"
+          >
             <article
               ref={articleRef}
-              className={`epub-chapter mx-auto transition-all duration-200 ${columnWidthClass} ${
+              className={`epub-chapter mx-auto transition-all duration-200 ${scrollColumnWidthClass} ${
                 settings.indentParagraphs ? '[&_p+p]:indent-6' : ''
               }`}
               style={{
@@ -955,65 +1375,65 @@ export function EpubDocumentEditor(props: EditorProps) {
               onClickCapture={onChapterClick}
               dangerouslySetInnerHTML={{ __html: chapter.html }}
             />
-          </>
-        ) : (
-          /* Empty State / Welcome Dropzone */
-          <div className="flex h-full min-h-[460px] flex-col items-center justify-center text-center p-6 max-w-xl mx-auto">
+          </div>
+        )
+      ) : (
+        /* Empty State / Welcome Dropzone */
+        <div className="flex-1 flex min-h-[460px] flex-col items-center justify-center text-center p-6 max-w-xl mx-auto">
+          <div
+            className="w-full rounded-3xl border-2 border-dashed p-8 md:p-12 flex flex-col items-center text-center backdrop-blur-md transition-all shadow-xl"
+            style={{
+              backgroundColor: `${theme.cardBg}cc`,
+              borderColor: theme.border,
+            }}
+          >
             <div
-              className="w-full rounded-3xl border-2 border-dashed p-8 md:p-12 flex flex-col items-center text-center backdrop-blur-md transition-all shadow-xl"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 shadow-lg border"
               style={{
-                backgroundColor: `${theme.cardBg}cc`,
-                borderColor: theme.border,
+                backgroundColor: `${theme.accent}15`,
+                borderColor: `${theme.accent}30`,
+                color: theme.accent,
               }}
             >
-              <div
-                className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 shadow-lg border"
-                style={{
-                  backgroundColor: `${theme.accent}15`,
-                  borderColor: `${theme.accent}30`,
-                  color: theme.accent,
-                }}
-              >
-                <BookOpen className="w-8 h-8" />
-              </div>
+              <BookOpen className="w-8 h-8" />
+            </div>
 
-              <h3 className="text-lg font-bold tracking-tight mb-2">Read EPUB Books</h3>
-              <p className="text-xs opacity-75 max-w-md leading-relaxed mb-6">
-                Drag and drop your <code className="px-1.5 py-0.5 rounded border text-[11px] font-mono">.epub</code> file here,
-                or select one from your device. Your notes, bookmarks, and reading position sync automatically.
-              </p>
+            <h3 className="text-lg font-bold tracking-tight mb-2">Read EPUB Books</h3>
+            <p className="text-xs opacity-75 max-w-md leading-relaxed mb-6">
+              Drag and drop your <code className="px-1.5 py-0.5 rounded border text-[11px] font-mono">.epub</code> file here,
+              or select one from your device. Your notes, bookmarks, and reading position sync automatically.
+            </p>
 
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white shadow-lg hover:opacity-90 transition-all cursor-pointer"
-                style={{ backgroundColor: theme.accent }}
-              >
-                <Upload className="w-4 h-4" />
-                <span>Choose EPUB File</span>
-              </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white shadow-lg hover:opacity-90 transition-all cursor-pointer"
+              style={{ backgroundColor: theme.accent }}
+            >
+              <Upload className="w-4 h-4" />
+              <span>Choose EPUB File</span>
+            </button>
 
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-8 pt-6 border-t w-full" style={{ borderColor: theme.border }}>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Custom Typography</span>
-                </span>
-                <span className="opacity-30">·</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
-                  <span>6 Reader Atmospheres</span>
-                </span>
-                <span className="opacity-30">·</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
-                  <span>Full Offline Support</span>
-                </span>
-              </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-8 pt-6 border-t w-full" style={{ borderColor: theme.border }}>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
+                <Sparkles className="w-3 h-3" />
+                <span>Custom Typography</span>
+              </span>
+              <span className="opacity-30">·</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
+                <span>Kindle Paged Layout</span>
+              </span>
+              <span className="opacity-30">·</span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
+                <span>Full Offline Support</span>
+              </span>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Bottom Ambient Navigation & Progress Scrubber */}
-      {book && (
+      {book && isControlsVisible && (
         <footer
           className="shrink-0 border-t px-3 sm:px-6 py-2.5 backdrop-blur-md flex flex-col gap-1.5 z-20"
           style={{
@@ -1025,11 +1445,17 @@ export function EpubDocumentEditor(props: EditorProps) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              disabled={chapterIndex <= 0}
-              onClick={() => goTo(chapterIndex - 1)}
+              disabled={chapterIndex <= 0 && (!isPaginated || pageIndex <= 0)}
+              onClick={() => {
+                if (isPaginated && pageIndex > 0) {
+                  turnPrevPage()
+                } else {
+                  goTo(chapterIndex - 1, undefined, 'start')
+                }
+              }}
               className="p-1 rounded-lg border hover:opacity-80 disabled:opacity-30 transition-all shrink-0 cursor-pointer"
               style={{ borderColor: theme.border }}
-              title="Previous Chapter (← or K)"
+              title={isPaginated ? 'Previous Page (←)' : 'Previous Chapter (← or K)'}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -1041,18 +1467,27 @@ export function EpubDocumentEditor(props: EditorProps) {
                 min="0"
                 max={Math.max(0, book.chapters.length - 1)}
                 value={chapterIndex}
-                onChange={(e) => goTo(Number(e.target.value))}
+                onChange={(e) => goTo(Number(e.target.value), undefined, 'start')}
                 className="w-full accent-emerald-600 h-1.5 rounded-lg cursor-pointer opacity-80 hover:opacity-100 transition-opacity"
               />
             </div>
 
             <button
               type="button"
-              disabled={chapterIndex >= book.chapters.length - 1}
-              onClick={() => goTo(chapterIndex + 1)}
+              disabled={
+                chapterIndex >= book.chapters.length - 1 &&
+                (!isPaginated || pageIndex >= totalPages - 1)
+              }
+              onClick={() => {
+                if (isPaginated && pageIndex < totalPages - 1) {
+                  turnNextPage()
+                } else {
+                  goTo(chapterIndex + 1, undefined, 'start')
+                }
+              }}
               className="p-1 rounded-lg border hover:opacity-80 disabled:opacity-30 transition-all shrink-0 cursor-pointer"
               style={{ borderColor: theme.border }}
-              title="Next Chapter (→ or J)"
+              title={isPaginated ? 'Next Page (→)' : 'Next Chapter (→ or J)'}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -1061,13 +1496,19 @@ export function EpubDocumentEditor(props: EditorProps) {
           {/* Reading Statistics Footer */}
           <div className="flex items-center justify-between text-[11px] font-medium opacity-70 px-1 font-mono">
             <span className="truncate">
-              Chapter {chapterIndex + 1} of {book.chapters.length} ({bookPercentage}%)
+              {isPaginated
+                ? `Page ${pageIndex + 1} of ${totalPages} · Ch. ${chapterIndex + 1} of ${book.chapters.length} (${bookPercentage}%)`
+                : `Chapter ${chapterIndex + 1} of ${book.chapters.length} (${bookPercentage}%)`}
             </span>
             <span className="flex items-center gap-1 shrink-0">
               <Clock className="w-3 h-3 opacity-60" />
               <span>~{chapterReadingTime} min left in chapter</span>
-              <span className="opacity-40">·</span>
-              <span>{scrollProgress}% scrolled</span>
+              {!isPaginated && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span>{scrollProgress}% scrolled</span>
+                </>
+              )}
             </span>
           </div>
         </footer>
@@ -1102,22 +1543,31 @@ export function EpubDocumentEditor(props: EditorProps) {
           book={book}
           theme={theme}
           onSelectResult={(cIdx, query) => {
-            goTo(cIdx)
-            // Scroll to query match
+            goTo(cIdx, undefined, 'start')
             window.setTimeout(() => {
-              if (articleRef.current) {
+              const root = !isPaginated ? articleRef.current : columnFlowRef.current
+              if (root) {
                 const walker = document.createTreeWalker(
-                  articleRef.current,
+                  root,
                   NodeFilter.SHOW_TEXT,
                 )
                 let node: Node | null
                 const lowerQ = query.toLowerCase()
                 while ((node = walker.nextNode())) {
                   if (node.textContent?.toLowerCase().includes(lowerQ)) {
-                    (node.parentElement as HTMLElement)?.scrollIntoView({
-                      block: 'center',
-                      behavior: 'smooth',
-                    })
+                    const parent = node.parentElement as HTMLElement | null
+                    if (parent) {
+                      if (!isPaginated) {
+                        parent.scrollIntoView({
+                          block: 'center',
+                          behavior: 'smooth',
+                        })
+                      } else {
+                        const step = pageMetrics.pageWidth + pageMetrics.columnGap
+                        const page = Math.floor(parent.offsetLeft / step)
+                        setPageIndex(Math.max(0, Math.min(totalPages - 1, page)))
+                      }
+                    }
                     break
                   }
                 }
