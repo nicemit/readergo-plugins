@@ -39,6 +39,16 @@
       "hash": "28905ef9da75f06f"
     },
     {
+      "id": "readergo.theme.eink",
+      "name": "E-Ink Reading Suite",
+      "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-eink.bundle.json",
+      "bundleHash": "ae9d5289eaebfd39",
+      "hash": "ae9d5289eaebfd39"
+    },
+    {
       "id": "readergo.embeddings.local",
       "name": "Embeddings (Local)",
       "description": "Offline local embeddings for agent memory. No API key.",
