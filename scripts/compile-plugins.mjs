@@ -101,6 +101,7 @@ async function compileUi(entryPath, outfile) {
     minify: false,
     sourcemap: false,
     plugins: [hostExternalPlugin()],
+    loader: { ".txt": "text" },
     logLevel: "warning",
   });
   let code = await fs.readFile(outfile, "utf8");
@@ -153,7 +154,20 @@ async function compileManifest(manifestPath) {
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 }
 
+async function ensurePdfWorkerText() {
+  const src = path.join(root, "node_modules/pdfjs-dist/build/pdf.worker.min.mjs");
+  const dest = path.join(pluginsDir, "paged-reader/src/pdf.worker.min.txt");
+  try {
+    await fs.access(src);
+    await fs.mkdir(path.dirname(dest), { recursive: true });
+    await fs.copyFile(src, dest);
+  } catch {
+    // paged-reader or pdfjs-dist may be absent
+  }
+}
+
 async function main() {
+  await ensurePdfWorkerText();
   const folders = await fs.readdir(pluginsDir, { withFileTypes: true });
   let count = 0;
   for (const folder of folders) {
