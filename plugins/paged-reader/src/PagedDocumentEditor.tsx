@@ -53,6 +53,13 @@ export function setPagedPluginContext(context: PluginContext | null) {
   contextListeners.forEach((fn) => fn())
 }
 
+function onPagedContext(fn: () => void): () => void {
+  contextListeners.add(fn)
+  return () => {
+    contextListeners.delete(fn)
+  }
+}
+
 function kindOf(note: CurrentNote | null | undefined): PagedKind {
   return note?.type === 'cbz' ? 'cbz' : 'pdf'
 }
@@ -104,7 +111,9 @@ export function PagedDocumentEditor(props: EditorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const stageRef = useRef<HTMLDivElement | null>(null)
   const loadedIdRef = useRef<string | null>(null)
+  const cbzPagesRef = useRef<CbzPage[]>([])
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  cbzPagesRef.current = cbzPages
 
   const accept = kind === 'cbz' ? '.cbz' : '.pdf'
   const Icon = kind === 'cbz' ? BookImage : FileText
@@ -129,7 +138,7 @@ export function PagedDocumentEditor(props: EditorProps) {
       setError(null)
       setLoading(true)
       try {
-        revokeCbzPages(cbzPages)
+        revokeCbzPages(cbzPagesRef.current)
         setCbzPages([])
         pdfRef.current = null
         if (kind === 'cbz') {
@@ -160,7 +169,7 @@ export function PagedDocumentEditor(props: EditorProps) {
         setLoading(false)
       }
     },
-    [cbzPages, kind],
+    [kind],
   )
 
   useEffect(() => {
@@ -169,19 +178,32 @@ export function PagedDocumentEditor(props: EditorProps) {
     }
   }, [cbzPages])
 
+  const noteId = note?.id || null
+  const native = isNativeFile(note)
+  const loadKey = noteId ? `${noteId}:${native ? 'native' : 'empty'}` : null
+  const noteRef = useRef(note)
+  noteRef.current = note
+
   useEffect(() => {
-    const id = note?.id
-    if (!id) return
-    if (loadedIdRef.current === id) return
+    const id = noteId
+    if (!id || !loadKey) return
+    if (loadedIdRef.current === loadKey) return
 
     let cancelled = false
     let attempts = 0
-    const native = isNativeFile(note)
+    let contextTries = 0
     if (native) setLoading(true)
 
     const open = async () => {
-      if (cancelled || loadedIdRef.current === id) return
+      if (cancelled || loadedIdRef.current === loadKey) return
       if (!pluginContext) {
+        contextTries += 1
+        if (contextTries > 50) {
+          setLoading(false)
+          setError('The reader did not start. Reload this document.')
+          loadedIdRef.current = loadKey
+          return
+        }
         window.setTimeout(() => {
           if (!cancelled) void open()
         }, 150)
@@ -189,18 +211,18 @@ export function PagedDocumentEditor(props: EditorProps) {
       }
       if (!native) {
         setLoading(false)
-        loadedIdRef.current = id
+        loadedIdRef.current = loadKey
         return
       }
       const storage = await pluginContext.getCapability<NoteStorageCapability>(
         'document-storage',
       )
-      const saved = await readLocation(note)
+      const saved = await readLocation(noteRef.current)
       try {
         const bytes = await storage?.readBytes?.(id)
         if (cancelled) return
         if (bytes && bytes.byteLength > 0) {
-          loadedIdRef.current = id
+          loadedIdRef.current = loadKey
           await loadBytes(bytes, saved)
           return
         }
@@ -214,7 +236,7 @@ export function PagedDocumentEditor(props: EditorProps) {
         }
         setLoading(false)
         setError(err instanceof Error ? err.message : String(err))
-        loadedIdRef.current = id
+        loadedIdRef.current = loadKey
         return
       }
       if (native && attempts < 40) {
@@ -225,14 +247,19 @@ export function PagedDocumentEditor(props: EditorProps) {
         return
       }
       setLoading(false)
-      loadedIdRef.current = id
+      setError(`Could not read this ${label}.`)
+      loadedIdRef.current = loadKey
     }
 
     void open()
+    const stop = onPagedContext(() => {
+      if (!cancelled) void open()
+    })
     return () => {
       cancelled = true
+      stop()
     }
-  }, [loadBytes, note])
+  }, [kind, label, loadBytes, loadKey, native, noteId])
 
   useEffect(() => {
     const pdf = pdfRef.current
@@ -272,7 +299,7 @@ export function PagedDocumentEditor(props: EditorProps) {
 
     if (isNativeFile(note) && note?.id && storage?.writeBytes && type === kind) {
       await storage.writeBytes(note.id, bytes)
-      loadedIdRef.current = note.id
+      loadedIdRef.current = `${note.id}:native`
       await loadBytes(bytes, await readLocation(note))
       return
     }
@@ -299,7 +326,7 @@ export function PagedDocumentEditor(props: EditorProps) {
       }
     }
 
-    loadedIdRef.current = note?.id ?? null
+    loadedIdRef.current = note?.id ? `${note.id}:native` : null
     await loadBytes(bytes, { page: 0 })
   }
 

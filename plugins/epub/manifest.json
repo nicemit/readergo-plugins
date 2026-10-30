@@ -1,7 +1,7 @@
 {
   "id": "readergo.editor.epub",
   "name": "EPUB Reader",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
   "category": "editor",
   "provides": [

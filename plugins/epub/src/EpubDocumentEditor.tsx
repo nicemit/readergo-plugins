@@ -352,21 +352,34 @@ export function EpubDocumentEditor(props: EditorProps) {
     [applyBook],
   )
 
+  const noteId = note?.id || null
+  const native = isNativeEpub(note)
+  const loadKey = noteId ? `${noteId}:${native ? 'native' : 'empty'}` : null
+  const noteRef = useRef(note)
+  noteRef.current = note
+
   useEffect(() => {
-    const id = note?.id
-    if (!id) return
-    if (loadedIdRef.current === id) return
+    const id = noteId
+    if (!id || !loadKey) return
+    if (loadedIdRef.current === loadKey) return
 
     let cancelled = false
     let attempts = 0
-    const native = isNativeEpub(note)
+    let contextTries = 0
 
     if (native) setLoading(true)
 
     const open = async () => {
-      if (cancelled || loadedIdRef.current === id) return
+      if (cancelled || loadedIdRef.current === loadKey) return
 
       if (!pluginContext) {
+        contextTries += 1
+        if (contextTries > 50) {
+          setLoading(false)
+          setError('The EPUB reader did not start. Reload this document.')
+          loadedIdRef.current = loadKey
+          return
+        }
         window.setTimeout(() => {
           if (!cancelled) void open()
         }, 150)
@@ -375,14 +388,14 @@ export function EpubDocumentEditor(props: EditorProps) {
 
       if (!native) {
         setLoading(false)
-        loadedIdRef.current = id
+        loadedIdRef.current = loadKey
         return
       }
 
       const storage = await pluginContext.getCapability<NoteStorageCapability>(
         'document-storage',
       )
-      const saved = await readLocation(note)
+      const saved = await readLocation(noteRef.current)
 
       try {
         const bytes = await storage?.readBytes?.(id)
@@ -391,15 +404,15 @@ export function EpubDocumentEditor(props: EditorProps) {
           if (!hasZipSignature(bytes)) {
             setError('This file is not a valid EPUB archive.')
             setLoading(false)
-            loadedIdRef.current = id
+            loadedIdRef.current = loadKey
             return
           }
-          loadedIdRef.current = id
+          loadedIdRef.current = loadKey
           await loadBytes(bytes, saved)
           return
         }
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
+        const msg = err instanceof Error ? err.message : String(err)
         attempts += 1
         if (native && attempts < 40) {
           window.setTimeout(() => {
@@ -408,8 +421,8 @@ export function EpubDocumentEditor(props: EditorProps) {
           return
         }
         setLoading(false)
-        setError(message)
-        loadedIdRef.current = id
+        setError(msg)
+        loadedIdRef.current = loadKey
         return
       }
 
@@ -422,7 +435,8 @@ export function EpubDocumentEditor(props: EditorProps) {
       }
 
       setLoading(false)
-      loadedIdRef.current = id
+      setError('Could not read this EPUB file.')
+      loadedIdRef.current = loadKey
     }
 
     void open()
@@ -433,7 +447,7 @@ export function EpubDocumentEditor(props: EditorProps) {
       cancelled = true
       stop()
     }
-  }, [loadBytes, note])
+  }, [loadBytes, loadKey, native, noteId])
 
   const chapter = book?.chapters[chapterIndex] ?? null
 
@@ -754,7 +768,7 @@ export function EpubDocumentEditor(props: EditorProps) {
 
     if (isNativeEpub(note) && note?.id && storage?.writeBytes) {
       await storage.writeBytes(note.id, bytes)
-      loadedIdRef.current = note.id
+      loadedIdRef.current = `${note.id}:native`
       await loadBytes(bytes, await readLocation(note))
       return
     }
@@ -781,7 +795,7 @@ export function EpubDocumentEditor(props: EditorProps) {
       }
     }
 
-    loadedIdRef.current = note?.id ?? null
+    loadedIdRef.current = note?.id ? `${note.id}:native` : null
     await loadBytes(bytes, { chapterIndex: 0 })
   }
 
