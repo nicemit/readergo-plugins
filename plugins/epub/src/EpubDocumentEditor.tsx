@@ -46,6 +46,14 @@ import {
 import { EpubAppearanceMenu } from './EpubAppearanceMenu'
 import { EpubTocDrawer } from './EpubTocDrawer'
 import { EpubSearchModal } from './EpubSearchModal'
+import {
+  EPUB_LINE_HEIGHT,
+  alignToSpread,
+  columnStep,
+  computePagedLayout,
+  computeScrollMaxWidth,
+  countColumns,
+} from './layout'
 
 const NATIVE_FILE_SOURCE = 'native-file'
 const LOCATION_NS = 'document-location'
@@ -163,7 +171,11 @@ function loadSavedSettings(): EpubSettings {
       else parsed.margins = 'normal'
     }
 
-    return { ...DEFAULT_EPUB_SETTINGS, ...parsed }
+    return {
+      ...DEFAULT_EPUB_SETTINGS,
+      ...parsed,
+      pageLayout: parsed.pageLayout || 'auto',
+    }
   } catch {
     return DEFAULT_EPUB_SETTINGS
   }
@@ -230,17 +242,18 @@ export function EpubDocumentEditor(props: EditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const articleRef = useRef<HTMLElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const paginatedViewportRef = useRef<HTMLDivElement>(null)
   const columnFlowRef = useRef<HTMLDivElement>(null)
   const loadedIdRef = useRef<string | null>(null)
   const pendingHashRef = useRef<string | null>(null)
   const pendingTargetRef = useRef<'start' | 'end' | number | null>(null)
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
   const wheelDebounceRef = useRef<number | null>(null)
+  const viewportRoRef = useRef<ResizeObserver | null>(null)
 
   const theme = EPUB_THEMES[settings.theme] || EPUB_THEMES.paper
   const margins = settings.margins || 'normal'
   const isPaginated = (settings.readingMode || 'paginated') === 'paginated'
+  const pageLayout = settings.pageLayout || 'auto'
 
   const handleUpdateSettings = useCallback((newSettings: EpubSettings) => {
     setSettings(newSettings)
@@ -252,79 +265,51 @@ export function EpubDocumentEditor(props: EditorProps) {
     setBookmarks(loadSavedBookmarks(note))
   }, [note])
 
-  // Track viewport dimensions with ResizeObserver for exact screen-fitting columns
-  useEffect(() => {
-    const el = paginatedViewportRef.current
+  const setReadingViewport = useCallback((el: HTMLDivElement | null) => {
+    viewportRoRef.current?.disconnect()
+    viewportRoRef.current = null
     if (!el || typeof ResizeObserver === 'undefined') return
     const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect
-        if (width > 0 && height > 0) {
-          setViewportDimensions({ width, height })
-        }
-      }
+      const entry = entries[0]
+      if (!entry) return
+      const nextWidth = Math.round(entry.contentRect.width)
+      const nextHeight = Math.round(entry.contentRect.height)
+      if (nextWidth <= 0 || nextHeight <= 0) return
+      setViewportDimensions((prev) =>
+        prev.width === nextWidth && prev.height === nextHeight
+          ? prev
+          : { width: nextWidth, height: nextHeight },
+      )
     })
     ro.observe(el)
-    return () => ro.disconnect()
-  }, [isPaginated, isControlsVisible])
+    viewportRoRef.current = ro
+  }, [])
 
-  // Compute exact page width, page height, and column gaps based on margins setting
-  const pageMetrics = useMemo(() => {
-    const containerW =
-      viewportDimensions.width ||
-      (typeof window !== 'undefined' ? window.innerWidth : 800)
-    const containerH =
-      viewportDimensions.height ||
-      (typeof window !== 'undefined' ? window.innerHeight - 110 : 600)
-
-    let horizontalMargin = 18
-    let verticalMargin = 18
-    let maxPageW = 760
-    let columnGap = 40
-
-    if (margins === 'compact') {
-      horizontalMargin = containerW < 640 ? 10 : Math.max(20, Math.round(containerW * 0.05))
-      verticalMargin = containerW < 640 ? 12 : 16
-      maxPageW = 960
-      columnGap = containerW < 640 ? 20 : 32
-    } else if (margins === 'wide') {
-      horizontalMargin = containerW < 640 ? 28 : Math.max(54, Math.round(containerW * 0.16))
-      verticalMargin = containerW < 640 ? 24 : 32
-      maxPageW = 620
-      columnGap = containerW < 640 ? 36 : 56
-    } else {
-      // normal
-      horizontalMargin = containerW < 640 ? 18 : Math.max(36, Math.round(containerW * 0.10))
-      verticalMargin = containerW < 640 ? 18 : 24
-      maxPageW = 760
-      columnGap = containerW < 640 ? 28 : 44
+  useEffect(() => {
+    return () => {
+      viewportRoRef.current?.disconnect()
     }
+  }, [])
 
-    const availableW = Math.max(240, containerW - 2 * horizontalMargin)
-    const pageWidth = Math.min(maxPageW, availableW)
-
-    // Snap page height to integer multiple of line-height so bottom lines are never sliced in half
-    const computedLineHeight = settings.fontSize * (
-      settings.lineHeight === 'compact' ? 1.35 : settings.lineHeight === 'relaxed' ? 1.85 : 1.58
-    )
-    const rawHeight = Math.max(180, containerH - 2 * verticalMargin)
-    const snappedLines = Math.max(4, Math.floor(rawHeight / computedLineHeight))
-    const pageHeight = Math.round(snappedLines * computedLineHeight)
-
-    return {
-      pageWidth,
-      pageHeight,
-      columnGap,
-      horizontalMargin,
-      verticalMargin,
-    }
-  }, [
-    viewportDimensions.width,
-    viewportDimensions.height,
-    margins,
-    settings.fontSize,
-    settings.lineHeight,
-  ])
+  const pageMetrics = useMemo(
+    () =>
+      computePagedLayout({
+        containerWidth: viewportDimensions.width,
+        containerHeight: viewportDimensions.height,
+        margins,
+        fontSize: settings.fontSize,
+        lineHeight: settings.lineHeight,
+        pageLayout,
+      }),
+    [
+      viewportDimensions.width,
+      viewportDimensions.height,
+      margins,
+      settings.fontSize,
+      settings.lineHeight,
+      pageLayout,
+    ],
+  )
 
   const applyBook = useCallback(
     async (nextBook: EpubBook, location: EpubLocation) => {
@@ -465,30 +450,30 @@ export function EpubDocumentEditor(props: EditorProps) {
     const el = columnFlowRef.current
     if (!el) return
 
-    const step = pageMetrics.pageWidth + pageMetrics.columnGap
-    if (step <= 0) return
-
-    // scrollWidth includes all columns and gaps
-    const calculatedPages = Math.max(
-      1,
-      Math.round((el.scrollWidth + pageMetrics.columnGap) / step),
+    const step = columnStep(pageMetrics.columnWidth, pageMetrics.columnGap)
+    const calculatedPages = countColumns(
+      el.scrollWidth,
+      pageMetrics.columnWidth,
+      pageMetrics.columnGap,
     )
     setTotalPages(calculatedPages)
 
+    const snap = (column: number) =>
+      alignToSpread(column, pageMetrics.columnsVisible, calculatedPages)
+
     if (pendingTargetRef.current === 'end') {
-      setPageIndex(calculatedPages - 1)
+      setPageIndex(snap(calculatedPages - 1))
       pendingTargetRef.current = null
     } else if (pendingTargetRef.current === 'start') {
       setPageIndex(0)
       pendingTargetRef.current = null
     } else if (typeof pendingTargetRef.current === 'number') {
-      setPageIndex(Math.max(0, Math.min(calculatedPages - 1, pendingTargetRef.current)))
+      setPageIndex(snap(pendingTargetRef.current))
       pendingTargetRef.current = null
     } else {
-      setPageIndex((prev) => Math.max(0, Math.min(calculatedPages - 1, prev)))
+      setPageIndex((prev) => snap(prev))
     }
 
-    // Scroll to hash / anchor if pending
     if (pendingHashRef.current) {
       const hash = pendingHashRef.current
       pendingHashRef.current = null
@@ -497,10 +482,15 @@ export function EpubDocumentEditor(props: EditorProps) {
         el.querySelector(`[name="${CSS.escape(hash)}"]`)
       if (target instanceof HTMLElement) {
         const page = Math.floor(target.offsetLeft / step)
-        setPageIndex(Math.max(0, Math.min(calculatedPages - 1, page)))
+        setPageIndex(snap(page))
       }
     }
-  }, [isPaginated, pageMetrics.pageWidth, pageMetrics.columnGap])
+  }, [
+    isPaginated,
+    pageMetrics.columnWidth,
+    pageMetrics.columnGap,
+    pageMetrics.columnsVisible,
+  ])
 
   useLayoutEffect(() => {
     if (!isPaginated) return
@@ -510,14 +500,26 @@ export function EpubDocumentEditor(props: EditorProps) {
     isPaginated,
     chapter,
     chapterIndex,
-    pageMetrics.pageWidth,
+    pageMetrics.columnWidth,
     pageMetrics.pageHeight,
     pageMetrics.columnGap,
+    pageMetrics.columnsVisible,
     settings.fontSize,
     settings.lineHeight,
     settings.fontFamily,
     updateLayout,
   ])
+
+  useEffect(() => {
+    if (!isPaginated || typeof document === 'undefined' || !document.fonts?.ready) return
+    let cancelled = false
+    void document.fonts.ready.then(() => {
+      if (!cancelled) updateLayout()
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [chapter, isPaginated, updateLayout])
 
   // Scroll to anchor in continuous scroll mode
   useEffect(() => {
@@ -588,13 +590,13 @@ export function EpubDocumentEditor(props: EditorProps) {
         if (!isPaginated) {
           scrollToHash(articleRef.current, hash)
         } else if (columnFlowRef.current) {
-          const step = pageMetrics.pageWidth + pageMetrics.columnGap
+          const step = columnStep(pageMetrics.columnWidth, pageMetrics.columnGap)
           const target =
             columnFlowRef.current.querySelector(`#${CSS.escape(hash)}`) ||
             columnFlowRef.current.querySelector(`[name="${CSS.escape(hash)}"]`)
           if (target instanceof HTMLElement) {
             const page = Math.floor(target.offsetLeft / step)
-            setPageIndex(Math.max(0, Math.min(totalPages - 1, page)))
+            setPageIndex(alignToSpread(page, pageMetrics.columnsVisible, totalPages))
           }
         }
         void writeLocation(note, chapterIndex, `${chapter?.href || ''}#${hash}`)
@@ -609,27 +611,27 @@ export function EpubDocumentEditor(props: EditorProps) {
 
   // Turn to Next Page (Kindle Style: advances to next chapter if at end)
   const turnNextPage = useCallback(() => {
-    if (pageIndex < totalPages - 1) {
+    const next = pageIndex + pageMetrics.columnsVisible
+    if (next < totalPages) {
       setIsTurningPage(true)
-      setPageIndex((p) => p + 1)
+      setPageIndex(next)
       window.setTimeout(() => setIsTurningPage(false), 240)
     } else if (book && chapterIndex < book.chapters.length - 1) {
       pendingTargetRef.current = 'start'
       goTo(chapterIndex + 1, undefined, 'start')
     }
-  }, [pageIndex, totalPages, book, chapterIndex, goTo])
+  }, [pageIndex, pageMetrics.columnsVisible, totalPages, book, chapterIndex, goTo])
 
-  // Turn to Previous Page (Kindle Style: moves to last page of prev chapter if at start)
   const turnPrevPage = useCallback(() => {
     if (pageIndex > 0) {
       setIsTurningPage(true)
-      setPageIndex((p) => p - 1)
+      setPageIndex(Math.max(0, pageIndex - pageMetrics.columnsVisible))
       window.setTimeout(() => setIsTurningPage(false), 240)
     } else if (chapterIndex > 0) {
       pendingTargetRef.current = 'end'
       goTo(chapterIndex - 1, undefined, 'end')
     }
-  }, [pageIndex, chapterIndex, goTo])
+  }, [pageIndex, pageMetrics.columnsVisible, chapterIndex, goTo])
 
   // Tap handler on the reading area: left 25% prev, right 25% next, center 50% toggle controls
   const handleReadingAreaClick = useCallback(
@@ -945,42 +947,20 @@ export function EpubDocumentEditor(props: EditorProps) {
   }, [settings.fontFamily])
 
   // Line height CSS
-  const lineHeightCss = useMemo(() => {
-    switch (settings.lineHeight) {
-      case 'compact':
-        return '1.45'
-      case 'relaxed':
-        return '2.1'
-      case 'balanced':
-      default:
-        return '1.75'
-    }
-  }, [settings.lineHeight])
+  const lineHeightCss = String(
+    EPUB_LINE_HEIGHT[settings.lineHeight] ?? EPUB_LINE_HEIGHT.balanced,
+  )
 
-  // Responsive layout and margin styling for continuous scroll mode
-  const scrollMetrics = useMemo(() => {
-    switch (margins) {
-      case 'compact':
-        return {
-          containerPadding: 'px-2 sm:px-6 md:px-10 py-6 md:py-10',
-          maxWidthClass: 'max-w-5xl',
-          articleStyle: { maxWidth: '96%' },
-        }
-      case 'wide':
-        return {
-          containerPadding: 'px-6 sm:px-14 md:px-24 py-10 md:py-14',
-          maxWidthClass: 'max-w-xl',
-          articleStyle: { maxWidth: '80%' },
-        }
-      case 'normal':
-      default:
-        return {
-          containerPadding: 'px-4 sm:px-10 md:px-16 py-8 md:py-12',
-          maxWidthClass: 'max-w-3xl',
-          articleStyle: { maxWidth: '88%' },
-        }
-    }
-  }, [margins])
+  const scrollMaxWidth = computeScrollMaxWidth(
+    viewportDimensions.width || 800,
+    margins,
+  )
+  const spreadNumber = Math.floor(pageIndex / pageMetrics.columnsVisible) + 1
+  const spreadCount = Math.max(1, Math.ceil(totalPages / pageMetrics.columnsVisible))
+  const atFirstSpread = pageIndex <= 0 && chapterIndex === 0
+  const atLastSpread =
+    pageIndex + pageMetrics.columnsVisible >= totalPages &&
+    (!book || chapterIndex >= book.chapters.length - 1)
 
   return (
     <div
@@ -1246,10 +1226,12 @@ export function EpubDocumentEditor(props: EditorProps) {
           opacity: 0.9;
           break-inside: avoid;
         }
-        .epub-chapter img {
-          max-width: 100%;
-          max-height: calc(100% - 2.5rem);
-          height: auto;
+        .epub-chapter img,
+        .epub-chapter svg,
+        .epub-chapter video {
+          max-width: 100% !important;
+          max-height: ${Math.max(80, pageMetrics.pageHeight - 48)}px;
+          height: auto !important;
           object-fit: contain;
           display: block;
           margin: 1.5rem auto;
@@ -1302,6 +1284,7 @@ export function EpubDocumentEditor(props: EditorProps) {
         .epub-chapter pre {
           padding: 0.85rem 1rem;
           overflow-x: auto;
+          white-space: pre-wrap;
           margin: 1.5rem 0;
         }
         .epub-chapter pre code {
@@ -1312,6 +1295,7 @@ export function EpubDocumentEditor(props: EditorProps) {
       `}</style>
 
       {/* Main Reading Flow Container */}
+      <div ref={setReadingViewport} className="relative flex min-h-0 w-full flex-1 flex-col">
       {loading ? (
         <div className="flex-1 flex min-h-[300px] flex-col items-center justify-center text-center space-y-4">
           <div className="relative flex h-10 w-10">
@@ -1348,23 +1332,20 @@ export function EpubDocumentEditor(props: EditorProps) {
         </div>
       ) : chapter ? (
         isPaginated ? (
-          /* KINDLE PAGINATED MODE: Screen-fit pages, zero vertical scrolling, page-flip engine */
           <div
-            ref={paginatedViewportRef}
             onClick={handleReadingAreaClick}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
-            className="flex-1 min-h-0 w-full relative flex items-center justify-center overflow-hidden cursor-default select-text"
+            className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden cursor-default select-text"
           >
-            {/* Subtle Edge Navigation Chevrons */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 turnPrevPage()
               }}
-              disabled={pageIndex === 0 && chapterIndex === 0}
+              disabled={atFirstSpread}
               className="hidden md:flex absolute left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full items-center justify-center border shadow-sm opacity-20 hover:opacity-90 disabled:opacity-0 transition-opacity cursor-pointer"
               style={{
                 backgroundColor: theme.cardBg,
@@ -1382,7 +1363,7 @@ export function EpubDocumentEditor(props: EditorProps) {
                 e.stopPropagation()
                 turnNextPage()
               }}
-              disabled={pageIndex >= totalPages - 1 && (!book || chapterIndex >= book.chapters.length - 1)}
+              disabled={atLastSpread}
               className="hidden md:flex absolute right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full items-center justify-center border shadow-sm opacity-20 hover:opacity-90 disabled:opacity-0 transition-opacity cursor-pointer"
               style={{
                 backgroundColor: theme.cardBg,
@@ -1394,52 +1375,87 @@ export function EpubDocumentEditor(props: EditorProps) {
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            {/* Exactly Sized Screen Page Frame */}
-            <div
-              style={{
-                width: `${pageMetrics.pageWidth}px`,
-                height: `${pageMetrics.pageHeight}px`,
-                overflow: 'hidden',
-                position: 'relative',
-              }}
-            >
+            {viewportDimensions.width > 0 && (
               <div
-                ref={columnFlowRef}
-                onLoadCapture={updateLayout}
-                className={`epub-chapter transition-transform ${
-                  isTurningPage ? 'duration-200 ease-out' : 'duration-0'
-                } ${settings.indentParagraphs ? '[&_p+p]:indent-6' : ''}`}
                 style={{
-                  height: `${pageMetrics.pageHeight}px`,
-                  width: `${pageMetrics.pageWidth}px`,
-                  columnWidth: `${pageMetrics.pageWidth}px`,
-                  columnGap: `${pageMetrics.columnGap}px`,
-                  columnFill: 'auto',
-                  transform: `translateX(-${pageIndex * (pageMetrics.pageWidth + pageMetrics.columnGap)}px)`,
-                  fontFamily: fontFamilyCss,
-                  fontSize: `${settings.fontSize}px`,
-                  lineHeight: lineHeightCss,
-                  textAlign: settings.textAlign,
+                  width: `${pageMetrics.frameWidth + pageMetrics.paperPadX * 2}px`,
+                  height: `${pageMetrics.pageHeight + pageMetrics.paperPadY * 2}px`,
+                  padding: `${pageMetrics.paperPadY}px ${pageMetrics.paperPadX}px`,
+                  backgroundColor: theme.cardBg,
+                  borderRadius: pageMetrics.columnsVisible === 2 ? 18 : 14,
+                  boxShadow: theme.isDark
+                    ? '0 22px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                    : '0 22px 60px rgba(28, 25, 23, 0.12), 0 0 0 1px rgba(28, 25, 23, 0.05)',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
-                onClickCapture={onChapterClick}
-                dangerouslySetInnerHTML={{ __html: chapter.html }}
-              />
-            </div>
+              >
+                <div
+                  style={{
+                    width: `${pageMetrics.frameWidth}px`,
+                    height: `${pageMetrics.pageHeight}px`,
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    ref={columnFlowRef}
+                    onLoadCapture={updateLayout}
+                    className={`epub-chapter transition-transform ${
+                      isTurningPage ? 'duration-200 ease-out' : 'duration-0'
+                    } ${settings.indentParagraphs ? '[&_p+p]:indent-6' : ''}`}
+                    style={{
+                      height: `${pageMetrics.pageHeight}px`,
+                      width: `${pageMetrics.columnWidth}px`,
+                      columnWidth: `${pageMetrics.columnWidth}px`,
+                      columnGap: `${pageMetrics.columnGap}px`,
+                      columnFill: 'auto',
+                      transform: `translateX(-${pageIndex * columnStep(pageMetrics.columnWidth, pageMetrics.columnGap)}px)`,
+                      fontFamily: fontFamilyCss,
+                      fontSize: `${settings.fontSize}px`,
+                      lineHeight: lineHeightCss,
+                      textAlign: settings.textAlign,
+                    }}
+                    onClickCapture={onChapterClick}
+                    dangerouslySetInnerHTML={{ __html: chapter.html }}
+                  />
+                </div>
+                {pageMetrics.columnsVisible === 2 && (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: 'absolute',
+                      top: pageMetrics.paperPadY,
+                      bottom: pageMetrics.paperPadY,
+                      left: '50%',
+                      width: 28,
+                      transform: 'translateX(-50%)',
+                      pointerEvents: 'none',
+                      background: theme.isDark
+                        ? 'linear-gradient(to right, rgba(0,0,0,0.28), rgba(0,0,0,0.05) 46%, rgba(255,255,255,0.04) 50%, rgba(0,0,0,0.05) 54%, rgba(0,0,0,0.28))'
+                        : 'linear-gradient(to right, rgba(28,25,23,0.10), rgba(28,25,23,0.02) 46%, rgba(255,255,255,0.35) 50%, rgba(28,25,23,0.02) 54%, rgba(28,25,23,0.10))',
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         ) : (
-          /* CONTINUOUS SCROLL MODE */
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden ${scrollMetrics.containerPadding}`}
+            className="h-full min-h-0 overflow-y-auto overflow-x-hidden"
+            style={{
+              padding: margins === 'wide' ? '3rem 8vw' : margins === 'compact' ? '1.75rem 4vw' : '2.25rem 6vw',
+            }}
           >
             <article
               ref={articleRef}
-              className={`epub-chapter mx-auto transition-all duration-200 ${scrollMetrics.maxWidthClass} ${
+              className={`epub-chapter mx-auto transition-all duration-200 ${
                 settings.indentParagraphs ? '[&_p+p]:indent-6' : ''
               }`}
               style={{
-                ...scrollMetrics.articleStyle,
+                maxWidth: `${scrollMaxWidth}px`,
                 fontFamily: fontFamilyCss,
                 fontSize: `${settings.fontSize}px`,
                 lineHeight: lineHeightCss,
@@ -1494,7 +1510,7 @@ export function EpubDocumentEditor(props: EditorProps) {
               </span>
               <span className="opacity-30">·</span>
               <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
-                <span>Kindle Paged Layout</span>
+                <span>Two-page desktop spread</span>
               </span>
               <span className="opacity-30">·</span>
               <span className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60">
@@ -1504,6 +1520,7 @@ export function EpubDocumentEditor(props: EditorProps) {
           </div>
         </div>
       )}
+      </div>
 
       {/* Bottom Ambient Navigation & Progress Scrubber */}
       {book && isControlsVisible && (
@@ -1549,10 +1566,10 @@ export function EpubDocumentEditor(props: EditorProps) {
               type="button"
               disabled={
                 chapterIndex >= book.chapters.length - 1 &&
-                (!isPaginated || pageIndex >= totalPages - 1)
+                (!isPaginated || pageIndex + pageMetrics.columnsVisible >= totalPages)
               }
               onClick={() => {
-                if (isPaginated && pageIndex < totalPages - 1) {
+                if (isPaginated && pageIndex + pageMetrics.columnsVisible < totalPages) {
                   turnNextPage()
                 } else {
                   goTo(chapterIndex + 1, undefined, 'start')
@@ -1570,7 +1587,7 @@ export function EpubDocumentEditor(props: EditorProps) {
           <div className="flex items-center justify-between text-[11px] font-medium opacity-70 px-1 font-mono">
             <span className="truncate">
               {isPaginated
-                ? `Page ${pageIndex + 1} of ${totalPages} · Ch. ${chapterIndex + 1} of ${book.chapters.length} (${bookPercentage}%)`
+                ? `${pageMetrics.columnsVisible === 2 ? 'Spread' : 'Page'} ${spreadNumber} of ${spreadCount} · Ch. ${chapterIndex + 1} of ${book.chapters.length} (${bookPercentage}%)`
                 : `Chapter ${chapterIndex + 1} of ${book.chapters.length} (${bookPercentage}%)`}
             </span>
             <span className="flex items-center gap-1 shrink-0">
@@ -1636,9 +1653,9 @@ export function EpubDocumentEditor(props: EditorProps) {
                           behavior: 'smooth',
                         })
                       } else {
-                        const step = pageMetrics.pageWidth + pageMetrics.columnGap
+                        const step = columnStep(pageMetrics.columnWidth, pageMetrics.columnGap)
                         const page = Math.floor(parent.offsetLeft / step)
-                        setPageIndex(Math.max(0, Math.min(totalPages - 1, page)))
+                        setPageIndex(alignToSpread(page, pageMetrics.columnsVisible, totalPages))
                       }
                     }
                     break

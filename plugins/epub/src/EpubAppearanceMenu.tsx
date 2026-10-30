@@ -16,10 +16,8 @@ import {
   EpubThemeId,
   EpubFontFamily,
   EpubLineHeight,
-  EpubContentWidth,
-  EpubTextAlign,
   EpubMargins,
-  EpubReadingMode,
+  EpubPageLayout,
   EPUB_THEMES,
   DEFAULT_EPUB_SETTINGS,
 } from './types'
@@ -47,7 +45,7 @@ export function EpubAppearanceMenu({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-2xl shadow-2xl border backdrop-blur-xl p-5 space-y-5 animate-in fade-in slide-in-from-top-4 duration-200"
+        className="w-full max-w-sm max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl shadow-2xl border backdrop-blur-xl p-5 space-y-5 animate-in fade-in slide-in-from-top-4 duration-200"
         style={{
           backgroundColor: currentTheme.cardBg,
           borderColor: currentTheme.border,
@@ -173,7 +171,7 @@ export function EpubAppearanceMenu({
             <input
               type="range"
               min="13"
-              max="28"
+              max="32"
               step="1"
               value={settings.fontSize}
               onChange={(e) => update({ fontSize: Number(e.target.value) })}
@@ -181,8 +179,8 @@ export function EpubAppearanceMenu({
             />
             <button
               type="button"
-              onClick={() => update({ fontSize: Math.min(28, settings.fontSize + 1) })}
-              disabled={settings.fontSize >= 28}
+              onClick={() => update({ fontSize: Math.min(32, settings.fontSize + 1) })}
+              disabled={settings.fontSize >= 32}
               className="p-2 rounded-xl border flex items-center justify-center hover:opacity-80 disabled:opacity-40 transition-all"
               style={{ borderColor: currentTheme.border }}
               title="Increase font size"
@@ -288,6 +286,39 @@ export function EpubAppearanceMenu({
             </button>
           </div>
         </div>
+
+        {(settings.readingMode || 'paginated') === 'paginated' && (
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: currentTheme.muted }}>
+            Page Spread
+          </label>
+          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl border" style={{ borderColor: currentTheme.border, backgroundColor: `${currentTheme.bg}88` }}>
+            {(
+              [
+                { id: 'auto', label: 'Auto' },
+                { id: 'single', label: 'One' },
+                { id: 'spread', label: 'Two' },
+              ] as const
+            ).map((option) => {
+              const isSelected = (settings.pageLayout || 'auto') === option.id
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => update({ pageLayout: option.id as EpubPageLayout })}
+                  className="py-1.5 px-2 rounded-lg text-xs font-medium transition-all text-center"
+                  style={{
+                    backgroundColor: isSelected ? currentTheme.border : 'transparent',
+                    color: isSelected ? currentTheme.text : currentTheme.muted,
+                  }}
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        )}
 
         {/* 5. Alignment & Indentation */}
         <div className="flex items-center justify-between pt-1">

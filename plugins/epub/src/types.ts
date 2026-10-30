@@ -45,16 +45,19 @@ export type EpubMargins = 'compact' | 'normal' | 'wide'
 
 export type EpubReadingMode = 'paginated' | 'scroll'
 
+export type EpubPageLayout = 'auto' | 'single' | 'spread'
+
 export type EpubSettings = {
   theme: EpubThemeId
   fontFamily: EpubFontFamily
-  fontSize: number // 13 - 28
+  fontSize: number // 13 - 32
   lineHeight: EpubLineHeight
   contentWidth: EpubContentWidth
   textAlign: EpubTextAlign
   indentParagraphs: boolean
   margins: EpubMargins
   readingMode: EpubReadingMode
+  pageLayout: EpubPageLayout
 }
 
 export type EpubBookmark = {
@@ -76,6 +79,7 @@ export const DEFAULT_EPUB_SETTINGS: EpubSettings = {
   indentParagraphs: false,
   margins: 'normal',
   readingMode: 'paginated',
+  pageLayout: 'auto',
 }
 
 export type ThemeStyle = {
