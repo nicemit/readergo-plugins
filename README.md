@@ -11,12 +11,13 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 
 ---
 
-## Included Plugins (33)
+## Included Plugins (40)
 
 ### Document Editors
 - **TipTap Note Editor** (`readergo.editor.note`): Rich text notes with markdown, tables, and collapsible headings. This is the default note editor; it is not bundled in the host.
 - **Canvas** (`readergo.editor.canvas`): Structured infinite canvas for organizing documents.
-- **EPUB Reader** (`readergo.editor.epub`): Paginated e-reader with typography, atmospheres, search, bookmarks, and a chapter scrubber.
+- **EPUB Reader** (`readergo.editor.epub`): Paginated e-reader with two-page desktop spreads, typography, atmospheres, search, bookmarks, and a chapter scrubber.
+- **PDF and Comic Reader** (`readergo.editor.paged`): Paged reader for `.pdf` files and `.cbz` comic archives (a zip of page images). Fit width/page, keyboard navigation, and saved place in folder Spaces.
 - **Graph** (`readergo.editor.graph`): Interactive knowledge graph on an infinite canvas.
 - **Mindmap** (`readergo.editor.mindmap`): Tree-structured mind mapping with layouts, color, and SVG export.
 - **Simple Text Editor** (`readergo.editor.simple`): Lightweight plaintext editor.
@@ -26,16 +27,22 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 ### Knowledge and Productivity
 - **Zettelkasten** (`readergo.features.zettelkasten`): Bidirectional `[[Note Title]]` links, autocomplete, backlinks, and unlinked mentions.
 - **Thinking Partner** (`readergo.features.thinking-partner`): In-editor intelligence: related notes, unlinked mentions, and content-aware actions.
+- **Outline and Word Count** (`readergo.features.outline`): Right-sidebar heading outline with jump-to-heading, word count, and reading time.
 - **Link Clipper** (`readergo.features.link-clipper`): Clip web articles into structured notes.
 - **Pin Notes** (`readergo.features.pin-notes`): Pin favorite notes to the dashboard.
 - **Selection Actions** (`readergo.features.selection-actions`): Contextual action bar on text selection.
 - **Local Backup** (`readergo.plugin.readergolocalbackup`): Periodic JSON exports.
 - **Plugin Dev Tools** (`readergo.plugin.readergodevtools`): Introspection dashboard for debugging plugins.
+- **How ReaderGo Works** (`readergo.features.architecture`): Interactive architecture guide. Click the shell, follow UI to storage, and walk what happens when you open a note, send chat, or install a plugin.
 
 ### Themes
 - **Amber CRT Terminal** (`readergo.theme.amber`)
 - **Nord Frost** (`readergo.theme.nord`)
 - **E-Ink Reading Suite** (`readergo.theme.eink`)
+- **Catppuccin Mocha** (`readergo.theme.catppuccin`)
+- **Solarized Light** (`readergo.theme.solarized`)
+- **Gruvbox Dark** (`readergo.theme.gruvbox`)
+- **Rose Pine** (`readergo.theme.rose-pine`)
 
 ### AI and LLM
 - **Ollama AI Insights** (`readergo.ai.ollama`)

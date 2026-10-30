@@ -21,6 +21,16 @@
       "hash": "29a708097dc4481f"
     },
     {
+      "id": "readergo.theme.catppuccin",
+      "name": "Catppuccin Mocha",
+      "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-catppuccin.bundle.json",
+      "bundleHash": "bb514571d9689398",
+      "hash": "bb514571d9689398"
+    },
+    {
       "id": "readergo.chat-store.sqlite",
       "name": "Chat Store (SQLite)",
       "description": "Stores agent conversations in SQLite under ~/.readergo/agent.",
@@ -69,12 +79,12 @@
     {
       "id": "readergo.editor.epub",
       "name": "EPUB Reader",
-      "description": "Professional e-reader with responsive margins, custom typography, 6 reading atmospheres, in-book search, bookmarks, and chapter progress scrubber",
+      "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.1.1",
+      "version": "1.2.0",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "a9b803b4f068fd09",
-      "hash": "a9b803b4f068fd09"
+      "bundleHash": "1335bca27cae96b4",
+      "hash": "1335bca27cae96b4"
     },
     {
       "id": "readergo.filesystem",
@@ -97,6 +107,16 @@
       "hash": "2407ea6406c35b23"
     },
     {
+      "id": "readergo.theme.gruvbox",
+      "name": "Gruvbox Dark",
+      "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-gruvbox.bundle.json",
+      "bundleHash": "f23135733f2b3aad",
+      "hash": "f23135733f2b3aad"
+    },
+    {
       "id": "readergo.examples.hello-world",
       "name": "Hello World Example",
       "description": "A minimal plugin demonstrating activation and logging.",
@@ -105,6 +125,16 @@
       "bundleUrl": "hello-world.bundle.json",
       "bundleHash": "9afc0259e4565ee4",
       "hash": "9afc0259e4565ee4"
+    },
+    {
+      "id": "readergo.features.architecture",
+      "name": "How ReaderGo Works",
+      "description": "Interactive architecture guide: the shell, the UI-command-capability-provider-storage pipeline, document types, and what happens when you click.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "architecture-guide.bundle.json",
+      "bundleHash": "6363231afd93177d",
+      "hash": "6363231afd93177d"
     },
     {
       "id": "readergo.features.link-clipper",
@@ -176,6 +206,26 @@
       "runtimeBundleHash": "5965145e8cac42d2"
     },
     {
+      "id": "readergo.features.outline",
+      "name": "Outline and Word Count",
+      "description": "Right-sidebar document outline with heading jump, word count, and reading time for the active note.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "outline.bundle.json",
+      "bundleHash": "04a083cd40588ae7",
+      "hash": "04a083cd40588ae7"
+    },
+    {
+      "id": "readergo.editor.paged",
+      "name": "PDF and Comic Reader",
+      "description": "Paged reader for PDF documents and CBZ comic archives (zip of page images), with fit modes, keyboard navigation, and saved place.",
+      "category": "editor",
+      "version": "1.0.0",
+      "bundleUrl": "paged-reader.bundle.json",
+      "bundleHash": "2379ceb76a572fb3",
+      "hash": "2379ceb76a572fb3"
+    },
+    {
       "id": "readergo.agent.pi",
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
@@ -213,6 +263,16 @@
       "bundleUrl": "pollinations.bundle.json",
       "bundleHash": "ec8a7b58a9d1879e",
       "hash": "ec8a7b58a9d1879e"
+    },
+    {
+      "id": "readergo.theme.rose-pine",
+      "name": "Rosé Pine",
+      "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-rose-pine.bundle.json",
+      "bundleHash": "d619a01067d3d0ee",
+      "hash": "d619a01067d3d0ee"
     },
     {
       "id": "readergo.features.selection-actions",
@@ -255,6 +315,16 @@
       "bundleUrl": "simple.bundle.json",
       "bundleHash": "cc28a927cbaa18dd",
       "hash": "cc28a927cbaa18dd"
+    },
+    {
+      "id": "readergo.theme.solarized",
+      "name": "Solarized Light",
+      "description": "Ethan Schoonover's Solarized Light palette with Source Serif reading type.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-solarized.bundle.json",
+      "bundleHash": "380cf2e0bb0c7c9e",
+      "hash": "380cf2e0bb0c7c9e"
     },
     {
       "id": "readergo.editor.spreadsheet",
