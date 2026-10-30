@@ -11,9 +11,9 @@ import { GUIDE_TITLE, GUIDE_TYPE, openArchitectureGuide } from './openGuide'
 const manifest = {
   id: 'readergo.features.architecture',
   name: 'How ReaderGo Works',
-  version: '1.0.0',
+  version: '1.1.0',
   description:
-    'Interactive architecture guide: the shell, the UI-command-capability-provider-storage pipeline, document types, and what happens when you click.',
+    'Interactive flowcharts of the ReaderGo host, plugin kernel, click pipeline, chat, and install path.',
   category: 'feature' as const,
   provides: ['editor-provider', 'activity-bar-item', 'extension-slot'],
   permissions: ['note:read', 'note:write'],

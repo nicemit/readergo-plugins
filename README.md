@@ -33,7 +33,7 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 - **Selection Actions** (`readergo.features.selection-actions`): Contextual action bar on text selection.
 - **Local Backup** (`readergo.plugin.readergolocalbackup`): Periodic JSON exports.
 - **Plugin Dev Tools** (`readergo.plugin.readergodevtools`): Introspection dashboard for debugging plugins.
-- **How ReaderGo Works** (`readergo.features.architecture`): Interactive architecture guide. Click the shell, follow UI to storage, and walk what happens when you open a note, send chat, or install a plugin.
+- **How ReaderGo Works** (`readergo.features.architecture`): Interactive flowcharts of the host, kernel, click pipeline, document open/save, chat, and plugin install.
 
 ### Themes
 - **Amber CRT Terminal** (`readergo.theme.amber`)
