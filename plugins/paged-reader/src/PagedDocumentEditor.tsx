@@ -304,15 +304,16 @@ export function PagedDocumentEditor(props: EditorProps) {
       return
     }
 
-    if (storage?.createNativeFile) {
-      const created = await storage.createNativeFile({
+    try {
+      const created = (await pluginContext.executeCommand('document.importNative', {
         type,
         fileName: file.name,
         bytes,
         folderId,
         id: note?.id,
-      })
-      if (note?.id && created.id !== note.id) {
+      })) as CurrentNote | null
+      if (!created?.id) throw new Error('import failed')
+      if (note?.id && created.id !== note.id && storage?.delete) {
         try {
           await storage.delete(note.id)
         } catch {
@@ -330,6 +331,8 @@ export function PagedDocumentEditor(props: EditorProps) {
       await loadBytes(bytes, { page: 0 })
       await pluginContext.executeCommand('document.open', { id: created.id })
       return
+    } catch {
+      // Fall through to an in-memory preview when this space cannot store files.
     }
 
     loadedIdRef.current = note?.id ? `${note.id}:native` : null

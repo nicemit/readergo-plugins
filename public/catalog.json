@@ -81,10 +81,10 @@
       "name": "EPUB Reader",
       "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "e90774a46ba592e6",
-      "hash": "e90774a46ba592e6"
+      "bundleHash": "3dadce569f2d613e",
+      "hash": "3dadce569f2d613e"
     },
     {
       "id": "readergo.filesystem",
@@ -220,10 +220,10 @@
       "name": "PDF and Comic Reader",
       "description": "Paged reader for PDF documents and CBZ comic archives (zip of page images), with fit modes, keyboard navigation, and saved place.",
       "category": "editor",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "bundleUrl": "paged-reader.bundle.json",
-      "bundleHash": "9eae4222888411b5",
-      "hash": "9eae4222888411b5"
+      "bundleHash": "b4c8ef3c39714c7c",
+      "hash": "b4c8ef3c39714c7c"
     },
     {
       "id": "readergo.agent.pi",
