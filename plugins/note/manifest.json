@@ -1,6 +1,6 @@
 {
   "id": "readergo.editor.note",
-  "name": "Note Editor",
+  "name": "TipTap Note Editor",
   "version": "1.0.0",
   "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
   "category": "editor",
@@ -19,4 +19,3 @@
     "ui": "./src/index.tsx"
   }
 }
-

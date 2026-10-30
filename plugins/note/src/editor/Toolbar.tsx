@@ -31,14 +31,7 @@ import {
     AlignJustify
 } from 'lucide-react'
 
-// audit-ignore: sdk-boundary
-import { Toolbar as ToolbarRoot, ToolbarGroup, ToolbarSeparator } from '@/components/tiptap-ui-primitive/toolbar'
-// audit-ignore: sdk-boundary
-import { Button } from '@/components/tiptap-ui-primitive/button'
-// audit-ignore: sdk-boundary
-import { HeadingButton } from '@/components/tiptap-ui/heading-button'
-// audit-ignore: sdk-boundary
-import { TextAlignButton } from '@/components/tiptap-ui/text-align-button'
+import { Toolbar as ToolbarRoot, ToolbarGroup, ToolbarSeparator, Button, HeadingButton, TextAlignButton } from "./ToolbarComponents"
 // audit-ignore: sdk-boundary
 import { ToolbarContributions } from '@/components/editor/ToolbarContributions'
 // audit-ignore: sdk-boundary
