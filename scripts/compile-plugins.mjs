@@ -80,6 +80,7 @@ function wrapUiEntry(code) {
     }
     return host.module(id);
   };
+  const require = (id) => __readergoModule(id);
 ${body}
   return { ${fields.join(", ")} };
 }

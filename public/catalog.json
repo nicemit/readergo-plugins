@@ -7,8 +7,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "theme-amber-terminal.bundle.json",
-      "bundleHash": "f99ccbfc6b3aa162",
-      "hash": "f99ccbfc6b3aa162"
+      "bundleHash": "e97b7a81f143f8f1",
+      "hash": "e97b7a81f143f8f1"
     },
     {
       "id": "readergo.editor.canvas",
@@ -17,8 +17,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "canvas.bundle.json",
-      "bundleHash": "a3e962642ac395ee",
-      "hash": "a3e962642ac395ee"
+      "bundleHash": "29a708097dc4481f",
+      "hash": "29a708097dc4481f"
     },
     {
       "id": "readergo.chat-store.sqlite",
@@ -45,8 +45,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "theme-eink.bundle.json",
-      "bundleHash": "ae9d5289eaebfd39",
-      "hash": "ae9d5289eaebfd39"
+      "bundleHash": "c407d701155810a2",
+      "hash": "c407d701155810a2"
     },
     {
       "id": "readergo.embeddings.local",
@@ -73,8 +73,8 @@
       "category": "editor",
       "version": "1.1.1",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "f4c7152f3ac6f7ab",
-      "hash": "f4c7152f3ac6f7ab"
+      "bundleHash": "a9b803b4f068fd09",
+      "hash": "a9b803b4f068fd09"
     },
     {
       "id": "readergo.filesystem",
@@ -93,8 +93,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "graph.bundle.json",
-      "bundleHash": "4acbb4fcbebbc292",
-      "hash": "4acbb4fcbebbc292"
+      "bundleHash": "2407ea6406c35b23",
+      "hash": "2407ea6406c35b23"
     },
     {
       "id": "readergo.examples.hello-world",
@@ -103,8 +103,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "hello-world.bundle.json",
-      "bundleHash": "aa4f1cf558a8876b",
-      "hash": "aa4f1cf558a8876b"
+      "bundleHash": "9afc0259e4565ee4",
+      "hash": "9afc0259e4565ee4"
     },
     {
       "id": "readergo.features.link-clipper",
@@ -113,8 +113,8 @@
       "category": "feature",
       "version": "1.0.1",
       "bundleUrl": "link-clipper.bundle.json",
-      "bundleHash": "477fdc0045a06b98",
-      "hash": "477fdc0045a06b98"
+      "bundleHash": "36fc91c931cd0c43",
+      "hash": "36fc91c931cd0c43"
     },
     {
       "id": "readergo.plugin.readergolocalbackup",
@@ -123,8 +123,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "local-backup.bundle.json",
-      "bundleHash": "340eb75e7be49c98",
-      "hash": "340eb75e7be49c98"
+      "bundleHash": "b58b39770995020c",
+      "hash": "b58b39770995020c"
     },
     {
       "id": "readergo.editor.mindmap",
@@ -133,8 +133,8 @@
       "category": "editor",
       "version": "0.2.0",
       "bundleUrl": "mindmap.bundle.json",
-      "bundleHash": "bd71e798014ae8ec",
-      "hash": "bd71e798014ae8ec"
+      "bundleHash": "d45ac80ab01da340",
+      "hash": "d45ac80ab01da340"
     },
     {
       "id": "readergo.theme.nord",
@@ -143,8 +143,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "theme-nord.bundle.json",
-      "bundleHash": "a88d29ca765c5eb3",
-      "hash": "a88d29ca765c5eb3"
+      "bundleHash": "6001dcfbc613aa3b",
+      "hash": "6001dcfbc613aa3b"
     },
     {
       "id": "readergo.tools.note-digest",
@@ -153,8 +153,8 @@
       "category": "ai",
       "version": "0.1.0",
       "bundleUrl": "note-digest.bundle.json",
-      "bundleHash": "7caf4188d849191d",
-      "hash": "7caf4188d849191d"
+      "bundleHash": "553bbdab394f0a8a",
+      "hash": "553bbdab394f0a8a"
     },
     {
       "id": "readergo.ai.ollama",
@@ -163,8 +163,8 @@
       "category": "ai",
       "version": "1.0.0",
       "bundleUrl": "ollama.bundle.json",
-      "bundleHash": "cba57e9d8b7851d6",
-      "hash": "cba57e9d8b7851d6"
+      "bundleHash": "751d94ea9d3a3c68",
+      "hash": "751d94ea9d3a3c68"
     },
     {
       "id": "readergo.llm.openrouter",
@@ -191,8 +191,8 @@
       "category": "feature",
       "version": "1.0.1",
       "bundleUrl": "pin-notes.bundle.json",
-      "bundleHash": "8acf96823752a3cb",
-      "hash": "8acf96823752a3cb"
+      "bundleHash": "9ca1850b464212a7",
+      "hash": "9ca1850b464212a7"
     },
     {
       "id": "readergo.plugin.readergodevtools",
@@ -201,8 +201,8 @@
       "category": "feature",
       "version": "1.0.1",
       "bundleUrl": "dev-tools.bundle.json",
-      "bundleHash": "5ec0b986d1443888",
-      "hash": "5ec0b986d1443888"
+      "bundleHash": "deb859991aa21a86",
+      "hash": "deb859991aa21a86"
     },
     {
       "id": "readergo.features.pollinations",
@@ -211,8 +211,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "pollinations.bundle.json",
-      "bundleHash": "f3e39df1ad77490d",
-      "hash": "f3e39df1ad77490d"
+      "bundleHash": "ec8a7b58a9d1879e",
+      "hash": "ec8a7b58a9d1879e"
     },
     {
       "id": "readergo.features.selection-actions",
@@ -221,8 +221,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "selection-actions.bundle.json",
-      "bundleHash": "0f2ab81ebdd6ecf1",
-      "hash": "0f2ab81ebdd6ecf1"
+      "bundleHash": "b50bf111fbe78a80",
+      "hash": "b50bf111fbe78a80"
     },
     {
       "id": "readergo.examples.settings-panel",
@@ -231,8 +231,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "settings-panel.bundle.json",
-      "bundleHash": "2c0d063ade6e47ea",
-      "hash": "2c0d063ade6e47ea"
+      "bundleHash": "17aa1e622281e658",
+      "hash": "17aa1e622281e658"
     },
     {
       "id": "readergo.sftp-space",
@@ -241,8 +241,8 @@
       "category": "storage",
       "version": "0.1.0",
       "bundleUrl": "sftp-space.bundle.json",
-      "bundleHash": "9d2817e24050a621",
-      "hash": "9d2817e24050a621",
+      "bundleHash": "8b9eb0a8ed3bcc06",
+      "hash": "8b9eb0a8ed3bcc06",
       "runtimeBundleUrl": "sftp-space.runtime.json",
       "runtimeBundleHash": "4f46db13f8b795d6"
     },
@@ -253,8 +253,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "simple.bundle.json",
-      "bundleHash": "fe1148ddb69954cc",
-      "hash": "fe1148ddb69954cc"
+      "bundleHash": "cc28a927cbaa18dd",
+      "hash": "cc28a927cbaa18dd"
     },
     {
       "id": "readergo.editor.spreadsheet",
@@ -263,8 +263,8 @@
       "category": "editor",
       "version": "1.0.2",
       "bundleUrl": "spreadsheet.bundle.json",
-      "bundleHash": "25f5e423954c4f6f",
-      "hash": "25f5e423954c4f6f"
+      "bundleHash": "1c1e62e9a51be1c6",
+      "hash": "1c1e62e9a51be1c6"
     },
     {
       "id": "readergo.examples.sync-style",
@@ -273,8 +273,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "sync-style.bundle.json",
-      "bundleHash": "52a6d05a5241e19a",
-      "hash": "52a6d05a5241e19a"
+      "bundleHash": "28b1f997b0223ed9",
+      "hash": "28b1f997b0223ed9"
     },
     {
       "id": "readergo.features.thinking-partner",
@@ -283,8 +283,8 @@
       "category": "ai",
       "version": "1.0.9",
       "bundleUrl": "thinking-partner.bundle.json",
-      "bundleHash": "fedb8bb191502a98",
-      "hash": "fedb8bb191502a98"
+      "bundleHash": "345b1c3ba64b1fdd",
+      "hash": "345b1c3ba64b1fdd"
     },
     {
       "id": "readergo.editor.note",
@@ -293,8 +293,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "note.bundle.json",
-      "bundleHash": "cff392a01b087881",
-      "hash": "cff392a01b087881"
+      "bundleHash": "42e883c389bd7c80",
+      "hash": "42e883c389bd7c80"
     },
     {
       "id": "readergo.vector-store.lancedb",
@@ -312,8 +312,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "whiteboard.bundle.json",
-      "bundleHash": "ddb5561cffee223c",
-      "hash": "ddb5561cffee223c"
+      "bundleHash": "61bc553788de0f7e",
+      "hash": "61bc553788de0f7e"
     },
     {
       "id": "readergo.features.zettelkasten",
@@ -322,8 +322,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "zettelkasten.bundle.json",
-      "bundleHash": "3df0347c47649d42",
-      "hash": "3df0347c47649d42"
+      "bundleHash": "fe63de21bfad1f51",
+      "hash": "fe63de21bfad1f51"
     }
   ]
 }
