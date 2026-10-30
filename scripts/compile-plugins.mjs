@@ -7,7 +7,7 @@ import esbuild from "esbuild";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pluginsDir = path.join(root, "plugins");
 
-const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@tiptap\/.*|@\/.*|jszip|lucide-react|marked|lowlight)$/;
+const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@\/.*|jszip|lucide-react|marked|lowlight)$/;
 
 function isHostSpec(spec) {
   return HOST_SPEC.test(spec);

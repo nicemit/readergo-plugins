@@ -157,16 +157,6 @@
       "hash": "7caf4188d849191d"
     },
     {
-      "id": "readergo.editor.note",
-      "name": "Note Editor",
-      "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
-      "category": "editor",
-      "version": "1.0.0",
-      "bundleUrl": "note.bundle.json",
-      "bundleHash": "d98cf067e05023c3",
-      "hash": "d98cf067e05023c3"
-    },
-    {
       "id": "readergo.ai.ollama",
       "name": "Ollama AI Insights",
       "description": "Provides AI-powered insights using Ollama (local or cloud)",
@@ -297,6 +287,16 @@
       "hash": "fedb8bb191502a98"
     },
     {
+      "id": "readergo.editor.note",
+      "name": "TipTap Note Editor",
+      "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
+      "category": "editor",
+      "version": "1.0.0",
+      "bundleUrl": "note.bundle.json",
+      "bundleHash": "cff392a01b087881",
+      "hash": "cff392a01b087881"
+    },
+    {
       "id": "readergo.vector-store.lancedb",
       "name": "Vector Store (Local)",
       "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
@@ -322,8 +322,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "zettelkasten.bundle.json",
-      "bundleHash": "ba5f5e60df9cfcd2",
-      "hash": "ba5f5e60df9cfcd2"
+      "bundleHash": "3df0347c47649d42",
+      "hash": "3df0347c47649d42"
     }
   ]
 }
