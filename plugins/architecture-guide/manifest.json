@@ -1,0 +1,27 @@
+{
+  "id": "readergo.features.architecture",
+  "name": "How ReaderGo Works",
+  "version": "1.0.0",
+  "description": "Interactive architecture guide: the shell, the UI-command-capability-provider-storage pipeline, document types, and what happens when you click.",
+  "category": "feature",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item",
+    "extension-slot"
+  ],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}
