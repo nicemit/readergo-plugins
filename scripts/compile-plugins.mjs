@@ -7,7 +7,7 @@ import esbuild from "esbuild";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pluginsDir = path.join(root, "plugins");
 
-const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@\/.*|jszip|lucide-react)$/;
+const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@tiptap\/.*|@\/.*|jszip|lucide-react|marked|lowlight)$/;
 
 function isHostSpec(spec) {
   return HOST_SPEC.test(spec);
@@ -33,11 +33,11 @@ function rewriteClause(clause, expr) {
 
 export function rewriteHostImports(code) {
   return code.replace(
-    /import\s+([\s\S]*?)\s+from\s*(['"])([^'"]+)\2\s*;?/g,
+    /(?:^|[\n;])\s*import\s+([^'"]*?)\s+from\s*(['"])([^'"]+)\2\s*;?/g,
     (full, clause, _quote, spec) => {
       if (!isHostSpec(spec)) return full;
       const expr = `__readergoModule(${JSON.stringify(spec)})`;
-      return rewriteClause(clause.trim(), expr);
+      return '\n' + rewriteClause(clause.trim(), expr);
     },
   );
 }

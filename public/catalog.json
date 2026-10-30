@@ -157,6 +157,16 @@
       "hash": "7caf4188d849191d"
     },
     {
+      "id": "readergo.editor.note",
+      "name": "Note Editor",
+      "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
+      "category": "editor",
+      "version": "1.0.0",
+      "bundleUrl": "note.bundle.json",
+      "bundleHash": "d98cf067e05023c3",
+      "hash": "d98cf067e05023c3"
+    },
+    {
       "id": "readergo.ai.ollama",
       "name": "Ollama AI Insights",
       "description": "Provides AI-powered insights using Ollama (local or cloud)",
@@ -312,8 +322,8 @@
       "category": "feature",
       "version": "1.0.0",
       "bundleUrl": "zettelkasten.bundle.json",
-      "bundleHash": "d91cd7c5a4c835cc",
-      "hash": "d91cd7c5a4c835cc"
+      "bundleHash": "ba5f5e60df9cfcd2",
+      "hash": "ba5f5e60df9cfcd2"
     }
   ]
 }
