@@ -1,0 +1,24 @@
+{
+  "id": "readergo.features.outline",
+  "name": "Outline and Word Count",
+  "version": "1.0.0",
+  "description": "Right-sidebar document outline with heading jump, word count, and reading time for the active note.",
+  "category": "feature",
+  "provides": [
+    "sidebar-panel"
+  ],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}
