@@ -78,6 +78,15 @@ interface TipTapEditorProps {
   hideToolbars?: boolean
 }
 
+function safeGetHTML(ed: Editor | null | undefined): string {
+  if (!ed || ed.isDestroyed || !ed.schema) return "";
+  try {
+    return ed.getHTML();
+  } catch {
+    return "";
+  }
+}
+
 function TipTapEditorContent({
   instanceId,
   content = '',
@@ -186,7 +195,7 @@ function TipTapEditorContent({
 
   // Handle editor updates
   const handleUpdate = useCallback(({ editor: e }: { editor: Editor }) => {
-    const currentContent = e.getHTML()
+    const currentContent = safeGetHTML(e)
 
     // Move updates to a microtask/timeout to prevent React flushSync errors
     setTimeout(() => {
@@ -313,7 +322,7 @@ function TipTapEditorContent({
       note: {
         id: currentNote.id,
         title: currentNote.title,
-        content: editor?.getHTML() || content,
+        content: safeGetHTML(editor) || content,
         createdAt: (currentNote as any).createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -325,7 +334,7 @@ function TipTapEditorContent({
       if (onSave && editor && !editor.isDestroyed && editor.view) {
         setIsSaving(true)
         try {
-          const htmlContent = editor.getHTML()
+          const htmlContent = safeGetHTML(editor)
           await onSave(htmlContent)
           setLastSavedContent(htmlContent)
           onUnsavedChangesChange?.(false)
@@ -400,7 +409,7 @@ function TipTapEditorContent({
 
   // Update content when prop changes and keep title height in sync
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
+    if (editor && !editor.isDestroyed && editor.schema && content !== safeGetHTML(editor)) {
       // Don't update content if user is actively typing
       if (isUserTypingRef.current) {
         return
@@ -747,7 +756,7 @@ function TipTapEditorContent({
           surfaceCapabilities={['text-range', 'rich-text']}
           onSave={handleSave}
           isSaving={isSaving}
-          hasUnsavedChanges={editor?.getHTML() !== lastSavedContent}
+          hasUnsavedChanges={Boolean(editor && !editor.isDestroyed && editor.schema && safeGetHTML(editor) !== lastSavedContent)}
           onDeleteNote={handleDeleteNote}
           onInsertTable={handleInsertTable}
           keyboardOffset={keyboardOffset}

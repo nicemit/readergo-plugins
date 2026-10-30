@@ -293,8 +293,8 @@
       "category": "editor",
       "version": "1.0.0",
       "bundleUrl": "note.bundle.json",
-      "bundleHash": "42e883c389bd7c80",
-      "hash": "42e883c389bd7c80"
+      "bundleHash": "497eea43c59bc322",
+      "hash": "497eea43c59bc322"
     },
     {
       "id": "readergo.vector-store.lancedb",
