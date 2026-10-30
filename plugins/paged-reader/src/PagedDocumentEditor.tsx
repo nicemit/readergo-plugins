@@ -310,6 +310,7 @@ export function PagedDocumentEditor(props: EditorProps) {
         fileName: file.name,
         bytes,
         folderId,
+        id: note?.id,
       })
       if (note?.id && created.id !== note.id) {
         try {
@@ -317,13 +318,18 @@ export function PagedDocumentEditor(props: EditorProps) {
         } catch {
           // keep stub
         }
-        await writeLocation(
-          { ...created, spaceId: created.spaceId || note.spaceId } as CurrentNote,
-          0,
-        )
-        await pluginContext.executeCommand('document.open', { id: created.id })
-        return
       }
+      await writeLocation(
+        {
+          ...created,
+          spaceId: created.spaceId || note?.spaceId,
+        } as CurrentNote,
+        0,
+      )
+      loadedIdRef.current = `${created.id}:native`
+      await loadBytes(bytes, { page: 0 })
+      await pluginContext.executeCommand('document.open', { id: created.id })
+      return
     }
 
     loadedIdRef.current = note?.id ? `${note.id}:native` : null

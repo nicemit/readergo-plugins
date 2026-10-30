@@ -8,13 +8,14 @@ export interface NoteStorageCapability {
   list(): Promise<Document[]>;
   /** Bytes of a native folder file. Missing on cloud notes. */
   readBytes?(id: string): Promise<ArrayBuffer | null>;
-  /** Replace bytes of an existing native folder file. */
+  /** Replace bytes of an existing document. Markdown stubs of a native type convert in place (same id). */
   writeBytes?(id: string, bytes: ArrayBuffer): Promise<void>;
-  /** Write a native file into the Space (not a markdown wrapper). */
+  /** Write a native file into the Space (not a markdown wrapper). Pass `id` to convert an existing document in place. */
   createNativeFile?(input: {
     type: string;
     fileName: string;
     bytes: ArrayBuffer;
     folderId?: string | null;
+    id?: string;
   }): Promise<Document>;
 }

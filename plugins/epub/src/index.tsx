@@ -10,7 +10,7 @@ import { emptyEpubDocument } from './types'
 const manifest = {
   id: 'readergo.editor.epub',
   name: 'EPUB Reader',
-  version: '1.2.1',
+  version: '1.2.2',
   description:
     'Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress',
   category: 'editor' as const,

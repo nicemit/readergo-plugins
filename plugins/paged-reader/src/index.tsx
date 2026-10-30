@@ -10,7 +10,7 @@ import { emptyPagedDocument } from './types'
 const manifest = {
   id: 'readergo.editor.paged',
   name: 'PDF and Comic Reader',
-  version: '1.0.1',
+  version: '1.0.2',
   description:
     'Paged reader for PDF documents and CBZ comic archives (zip of page images), with fit modes, keyboard navigation, and saved place.',
   category: 'editor' as const,
