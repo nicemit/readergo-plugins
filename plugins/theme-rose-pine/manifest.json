@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.rose-pine",
+  "name": "Rosé Pine",
+  "version": "1.0.0",
+  "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

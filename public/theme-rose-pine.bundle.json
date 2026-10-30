@@ -1,0 +1,24 @@
+{
+  "manifest": {
+    "id": "readergo.theme.rose-pine",
+    "name": "Rosé Pine",
+    "version": "1.0.0",
+    "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
+    "category": "feature",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-rose-pine/src/index.ts\nvar INSTRUMENT = {\n  id: \"instrument-serif\",\n  name: \"Instrument Serif\",\n  family: \"'Instrument Serif', 'Georgia', serif\",\n  category: \"serif\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap\",\n  targets: [\"display\", \"editor\"]\n};\nvar INTER = {\n  id: \"inter-ui\",\n  name: \"Inter\",\n  family: \"'Inter', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\",\n  targets: [\"body\"]\n};\nvar THEME = {\n  id: \"rose-pine\",\n  name: \"Rose Pine\",\n  type: \"dark\",\n  author: \"Ros\\xE9 Pine\",\n  description: \"Muted pine and rose palette for a calm, classy reading room.\",\n  colors: {\n    background: \"249 22% 12%\",\n    foreground: \"245 50% 91%\",\n    card: \"247 23% 15%\",\n    cardForeground: \"245 50% 91%\",\n    border: \"248 15% 22%\",\n    primary: \"2 55% 83%\",\n    primaryForeground: \"249 22% 12%\",\n    secondary: \"247 23% 15%\",\n    secondaryForeground: \"245 50% 91%\",\n    muted: \"247 23% 15%\",\n    mutedForeground: \"249 12% 47%\",\n    accent: \"189 43% 73%\",\n    accentForeground: \"249 22% 12%\",\n    destructive: \"343 76% 68%\",\n    destructiveForeground: \"245 50% 91%\",\n    success: \"197 49% 38%\",\n    successForeground: \"245 50% 91%\",\n    warning: \"35 88% 80%\",\n    warningForeground: \"249 22% 12%\",\n    info: \"267 57% 78%\",\n    infoForeground: \"249 22% 12%\",\n    input: \"247 23% 15%\",\n    ring: \"2 55% 83%\",\n    heading1: \"2 55% 83%\",\n    heading2: \"189 43% 73%\",\n    heading3: \"267 57% 78%\"\n  },\n  fonts: {\n    display: INSTRUMENT,\n    body: INTER,\n    editor: INSTRUMENT\n  }\n};\nvar RosePineThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.rose-pine\",\n    name: \"Rose Pine\",\n    version: \"1.0.0\",\n    description: \"All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", {\n      getThemes: () => [THEME]\n    });\n    await context.registerCapability(\"font-provider\", {\n      getFonts: () => [INSTRUMENT, INTER]\n    });\n    context.log.info(\"Rose Pine theme activated\");\n  },\n  deactivate(context) {\n    context.log.info(\"Rose Pine theme deactivated\");\n  }\n};\nvar index_default = RosePineThemePlugin;\n\n\n  return { RosePineThemePlugin: RosePineThemePlugin, default: index_default };\n}\n"
+}

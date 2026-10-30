@@ -1,0 +1,24 @@
+{
+  "manifest": {
+    "id": "readergo.theme.gruvbox",
+    "name": "Gruvbox Dark",
+    "version": "1.0.0",
+    "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
+    "category": "feature",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-gruvbox/src/index.ts\nvar IBM_PLEX = {\n  id: \"ibm-plex-sans\",\n  name: \"IBM Plex Sans\",\n  family: \"'IBM Plex Sans', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap\",\n  targets: [\"all\"]\n};\nvar THEME = {\n  id: \"gruvbox-dark\",\n  name: \"Gruvbox Dark\",\n  type: \"dark\",\n  author: \"Pavel Pertsev\",\n  description: \"Earthy warm dark palette designed for long reading sessions without glare.\",\n  colors: {\n    background: \"0 0% 16%\",\n    foreground: \"43 59% 81%\",\n    card: \"20 5% 22%\",\n    cardForeground: \"43 59% 81%\",\n    border: \"20 6% 28%\",\n    primary: \"27 99% 55%\",\n    primaryForeground: \"0 0% 16%\",\n    secondary: \"20 5% 22%\",\n    secondaryForeground: \"43 59% 81%\",\n    muted: \"20 5% 22%\",\n    mutedForeground: \"34 24% 62%\",\n    accent: \"61 66% 44%\",\n    accentForeground: \"0 0% 16%\",\n    destructive: \"6 74% 51%\",\n    destructiveForeground: \"43 59% 81%\",\n    success: \"80 61% 44%\",\n    successForeground: \"0 0% 16%\",\n    warning: \"42 87% 55%\",\n    warningForeground: \"0 0% 16%\",\n    info: \"157 16% 58%\",\n    infoForeground: \"0 0% 16%\",\n    input: \"20 5% 22%\",\n    ring: \"27 99% 55%\",\n    heading1: \"43 59% 81%\",\n    heading2: \"27 99% 55%\",\n    heading3: \"61 66% 50%\"\n  },\n  fonts: {\n    display: IBM_PLEX,\n    body: IBM_PLEX\n  }\n};\nvar GruvboxThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.gruvbox\",\n    name: \"Gruvbox Dark\",\n    version: \"1.0.0\",\n    description: \"Warm retro-groove dark theme with orange accents and IBM Plex Sans.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", {\n      getThemes: () => [THEME]\n    });\n    await context.registerCapability(\"font-provider\", {\n      getFonts: () => [IBM_PLEX]\n    });\n    context.log.info(\"Gruvbox Dark theme activated\");\n  },\n  deactivate(context) {\n    context.log.info(\"Gruvbox Dark theme deactivated\");\n  }\n};\nvar index_default = GruvboxThemePlugin;\n\n\n  return { GruvboxThemePlugin: GruvboxThemePlugin, default: index_default };\n}\n"
+}
