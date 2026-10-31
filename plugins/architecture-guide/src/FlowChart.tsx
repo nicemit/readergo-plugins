@@ -44,6 +44,10 @@ function edgeKey(edge: ChartEdge) {
   return `${edge.from}->${edge.to}:${edge.label || ''}`
 }
 
+function labelWidth(text: string) {
+  return Math.max(28, text.length * 6.4 + 16)
+}
+
 export function FlowChart({
   diagram,
   selectedId,
@@ -123,17 +127,17 @@ export function FlowChart({
               y={lane.y}
               width={diagram.width - 16}
               height={lane.h}
-              rx={18}
-              className="fill-muted/30 stroke-border/50"
+              rx={20}
+              className="fill-muted/25 stroke-border/60"
               strokeWidth={1}
             />
             <text
-              x={22}
-              y={lane.y + 22}
+              x={20}
+              y={lane.y + 28}
               className="fill-muted-foreground"
-              fontSize={11}
-              fontWeight={600}
-              style={{ letterSpacing: '0.08em' }}
+              fontSize={10}
+              fontWeight={700}
+              style={{ letterSpacing: '0.1em' }}
             >
               {lane.label.toUpperCase()}
             </text>
@@ -151,28 +155,44 @@ export function FlowChart({
               pathIds.length === 0 &&
               (edge.from === selectedId || edge.to === selectedId))
           const mx = (p.x1 + p.x2) / 2
-          const my = (p.y1 + p.y2) / 2 - 8
+          const my = (p.y1 + p.y2) / 2
+          const chip = edge.label ? labelWidth(edge.label) : 0
           return (
             <g key={edgeKey(edge)}>
               <path
                 d={d}
                 fill="none"
-                strokeWidth={live ? 2.5 : 1.5}
+                strokeWidth={live ? 2.5 : 1.6}
                 strokeDasharray={edge.dashed ? '7 6' : live ? '10 7' : undefined}
                 markerEnd={`url(#${live ? `rg-arrow-live-${diagram.id}` : `rg-arrow-${diagram.id}`})`}
-                className={live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/55'}
+                className={live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/50'}
               />
               {edge.label && (
-                <text
-                  x={mx}
-                  y={my}
-                  textAnchor="middle"
-                  className={live ? 'fill-primary' : 'fill-muted-foreground'}
-                  fontSize={11}
-                  fontWeight={600}
-                >
-                  {edge.label}
-                </text>
+                <g>
+                  <rect
+                    x={mx - chip / 2}
+                    y={my - 11}
+                    width={chip}
+                    height={20}
+                    rx={10}
+                    className={
+                      live
+                        ? 'fill-primary/15 stroke-primary/40'
+                        : 'fill-background stroke-border/80'
+                    }
+                    strokeWidth={1}
+                  />
+                  <text
+                    x={mx}
+                    y={my + 3.5}
+                    textAnchor="middle"
+                    className={live ? 'fill-primary' : 'fill-muted-foreground'}
+                    fontSize={11}
+                    fontWeight={700}
+                  >
+                    {edge.label}
+                  </text>
+                </g>
               )}
             </g>
           )
@@ -188,10 +208,10 @@ export function FlowChart({
             key={node.id}
             type="button"
             onClick={() => onSelect(node.id)}
-            className={`absolute flex flex-col items-center justify-center rounded-2xl border px-2 text-center shadow-sm transition-all ${
+            className={`absolute flex flex-col items-center justify-center rounded-2xl border px-3 text-center shadow-sm transition-all ${
               TONE[node.tone || 'kernel']
             } ${selected || inPath ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''} ${
-              dim ? 'opacity-40' : 'opacity-100'
+              dim ? 'opacity-35' : 'opacity-100'
             }`}
             style={{
               left: `${(node.x / diagram.width) * 100}%`,
@@ -200,9 +220,14 @@ export function FlowChart({
               height: `${(node.h / diagram.height) * 100}%`,
             }}
           >
+            {node.step != null && (
+              <span className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
+                {node.step}
+              </span>
+            )}
             <span className="text-[13px] font-semibold leading-tight sm:text-sm">{node.label}</span>
             {node.sub && (
-              <span className="mt-1 text-[10px] leading-tight text-muted-foreground sm:text-[11px]">
+              <span className="mt-1 max-w-[95%] text-[10px] leading-snug text-muted-foreground sm:text-[11px]">
                 {node.sub}
               </span>
             )}

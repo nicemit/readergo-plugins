@@ -168,10 +168,12 @@ async function ensurePdfWorkerText() {
 
 async function main() {
   await ensurePdfWorkerText();
+  const only = process.argv[2];
   const folders = await fs.readdir(pluginsDir, { withFileTypes: true });
   let count = 0;
   for (const folder of folders) {
     if (!folder.isDirectory()) continue;
+    if (only && folder.name !== only) continue;
     const manifestPath = path.join(pluginsDir, folder.name, "manifest.json");
     try {
       await fs.access(manifestPath);

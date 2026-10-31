@@ -139,12 +139,12 @@
     {
       "id": "readergo.features.architecture",
       "name": "How ReaderGo Works",
-      "description": "Interactive flowcharts of the ReaderGo host, plugin kernel, click pipeline, chat, and install path.",
+      "description": "Self-explaining flowcharts of the ReaderGo shell, kernel, click pipeline, open/save, chat, install, and Spaces.",
       "category": "feature",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "bundleUrl": "architecture-guide.bundle.json",
-      "bundleHash": "ffce614ba7ef0304",
-      "hash": "ffce614ba7ef0304"
+      "bundleHash": "ae124744b28a6658",
+      "hash": "ae124744b28a6658"
     },
     {
       "id": "readergo.features.link-clipper",

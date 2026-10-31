@@ -3,7 +3,7 @@
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 
-const STEPS = ['UI', 'Cmd', 'Cap', 'Prov', 'Store']
+const STEPS = ['UI', 'Command', 'Capability', 'Provider', 'Storage']
 
 export function ArchitectureCard({ onOpen }: { onOpen: () => void }) {
   return (
@@ -16,19 +16,19 @@ export function ArchitectureCard({ onOpen }: { onOpen: () => void }) {
         <p className="text-sm font-semibold">How ReaderGo works</p>
         <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
       </div>
+      <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+        Seven charts. Each one is a complete sentence: the shell, the five-step rule, open, save, chat, install, Spaces.
+      </p>
       <div className="mt-3 flex items-center gap-1">
         {STEPS.map((step, index) => (
           <React.Fragment key={step}>
-            {index > 0 && (
-              <span className="h-px flex-1 bg-border" aria-hidden />
-            )}
+            {index > 0 && <span className="h-px flex-1 bg-border" aria-hidden />}
             <span className="rounded-md border border-border bg-muted/60 px-1.5 py-1 text-[10px] font-semibold">
               {step}
             </span>
           </React.Fragment>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">Interactive flowcharts of the platform.</p>
     </button>
   )
 }
