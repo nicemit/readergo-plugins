@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChartNode, ChartTone, Diagram } from './diagrams'
+import type { ChartTone, Diagram } from './diagrams'
 import { layoutGraph } from './layout'
 
 const TONE: Record<ChartTone, string> = {
@@ -21,7 +21,7 @@ const BAR: Record<ChartTone, string> = {
 }
 
 function labelWidth(text: string) {
-  return Math.max(28, text.length * 6.4 + 16)
+  return Math.max(24, text.length * 5.5 + 14)
 }
 
 export function FlowChart({
@@ -59,12 +59,6 @@ export function FlowChart({
       diagram.edges.filter((edge) => revealed.has(edge.from) && revealed.has(edge.to)),
     [diagram.edges, revealed],
   )
-  const byId = useMemo(() => {
-    const map = new Map<string, ChartNode>()
-    for (const node of diagram.nodes) map.set(node.id, node)
-    return map
-  }, [diagram.nodes])
-
   const layout = useMemo(
     () => layoutGraph(visibleNodes, visibleEdges, width || 720),
     [visibleNodes, visibleEdges, width],
@@ -82,8 +76,8 @@ export function FlowChart({
           style={{
             height: layout.height,
             backgroundImage:
-              'radial-gradient(circle, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px)',
-            backgroundSize: '16px 16px',
+              'radial-gradient(circle, color-mix(in oklab, var(--border) 45%, transparent) 1px, transparent 1px)',
+            backgroundSize: '18px 18px',
           }}
         >
           <svg
@@ -96,21 +90,21 @@ export function FlowChart({
               <marker
                 id={`rg-arrow-${diagram.id}`}
                 viewBox="0 0 10 7"
-                refX="9"
+                refX="8"
                 refY="3.5"
-                markerWidth="8"
-                markerHeight="7"
+                markerWidth="6"
+                markerHeight="6"
                 orient="auto"
               >
-                <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-muted-foreground" />
+                <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-muted-foreground/70" />
               </marker>
               <marker
                 id={`rg-arrow-live-${diagram.id}`}
                 viewBox="0 0 10 7"
-                refX="9"
+                refX="8"
                 refY="3.5"
-                markerWidth="8"
-                markerHeight="7"
+                markerWidth="6"
+                markerHeight="6"
                 orient="auto"
               >
                 <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-primary" />
@@ -125,33 +119,33 @@ export function FlowChart({
                   <path
                     d={edge.d}
                     fill="none"
-                    strokeWidth={live ? 2.4 : 1.6}
-                    strokeDasharray={edge.dashed ? '7 6' : live ? '10 7' : undefined}
+                    strokeWidth={live ? 1.8 : 1.25}
+                    strokeDasharray={edge.dashed ? '5 5' : undefined}
                     markerEnd={`url(#${live ? `rg-arrow-live-${diagram.id}` : `rg-arrow-${diagram.id}`})`}
-                    className={`rg-arrive ${live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/55'}`}
+                    className={`rg-arrive ${live ? 'stroke-primary' : 'stroke-muted-foreground/40'}`}
                   />
                   {edge.label && (
                     <g>
                       <rect
                         x={edge.labelX - chip / 2}
-                        y={edge.labelY - 11}
+                        y={edge.labelY - 8}
                         width={chip}
-                        height={20}
-                        rx={10}
+                        height={16}
+                        rx={8}
                         className={
                           live
-                            ? 'fill-primary/15 stroke-primary/40'
-                            : 'fill-background stroke-border/80'
+                            ? 'fill-background stroke-primary/50'
+                            : 'fill-muted/80 stroke-border/70'
                         }
                         strokeWidth={1}
                       />
                       <text
                         x={edge.labelX}
-                        y={edge.labelY + 3.5}
+                        y={edge.labelY + 3}
                         textAnchor="middle"
                         className={live ? 'fill-primary' : 'fill-muted-foreground'}
-                        fontSize={11}
-                        fontWeight={700}
+                        fontSize={9}
+                        fontWeight={600}
                       >
                         {edge.label}
                       </text>
@@ -172,7 +166,7 @@ export function FlowChart({
                 key={node.id}
                 type="button"
                 onClick={() => onSelect(node.id)}
-                className={`rg-arrive absolute flex flex-col justify-center overflow-hidden rounded-2xl border pl-3.5 pr-3 text-left shadow-sm transition-[left,top,width,height] duration-300 ${
+                className={`rg-arrive absolute flex flex-col justify-center overflow-hidden rounded-2xl border px-4 py-3 text-left shadow-sm transition-[left,top,width,height] duration-300 ${
                   TONE[tone]
                 } ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
                 style={{
@@ -182,8 +176,8 @@ export function FlowChart({
                   height: box.h,
                 }}
               >
-                <span className={`absolute inset-y-2 left-1.5 w-1 rounded-full ${BAR[tone]}`} />
-                <span className="flex items-center gap-2 pl-1">
+                <span className={`absolute inset-y-3 left-2 w-1 rounded-full ${BAR[tone]}`} />
+                <span className="flex items-center gap-2 pl-2.5">
                   {node.step != null && (
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
                       {node.step}
@@ -194,12 +188,12 @@ export function FlowChart({
                       {node.lane}
                     </span>
                   )}
-                </span>
-                <span className="mt-0.5 line-clamp-2 pl-1 text-[13px] font-semibold leading-tight sm:text-sm">
-                  {node.label}
+                  <span className="line-clamp-1 text-[13px] font-semibold leading-tight sm:text-sm">
+                    {node.label}
+                  </span>
                 </span>
                 {node.sub && (
-                  <span className="mt-0.5 line-clamp-2 pl-1 text-[10px] leading-snug text-muted-foreground sm:text-[11px]">
+                  <span className="mt-1.5 line-clamp-2 pl-2.5 text-[11px] leading-relaxed text-muted-foreground">
                     {node.sub}
                   </span>
                 )}
@@ -210,9 +204,6 @@ export function FlowChart({
       )}
 
       <style>{`
-        @keyframes rg-flow {
-          to { stroke-dashoffset: -34; }
-        }
         @keyframes rg-arrive {
           from { opacity: 0; transform: translateY(8px) scale(0.96); }
           to { opacity: 1; transform: none; }
@@ -221,7 +212,7 @@ export function FlowChart({
           animation: rg-arrive 0.4s ease-out both;
         }
         .rg-edge-live {
-          animation: rg-flow 0.9s linear infinite;
+          stroke-width: 1.8;
         }
       `}</style>
     </div>

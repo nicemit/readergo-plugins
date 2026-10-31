@@ -11,7 +11,7 @@ import { GUIDE_TITLE, GUIDE_TYPE, openArchitectureGuide } from './openGuide'
 const manifest = {
   id: 'readergo.features.architecture',
   name: 'How ReaderGo Works',
-  version: '1.4.1',
+  version: '1.4.2',
   description:
     'Interactive trees that grow one node at a time and fit any screen: create a spreadsheet, open, save, chat, install.',
   category: 'feature' as const,

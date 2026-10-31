@@ -75,7 +75,7 @@ export function ArchitectureGuide() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden bg-background text-foreground">
-      <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border/80 px-4 py-3 sm:px-6">
+      <header className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border/70 px-5 py-4 sm:px-8">
         <div className="min-w-0 max-w-3xl">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Watch a flow
@@ -93,7 +93,7 @@ export function ArchitectureGuide() {
         </button>
       </header>
 
-      <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-border/80 px-3 py-2 sm:px-6">
+      <nav className="flex shrink-0 gap-1.5 overflow-x-auto border-b border-border/70 px-5 py-2.5 sm:px-8">
         {DIAGRAMS.map((item) => {
           const active = item.id === diagram.id
           return (
@@ -114,8 +114,8 @@ export function ArchitectureGuide() {
         })}
       </nav>
 
-      <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
-        <div className="mx-auto w-full max-w-5xl rounded-2xl border border-border/70 bg-muted/15 p-2 sm:p-4">
+      <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
+        <div className="mx-auto w-full max-w-5xl rounded-3xl border border-border/60 bg-muted/10 p-4 sm:p-8">
           {revealedIds.length === 0 ? (
             <div className="flex min-h-[22rem] flex-col items-center justify-center px-6 text-center">
               <p className="text-sm font-semibold">{diagram.title}</p>
@@ -134,7 +134,7 @@ export function ArchitectureGuide() {
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-border/80 px-4 py-3 sm:px-6">
+      <footer className="shrink-0 border-t border-border/70 px-5 py-4 sm:px-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <p className="min-h-[2.5rem] max-w-3xl text-sm leading-relaxed">
             {captionNode ? (

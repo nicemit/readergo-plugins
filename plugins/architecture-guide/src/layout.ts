@@ -21,13 +21,13 @@ export type GraphLayout = {
   edges: EdgeDraw[]
 }
 
-const PAD = 16
-const GAP_X = 20
-const GAP_Y = 56
-const SIBLING_W = 200
-const MIN_W = 168
-const CHAIN_W = 360
-const NODE_H = 88
+const PAD = 28
+const GAP_X = 24
+const GAP_Y = 80
+const SIBLING_W = 220
+const MIN_W = 176
+const CHAIN_W = 400
+const NODE_H = 108
 
 function edgeId(edge: ChartEdge) {
   return `${edge.from}->${edge.to}`

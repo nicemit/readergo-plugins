@@ -141,10 +141,10 @@
       "name": "How ReaderGo Works",
       "description": "Interactive trees that grow one node at a time and fit any screen: create a spreadsheet, open, save, chat, install.",
       "category": "feature",
-      "version": "1.4.1",
+      "version": "1.4.2",
       "bundleUrl": "architecture-guide.bundle.json",
-      "bundleHash": "f10df25baa7d7c84",
-      "hash": "f10df25baa7d7c84"
+      "bundleHash": "678fb4cb859dda27",
+      "hash": "678fb4cb859dda27"
     },
     {
       "id": "readergo.features.link-clipper",
