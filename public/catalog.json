@@ -139,12 +139,12 @@
     {
       "id": "readergo.features.architecture",
       "name": "How ReaderGo Works",
-      "description": "Interactive flows that build one step at a time: create a spreadsheet, open a note, save, chat, install.",
+      "description": "Interactive trees that grow one node at a time and fit any screen: create a spreadsheet, open, save, chat, install.",
       "category": "feature",
-      "version": "1.3.0",
+      "version": "1.4.1",
       "bundleUrl": "architecture-guide.bundle.json",
-      "bundleHash": "b88822d032593674",
-      "hash": "b88822d032593674"
+      "bundleHash": "f10df25baa7d7c84",
+      "hash": "f10df25baa7d7c84"
     },
     {
       "id": "readergo.features.link-clipper",

@@ -115,12 +115,12 @@ export function ArchitectureGuide() {
       </nav>
 
       <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
-        <div className="mx-auto w-full max-w-[1100px] rounded-2xl border border-border/70 bg-muted/15 p-2 sm:p-4">
+        <div className="mx-auto w-full max-w-5xl rounded-2xl border border-border/70 bg-muted/15 p-2 sm:p-4">
           {revealedIds.length === 0 ? (
             <div className="flex min-h-[22rem] flex-col items-center justify-center px-6 text-center">
               <p className="text-sm font-semibold">{diagram.title}</p>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                First the UI click appears. Then the command. Then each next step, one at a time.
+                First the click appears. Then the command. Then each next node, one at a time.
               </p>
             </div>
           ) : (
@@ -135,7 +135,7 @@ export function ArchitectureGuide() {
       </div>
 
       <footer className="shrink-0 border-t border-border/80 px-4 py-3 sm:px-6">
-        <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <p className="min-h-[2.5rem] max-w-3xl text-sm leading-relaxed">
             {captionNode ? (
               <>
@@ -150,7 +150,7 @@ export function ArchitectureGuide() {
               </>
             ) : (
               <span className="text-muted-foreground">
-                Pick a flow. Boxes are added in order, about two seconds apart.
+                Pick a flow. Nodes are added in order, about two seconds apart.
               </span>
             )}
           </p>

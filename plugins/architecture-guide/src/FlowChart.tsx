@@ -1,47 +1,23 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import type { ChartEdge, ChartNode, ChartTone, Diagram } from './diagrams'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import type { ChartNode, ChartTone, Diagram } from './diagrams'
+import { layoutGraph } from './layout'
 
 const TONE: Record<ChartTone, string> = {
-  ui: 'bg-primary/10 border-primary/40 text-foreground',
-  kernel: 'bg-card border-border text-foreground',
-  runtime: 'bg-amber-500/10 border-amber-500/40 text-foreground',
-  data: 'bg-sky-500/10 border-sky-500/35 text-foreground',
-  plugin: 'bg-violet-500/10 border-violet-500/40 text-foreground',
+  ui: 'border-primary/40 bg-primary/10 text-foreground',
+  kernel: 'border-border bg-card text-foreground',
+  runtime: 'border-amber-500/40 bg-amber-500/10 text-foreground',
+  data: 'border-sky-500/35 bg-sky-500/10 text-foreground',
+  plugin: 'border-violet-500/40 bg-violet-500/10 text-foreground',
 }
 
-function ports(from: ChartNode, to: ChartNode) {
-  const acx = from.x + from.w / 2
-  const acy = from.y + from.h / 2
-  const bcx = to.x + to.w / 2
-  const bcy = to.y + to.h / 2
-  const dx = bcx - acx
-  const dy = bcy - acy
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    if (dx >= 0) {
-      return { x1: from.x + from.w, y1: acy, x2: to.x, y2: bcy }
-    }
-    return { x1: from.x, y1: acy, x2: to.x + to.w, y2: bcy }
-  }
-  if (dy >= 0) {
-    return { x1: acx, y1: from.y + from.h, x2: bcx, y2: to.y }
-  }
-  return { x1: acx, y1: from.y, x2: bcx, y2: to.y + to.h }
-}
-
-function curve(from: ChartNode, to: ChartNode) {
-  const p = ports(from, to)
-  const mx = (p.x1 + p.x2) / 2
-  const my = (p.y1 + p.y2) / 2
-  if (Math.abs(p.x2 - p.x1) >= Math.abs(p.y2 - p.y1)) {
-    return { d: `M ${p.x1} ${p.y1} C ${mx} ${p.y1}, ${mx} ${p.y2}, ${p.x2} ${p.y2}`, p }
-  }
-  return { d: `M ${p.x1} ${p.y1} C ${p.x1} ${my}, ${p.x2} ${my}, ${p.x2} ${p.y2}`, p }
-}
-
-function edgeKey(edge: ChartEdge) {
-  return `${edge.from}->${edge.to}:${edge.label || ''}`
+const BAR: Record<ChartTone, string> = {
+  ui: 'bg-primary/70',
+  kernel: 'bg-foreground/35',
+  runtime: 'bg-amber-500/80',
+  data: 'bg-sky-500/80',
+  plugin: 'bg-violet-500/80',
 }
 
 function labelWidth(text: string) {
@@ -59,172 +35,190 @@ export function FlowChart({
   revealedIds: string[]
   onSelect: (id: string) => void
 }) {
+  const shellRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const el = shellRef.current
+    if (!el) return
+    const apply = () => setWidth(el.clientWidth)
+    apply()
+    const observer = new ResizeObserver(apply)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const revealed = useMemo(() => new Set(revealedIds), [revealedIds])
+  const latestId = revealedIds[revealedIds.length - 1] || null
+  const visibleNodes = useMemo(
+    () => diagram.nodes.filter((node) => revealed.has(node.id)),
+    [diagram.nodes, revealed],
+  )
+  const visibleEdges = useMemo(
+    () =>
+      diagram.edges.filter((edge) => revealed.has(edge.from) && revealed.has(edge.to)),
+    [diagram.edges, revealed],
+  )
   const byId = useMemo(() => {
     const map = new Map<string, ChartNode>()
     for (const node of diagram.nodes) map.set(node.id, node)
     return map
   }, [diagram.nodes])
 
-  const revealed = useMemo(() => new Set(revealedIds), [revealedIds])
-  const latestId = revealedIds[revealedIds.length - 1] || null
-  const visibleNodes = diagram.nodes.filter((node) => revealed.has(node.id))
-  const visibleLanes = (diagram.lanes || []).filter((lane) =>
-    visibleNodes.some((node) => node.y + node.h > lane.y && node.y < lane.y + lane.h),
+  const layout = useMemo(
+    () => layoutGraph(visibleNodes, visibleEdges, width || 720),
+    [visibleNodes, visibleEdges, width],
   )
+  const boxById = useMemo(() => {
+    const map = new Map(layout.nodes.map((box) => [box.id, box]))
+    return map
+  }, [layout.nodes])
 
   return (
-    <div
-      className="relative w-full min-h-[22rem]"
-      style={{ aspectRatio: `${diagram.width} / ${diagram.height}` }}
-    >
-      <svg
-        viewBox={`0 0 ${diagram.width} ${diagram.height}`}
-        className="absolute inset-0 h-full w-full"
-        aria-hidden
-      >
-        <defs>
-          <marker
-            id={`rg-arrow-${diagram.id}`}
-            viewBox="0 0 10 7"
-            refX="9"
-            refY="3.5"
-            markerWidth="8"
-            markerHeight="7"
-            orient="auto"
+    <div ref={shellRef} className="relative w-full">
+      {width > 0 && (
+        <div
+          className="relative w-full"
+          style={{
+            height: layout.height,
+            backgroundImage:
+              'radial-gradient(circle, color-mix(in oklab, var(--border) 70%, transparent) 1px, transparent 1px)',
+            backgroundSize: '16px 16px',
+          }}
+        >
+          <svg
+            viewBox={`0 0 ${layout.width} ${layout.height}`}
+            className="absolute inset-0 h-full w-full overflow-visible"
+            preserveAspectRatio="xMinYMin meet"
+            aria-hidden
           >
-            <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-muted-foreground" />
-          </marker>
-          <marker
-            id={`rg-arrow-live-${diagram.id}`}
-            viewBox="0 0 10 7"
-            refX="9"
-            refY="3.5"
-            markerWidth="8"
-            markerHeight="7"
-            orient="auto"
-          >
-            <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-primary" />
-          </marker>
-        </defs>
+            <defs>
+              <marker
+                id={`rg-arrow-${diagram.id}`}
+                viewBox="0 0 10 7"
+                refX="9"
+                refY="3.5"
+                markerWidth="8"
+                markerHeight="7"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-muted-foreground" />
+              </marker>
+              <marker
+                id={`rg-arrow-live-${diagram.id}`}
+                viewBox="0 0 10 7"
+                refX="9"
+                refY="3.5"
+                markerWidth="8"
+                markerHeight="7"
+                orient="auto"
+              >
+                <path d="M 0 0 L 10 3.5 L 0 7 z" className="fill-primary" />
+              </marker>
+            </defs>
 
-        {visibleLanes.map((lane) => (
-          <g key={lane.label}>
-            <rect
-              x={8}
-              y={lane.y}
-              width={diagram.width - 16}
-              height={lane.h}
-              rx={20}
-              className="fill-muted/25 stroke-border/60"
-              strokeWidth={1}
-            />
-            <text
-              x={20}
-              y={lane.y + 28}
-              className="fill-muted-foreground"
-              fontSize={10}
-              fontWeight={700}
-              style={{ letterSpacing: '0.1em' }}
-            >
-              {lane.label.toUpperCase()}
-            </text>
-          </g>
-        ))}
-
-        {diagram.edges.map((edge) => {
-          const from = byId.get(edge.from)
-          const to = byId.get(edge.to)
-          if (!from || !to) return null
-          if (!revealed.has(edge.from) || !revealed.has(edge.to)) return null
-          const { d, p } = curve(from, to)
-          const live = edge.to === latestId || edge.from === latestId
-          const mx = (p.x1 + p.x2) / 2
-          const my = (p.y1 + p.y2) / 2
-          const chip = edge.label ? labelWidth(edge.label) : 0
-          return (
-            <g key={edgeKey(edge)}>
-              <path
-                d={d}
-                fill="none"
-                strokeWidth={live ? 2.5 : 1.6}
-                strokeDasharray={edge.dashed ? '7 6' : live ? '10 7' : undefined}
-                markerEnd={`url(#${live ? `rg-arrow-live-${diagram.id}` : `rg-arrow-${diagram.id}`})`}
-                className={`rg-arrive ${live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/50'}`}
-              />
-              {edge.label && (
-                <g>
-                  <rect
-                    x={mx - chip / 2}
-                    y={my - 11}
-                    width={chip}
-                    height={20}
-                    rx={10}
-                    className={
-                      live
-                        ? 'fill-primary/15 stroke-primary/40'
-                        : 'fill-background stroke-border/80'
-                    }
-                    strokeWidth={1}
+            {layout.edges.map((edge) => {
+              const live = edge.to === latestId || edge.from === latestId
+              const chip = edge.label ? labelWidth(edge.label) : 0
+              return (
+                <g key={`${edge.from}->${edge.to}:${edge.label || ''}`}>
+                  <path
+                    d={edge.d}
+                    fill="none"
+                    strokeWidth={live ? 2.4 : 1.6}
+                    strokeDasharray={edge.dashed ? '7 6' : live ? '10 7' : undefined}
+                    markerEnd={`url(#${live ? `rg-arrow-live-${diagram.id}` : `rg-arrow-${diagram.id}`})`}
+                    className={`rg-arrive ${live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/55'}`}
                   />
-                  <text
-                    x={mx}
-                    y={my + 3.5}
-                    textAnchor="middle"
-                    className={live ? 'fill-primary' : 'fill-muted-foreground'}
-                    fontSize={11}
-                    fontWeight={700}
-                  >
-                    {edge.label}
-                  </text>
+                  {edge.label && (
+                    <g>
+                      <rect
+                        x={edge.labelX - chip / 2}
+                        y={edge.labelY - 11}
+                        width={chip}
+                        height={20}
+                        rx={10}
+                        className={
+                          live
+                            ? 'fill-primary/15 stroke-primary/40'
+                            : 'fill-background stroke-border/80'
+                        }
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={edge.labelX}
+                        y={edge.labelY + 3.5}
+                        textAnchor="middle"
+                        className={live ? 'fill-primary' : 'fill-muted-foreground'}
+                        fontSize={11}
+                        fontWeight={700}
+                      >
+                        {edge.label}
+                      </text>
+                    </g>
+                  )}
                 </g>
-              )}
-            </g>
-          )
-        })}
-      </svg>
+              )
+            })}
+          </svg>
 
-      {visibleNodes.map((node) => {
-        const selected = selectedId === node.id || latestId === node.id
-        return (
-          <button
-            key={node.id}
-            type="button"
-            onClick={() => onSelect(node.id)}
-            className={`rg-arrive absolute flex flex-col items-center justify-center rounded-2xl border px-3 text-center shadow-sm ${
-              TONE[node.tone || 'kernel']
-            } ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
-            style={{
-              left: `${(node.x / diagram.width) * 100}%`,
-              top: `${(node.y / diagram.height) * 100}%`,
-              width: `${(node.w / diagram.width) * 100}%`,
-              height: `${(node.h / diagram.height) * 100}%`,
-            }}
-          >
-            {node.step != null && (
-              <span className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
-                {node.step}
-              </span>
-            )}
-            <span className="text-[13px] font-semibold leading-tight sm:text-sm">{node.label}</span>
-            {node.sub && (
-              <span className="mt-1 max-w-[95%] text-[10px] leading-snug text-muted-foreground sm:text-[11px]">
-                {node.sub}
-              </span>
-            )}
-          </button>
-        )
-      })}
+          {visibleNodes.map((node) => {
+            const box = boxById.get(node.id)
+            if (!box) return null
+            const selected = selectedId === node.id || latestId === node.id
+            const tone = node.tone || 'kernel'
+            return (
+              <button
+                key={node.id}
+                type="button"
+                onClick={() => onSelect(node.id)}
+                className={`rg-arrive absolute flex flex-col justify-center overflow-hidden rounded-2xl border pl-3.5 pr-3 text-left shadow-sm transition-[left,top,width,height] duration-300 ${
+                  TONE[tone]
+                } ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
+                style={{
+                  left: box.x,
+                  top: box.y,
+                  width: box.w,
+                  height: box.h,
+                }}
+              >
+                <span className={`absolute inset-y-2 left-1.5 w-1 rounded-full ${BAR[tone]}`} />
+                <span className="flex items-center gap-2 pl-1">
+                  {node.step != null && (
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
+                      {node.step}
+                    </span>
+                  )}
+                  {node.lane && (
+                    <span className="truncate text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {node.lane}
+                    </span>
+                  )}
+                </span>
+                <span className="mt-0.5 line-clamp-2 pl-1 text-[13px] font-semibold leading-tight sm:text-sm">
+                  {node.label}
+                </span>
+                {node.sub && (
+                  <span className="mt-0.5 line-clamp-2 pl-1 text-[10px] leading-snug text-muted-foreground sm:text-[11px]">
+                    {node.sub}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <style>{`
         @keyframes rg-flow {
           to { stroke-dashoffset: -34; }
         }
         @keyframes rg-arrive {
-          from { opacity: 0; transform: translateY(10px) scale(0.94); }
+          from { opacity: 0; transform: translateY(8px) scale(0.96); }
           to { opacity: 1; transform: none; }
         }
         .rg-arrive {
-          animation: rg-arrive 0.45s ease-out both;
+          animation: rg-arrive 0.4s ease-out both;
         }
         .rg-edge-live {
           animation: rg-flow 0.9s linear infinite;

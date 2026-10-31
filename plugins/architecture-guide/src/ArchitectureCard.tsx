@@ -17,7 +17,7 @@ export function ArchitectureCard({ onOpen }: { onOpen: () => void }) {
         <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
       </div>
       <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-        Watch a flow build: Create a spreadsheet, open a note, save, chat, install. One box at a time.
+        Watch a tree grow: Create a spreadsheet, open a note, save, chat, install. One node at a time.
       </p>
       <div className="mt-3 flex items-center gap-1">
         {STEPS.map((step, index) => (
