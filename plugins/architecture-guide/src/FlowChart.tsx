@@ -51,12 +51,12 @@ function labelWidth(text: string) {
 export function FlowChart({
   diagram,
   selectedId,
-  pathIds,
+  revealedIds,
   onSelect,
 }: {
   diagram: Diagram
   selectedId: string | null
-  pathIds: string[]
+  revealedIds: string[]
   onSelect: (id: string) => void
 }) {
   const byId = useMemo(() => {
@@ -65,25 +65,12 @@ export function FlowChart({
     return map
   }, [diagram.nodes])
 
-  const pathSet = useMemo(() => new Set(pathIds), [pathIds])
-  const pathEdges = useMemo(() => {
-    const set = new Set<string>()
-    for (let i = 0; i < pathIds.length - 1; i += 1) {
-      set.add(`${pathIds[i]}->${pathIds[i + 1]}`)
-    }
-    return set
-  }, [pathIds])
-
-  const connected = useMemo(() => {
-    const set = new Set<string>()
-    if (!selectedId) return set
-    set.add(selectedId)
-    for (const edge of diagram.edges) {
-      if (edge.from === selectedId) set.add(edge.to)
-      if (edge.to === selectedId) set.add(edge.from)
-    }
-    return set
-  }, [diagram.edges, selectedId])
+  const revealed = useMemo(() => new Set(revealedIds), [revealedIds])
+  const latestId = revealedIds[revealedIds.length - 1] || null
+  const visibleNodes = diagram.nodes.filter((node) => revealed.has(node.id))
+  const visibleLanes = (diagram.lanes || []).filter((lane) =>
+    visibleNodes.some((node) => node.y + node.h > lane.y && node.y < lane.y + lane.h),
+  )
 
   return (
     <div
@@ -120,7 +107,7 @@ export function FlowChart({
           </marker>
         </defs>
 
-        {diagram.lanes?.map((lane) => (
+        {visibleLanes.map((lane) => (
           <g key={lane.label}>
             <rect
               x={8}
@@ -148,12 +135,9 @@ export function FlowChart({
           const from = byId.get(edge.from)
           const to = byId.get(edge.to)
           if (!from || !to) return null
+          if (!revealed.has(edge.from) || !revealed.has(edge.to)) return null
           const { d, p } = curve(from, to)
-          const live =
-            pathEdges.has(`${edge.from}->${edge.to}`) ||
-            (selectedId !== null &&
-              pathIds.length === 0 &&
-              (edge.from === selectedId || edge.to === selectedId))
+          const live = edge.to === latestId || edge.from === latestId
           const mx = (p.x1 + p.x2) / 2
           const my = (p.y1 + p.y2) / 2
           const chip = edge.label ? labelWidth(edge.label) : 0
@@ -165,7 +149,7 @@ export function FlowChart({
                 strokeWidth={live ? 2.5 : 1.6}
                 strokeDasharray={edge.dashed ? '7 6' : live ? '10 7' : undefined}
                 markerEnd={`url(#${live ? `rg-arrow-live-${diagram.id}` : `rg-arrow-${diagram.id}`})`}
-                className={live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/50'}
+                className={`rg-arrive ${live ? 'stroke-primary rg-edge-live' : 'stroke-muted-foreground/50'}`}
               />
               {edge.label && (
                 <g>
@@ -199,20 +183,16 @@ export function FlowChart({
         })}
       </svg>
 
-      {diagram.nodes.map((node) => {
-        const selected = selectedId === node.id
-        const inPath = pathSet.has(node.id)
-        const dim = selectedId && !connected.has(node.id) && !inPath
+      {visibleNodes.map((node) => {
+        const selected = selectedId === node.id || latestId === node.id
         return (
           <button
             key={node.id}
             type="button"
             onClick={() => onSelect(node.id)}
-            className={`absolute flex flex-col items-center justify-center rounded-2xl border px-3 text-center shadow-sm transition-all ${
+            className={`rg-arrive absolute flex flex-col items-center justify-center rounded-2xl border px-3 text-center shadow-sm ${
               TONE[node.tone || 'kernel']
-            } ${selected || inPath ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''} ${
-              dim ? 'opacity-35' : 'opacity-100'
-            }`}
+            } ${selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}
             style={{
               left: `${(node.x / diagram.width) * 100}%`,
               top: `${(node.y / diagram.height) * 100}%`,
@@ -238,6 +218,13 @@ export function FlowChart({
       <style>{`
         @keyframes rg-flow {
           to { stroke-dashoffset: -34; }
+        }
+        @keyframes rg-arrive {
+          from { opacity: 0; transform: translateY(10px) scale(0.94); }
+          to { opacity: 1; transform: none; }
+        }
+        .rg-arrive {
+          animation: rg-arrive 0.45s ease-out both;
         }
         .rg-edge-live {
           animation: rg-flow 0.9s linear infinite;

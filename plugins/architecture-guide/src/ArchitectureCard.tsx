@@ -17,7 +17,7 @@ export function ArchitectureCard({ onOpen }: { onOpen: () => void }) {
         <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
       </div>
       <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
-        Seven charts. Each one is a complete sentence: the shell, the five-step rule, open, save, chat, install, Spaces.
+        Watch a flow build: Create a spreadsheet, open a note, save, chat, install. One box at a time.
       </p>
       <div className="mt-3 flex items-center gap-1">
         {STEPS.map((step, index) => (

@@ -37,11 +37,95 @@ export type Diagram = {
   nodes: ChartNode[]
   edges: ChartEdge[]
   play?: string[]
+  /** Delay between nodes when the flow is building. */
+  paceMs?: number
 }
 
 const W = 1080
 
 export const DIAGRAMS: Diagram[] = [
+  {
+    id: 'spreadsheet',
+    title: 'Create a spreadsheet',
+    story: 'You click Spreadsheet. A command creates the document. The spreadsheet plugin mounts. The host never switches on type.',
+    width: W,
+    height: 280,
+    paceMs: 1700,
+    nodes: [
+      {
+        id: 'ss-click',
+        x: 16,
+        y: 56,
+        w: 188,
+        h: 168,
+        step: 1,
+        label: 'You click Spreadsheet',
+        sub: 'Activity bar. UI only.',
+        detail:
+          'The icon is an activity-bar-item from the spreadsheet plugin. The click does not create a file by itself.',
+        tone: 'ui',
+      },
+      {
+        id: 'ss-cmd',
+        x: 228,
+        y: 56,
+        w: 196,
+        h: 168,
+        step: 2,
+        label: 'document.create',
+        sub: 'A named command. type: spreadsheet.',
+        detail:
+          'executeCommand(\'document.create\', { type: \'spreadsheet\' }). The UI does not call storage.',
+        tone: 'kernel',
+      },
+      {
+        id: 'ss-store',
+        x: 448,
+        y: 56,
+        w: 196,
+        h: 168,
+        step: 3,
+        label: 'storage.create',
+        sub: 'The active Space writes the document.',
+        detail:
+          'document-storage for this Space creates the row or file. Cloud, sqlite, or folder.',
+        tone: 'data',
+      },
+      {
+        id: 'ss-reg',
+        x: 668,
+        y: 56,
+        w: 188,
+        h: 168,
+        step: 4,
+        label: 'EditorRegistry',
+        sub: 'type spreadsheet → grid plugin.',
+        detail:
+          'No switch(type) in the host. If the plugin is off, the pane stays empty.',
+        tone: 'kernel',
+      },
+      {
+        id: 'ss-grid',
+        x: 880,
+        y: 56,
+        w: 184,
+        h: 168,
+        step: 5,
+        label: 'Grid mounts',
+        sub: 'Center pane. The sheet is a plugin.',
+        detail:
+          'The spreadsheet editor renders. Typing later goes through onChange and the host save path.',
+        tone: 'plugin',
+      },
+    ],
+    edges: [
+      { from: 'ss-click', to: 'ss-cmd', label: 'dispatch' },
+      { from: 'ss-cmd', to: 'ss-store', label: 'create' },
+      { from: 'ss-store', to: 'ss-reg', label: 'type' },
+      { from: 'ss-reg', to: 'ss-grid', label: 'mount' },
+    ],
+    play: ['ss-click', 'ss-cmd', 'ss-store', 'ss-reg', 'ss-grid'],
+  },
   {
     id: 'system',
     title: 'The map',
