@@ -87,7 +87,7 @@ export function FlowChart({
 
   return (
     <div
-      className="relative w-full"
+      className="relative w-full min-h-[22rem]"
       style={{ aspectRatio: `${diagram.width} / ${diagram.height}` }}
     >
       <svg

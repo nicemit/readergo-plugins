@@ -141,10 +141,10 @@
       "name": "How ReaderGo Works",
       "description": "Self-explaining flowcharts of the ReaderGo shell, kernel, click pipeline, open/save, chat, install, and Spaces.",
       "category": "feature",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "bundleUrl": "architecture-guide.bundle.json",
-      "bundleHash": "ae124744b28a6658",
-      "hash": "ae124744b28a6658"
+      "bundleHash": "5ccfa608ed2aaa7b",
+      "hash": "5ccfa608ed2aaa7b"
     },
     {
       "id": "readergo.features.link-clipper",
