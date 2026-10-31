@@ -81,19 +81,23 @@ async function readLocation(note: CurrentNote | null | undefined): Promise<Paged
   )
   const saved = (await store?.get(LOCATION_NS, key)) as PagedLocation | null
   const page = saved?.page
-  return { page: typeof page === 'number' && page >= 0 ? page : 0 }
+  const fit = saved?.fit === 'page' || saved?.fit === 'width' ? saved.fit : undefined
+  return { page: typeof page === 'number' && page >= 0 ? page : 0, fit }
 }
 
 async function writeLocation(
   note: CurrentNote | null | undefined,
   page: number,
+  fit?: PagedFit,
 ): Promise<void> {
   const key = locationKey(note)
   if (!key || !pluginContext) return
   const store = await pluginContext.getCapability<UserStateCapability>(
     USER_STATE_CAPABILITY_ID,
   )
-  await store?.set(LOCATION_NS, key, { page } satisfies PagedLocation)
+  const next: PagedLocation = { page }
+  if (fit) next.fit = fit
+  await store?.set(LOCATION_NS, key, next)
 }
 
 export function PagedDocumentEditor(props: EditorProps) {
@@ -103,6 +107,7 @@ export function PagedDocumentEditor(props: EditorProps) {
   const [pageCount, setPageCount] = useState(0)
   const [fit, setFit] = useState<PagedFit>('width')
   const [loading, setLoading] = useState(false)
+  const [loadingLabel, setLoadingLabel] = useState('Opening')
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -123,11 +128,11 @@ export function PagedDocumentEditor(props: EditorProps) {
     (next: number) => {
       setPage((current) => {
         const clamped = Math.max(0, Math.min(next, Math.max(pageCount - 1, 0)))
-        void writeLocation(note, clamped)
+        void writeLocation(note, clamped, fit)
         return clamped
       })
     },
-    [note, pageCount],
+    [fit, note, pageCount],
   )
 
   const goPrev = useCallback(() => goTo(page - 1), [goTo, page])
@@ -152,6 +157,7 @@ export function PagedDocumentEditor(props: EditorProps) {
           setCbzPages(pages)
           setPageCount(pages.length)
           setPage(Math.min(saved.page, pages.length - 1))
+          if (saved.fit) setFit(saved.fit)
         } else {
           if (!hasPdfSignature(bytes)) {
             throw new Error('This file is not a valid PDF.')
@@ -160,6 +166,7 @@ export function PagedDocumentEditor(props: EditorProps) {
           pdfRef.current = pdf
           setPageCount(pdf.numPages)
           setPage(Math.min(saved.page, Math.max(pdf.numPages - 1, 0)))
+          if (saved.fit) setFit(saved.fit)
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
@@ -288,55 +295,55 @@ export function PagedDocumentEditor(props: EditorProps) {
 
   const processFile = async (file: File) => {
     if (!pluginContext) return
-    const bytes = await file.arrayBuffer()
-    const storage = await pluginContext.getCapability<NoteStorageCapability>(
-      'document-storage',
-    )
+    const type = isCbzFileName(file.name) ? 'cbz' : 'pdf'
     const folderId =
       (note as CurrentNote & { folders?: Array<{ folderId?: string }> })?.folders?.[0]
         ?.folderId || null
-    const type = isCbzFileName(file.name) ? 'cbz' : 'pdf'
 
-    if (isNativeFile(note) && note?.id && storage?.writeBytes && type === kind) {
-      await storage.writeBytes(note.id, bytes)
-      loadedIdRef.current = `${note.id}:native`
-      await loadBytes(bytes, await readLocation(note))
+    const can = (await pluginContext.executeCommand('document.canImportNative', {
+      type,
+    })) as { supported?: boolean; reason?: string; maxBytes?: number } | null
+    if (!can?.supported) {
+      setError(
+        can?.reason ||
+          'This space cannot store this file. Switch to a folder or runtime space.',
+      )
       return
     }
+    if (can.maxBytes && file.size > can.maxBytes) {
+      setError(`${file.name} is too large for this space.`)
+      return
+    }
+
+    setError(null)
+    setLoading(true)
+    setLoadingLabel(`Uploading ${file.name}`)
 
     try {
       const created = (await pluginContext.executeCommand('document.importNative', {
         type,
         fileName: file.name,
-        bytes,
+        file,
         folderId,
         id: note?.id,
       })) as CurrentNote | null
-      if (!created?.id) throw new Error('import failed')
-      if (note?.id && created.id !== note.id && storage?.delete) {
-        try {
-          await storage.delete(note.id)
-        } catch {
-          // keep stub
-        }
+      if (!created?.id) {
+        throw new Error('This space could not save the file.')
       }
-      await writeLocation(
-        {
-          ...created,
-          spaceId: created.spaceId || note?.spaceId,
-        } as CurrentNote,
-        0,
-      )
       loadedIdRef.current = `${created.id}:native`
-      await loadBytes(bytes, { page: 0 })
+      setLoadingLabel(`Opening ${label}`)
+      const storage = await pluginContext.getCapability<NoteStorageCapability>(
+        'document-storage',
+      )
+      const bytes = await storage?.readBytes?.(created.id)
+      if (bytes) {
+        await loadBytes(bytes, { page: 0, fit })
+      }
       await pluginContext.executeCommand('document.open', { id: created.id })
-      return
-    } catch {
-      // Fall through to an in-memory preview when this space cannot store files.
+    } catch (err) {
+      setLoading(false)
+      setError(err instanceof Error ? err.message : String(err))
     }
-
-    loadedIdRef.current = note?.id ? `${note.id}:native` : null
-    await loadBytes(bytes, { page: 0 })
   }
 
   const onPickFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -380,7 +387,13 @@ export function PagedDocumentEditor(props: EditorProps) {
           <button
             type="button"
             className="rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
-            onClick={() => setFit((value) => (value === 'width' ? 'page' : 'width'))}
+            onClick={() => {
+              setFit((value) => {
+                const next = value === 'width' ? 'page' : 'width'
+                void writeLocation(note, page, next)
+                return next
+              })
+            }}
           >
             {fit === 'width' ? 'Fit width' : 'Fit page'}
           </button>
@@ -443,7 +456,7 @@ export function PagedDocumentEditor(props: EditorProps) {
       >
         {loading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 text-sm text-muted-foreground">
-            Opening {label}...
+            {loadingLabel}...
           </div>
         )}
         {error && (

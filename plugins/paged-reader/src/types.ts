@@ -4,6 +4,7 @@ export type PagedFit = 'width' | 'page'
 
 export type PagedLocation = {
   page: number
+  fit?: PagedFit
 }
 
 export type PagedDocumentData = {

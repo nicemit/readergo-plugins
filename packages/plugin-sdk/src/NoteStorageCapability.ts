@@ -6,7 +6,9 @@ export interface NoteStorageCapability {
   update(document: Document): Promise<Document>;
   delete(id: string): Promise<void>;
   list(): Promise<Document[]>;
-  /** Bytes of a native folder file. Missing on cloud notes. */
+  /** Limits for PDF/EPUB/CBZ in this space. Null or missing means unsupported. */
+  nativeFileSupport?(): { maxBytes: number; chunkBytes: number } | null;
+  /** Bytes of a native file (folder, runtime, or cloud blob). */
   readBytes?(id: string): Promise<ArrayBuffer | null>;
   /** Replace bytes of an existing document. Markdown stubs of a native type convert in place (same id). */
   writeBytes?(id: string, bytes: ArrayBuffer): Promise<void>;
@@ -14,8 +16,10 @@ export interface NoteStorageCapability {
   createNativeFile?(input: {
     type: string;
     fileName: string;
-    bytes: ArrayBuffer;
+    bytes?: ArrayBuffer;
+    file?: File;
     folderId?: string | null;
     id?: string;
+    onProgress?: (progress: { loaded: number; total: number; phase: 'upload' | 'save' }) => void;
   }): Promise<Document>;
 }

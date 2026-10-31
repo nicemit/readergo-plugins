@@ -758,54 +758,51 @@ export function EpubDocumentEditor(props: EditorProps) {
 
   const processFileBytes = async (file: File) => {
     if (!pluginContext) return
-    const bytes = await file.arrayBuffer()
-    const storage = await pluginContext.getCapability<NoteStorageCapability>(
-      'document-storage',
-    )
     const folderId =
       (note as CurrentNote & { folders?: Array<{ folderId?: string }> })?.folders?.[0]
         ?.folderId || null
 
-    if (isNativeEpub(note) && note?.id && storage?.writeBytes) {
-      await storage.writeBytes(note.id, bytes)
-      loadedIdRef.current = `${note.id}:native`
-      await loadBytes(bytes, await readLocation(note))
+    const can = (await pluginContext.executeCommand('document.canImportNative', {
+      type: 'epub',
+    })) as { supported?: boolean; reason?: string; maxBytes?: number } | null
+    if (!can?.supported) {
+      setError(
+        can?.reason ||
+          'This space cannot store EPUB files. Switch to a folder or runtime space.',
+      )
+      return
+    }
+    if (can.maxBytes && file.size > can.maxBytes) {
+      setError(`${file.name} is too large for this space.`)
       return
     }
 
+    setError(null)
+    setLoading(true)
     try {
       const created = (await pluginContext.executeCommand('document.importNative', {
         type: 'epub',
         fileName: file.name,
-        bytes,
+        file,
         folderId,
         id: note?.id,
       })) as CurrentNote | null
-      if (!created?.id) throw new Error('import failed')
-      if (note?.id && created.id !== note.id && storage?.delete) {
-        try {
-          await storage.delete(note.id)
-        } catch {
-          // Keep note
-        }
+      if (!created?.id) {
+        throw new Error('This space could not save the file.')
       }
-      await writeLocation(
-        {
-          ...created,
-          spaceId: created.spaceId || note?.spaceId,
-        } as CurrentNote,
-        0,
-      )
       loadedIdRef.current = `${created.id}:native`
-      await loadBytes(bytes, { chapterIndex: 0 })
+      const storage = await pluginContext.getCapability<NoteStorageCapability>(
+        'document-storage',
+      )
+      const bytes = await storage?.readBytes?.(created.id)
+      if (bytes) {
+        await loadBytes(bytes, { chapterIndex: 0 })
+      }
       await pluginContext.executeCommand('document.open', { id: created.id })
-      return
-    } catch {
-      // Fall through to an in-memory preview when this space cannot store files.
+    } catch (err) {
+      setLoading(false)
+      setError(err instanceof Error ? err.message : String(err))
     }
-
-    loadedIdRef.current = note?.id ? `${note.id}:native` : null
-    await loadBytes(bytes, { chapterIndex: 0 })
   }
 
   // Drag and Drop handlers
