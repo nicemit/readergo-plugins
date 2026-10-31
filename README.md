@@ -27,7 +27,7 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 ### Knowledge and Productivity
 - **Zettelkasten** (`readergo.features.zettelkasten`): Bidirectional `[[Note Title]]` links, autocomplete, backlinks, and unlinked mentions.
 - **Thinking Partner** (`readergo.features.thinking-partner`): In-editor intelligence: related notes, unlinked mentions, and content-aware actions.
-- **Outline and Word Count** (`readergo.features.outline`): Right-sidebar heading outline with jump-to-heading, word count, and reading time.
+- **Document Structure** (`readergo.features.outline`): Right-sidebar heading outline with jump-to-heading and section collapse.
 - **Link Clipper** (`readergo.features.link-clipper`): Clip web articles into structured notes.
 - **Pin Notes** (`readergo.features.pin-notes`): Pin favorite notes to the dashboard.
 - **Selection Actions** (`readergo.features.selection-actions`): Contextual action bar on text selection.

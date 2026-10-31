@@ -5,10 +5,9 @@ import { OutlinePanel } from './OutlinePanel'
 
 const manifest: PluginManifest = {
   id: 'readergo.features.outline',
-  name: 'Outline and Word Count',
-  version: '1.0.0',
-  description:
-    'Right-sidebar document outline with heading jump, word count, and reading time for the active note.',
+  name: 'Document Structure',
+  version: '1.1.0',
+  description: 'Right-sidebar heading outline with jump-to-heading and section collapse for the active note.',
   category: 'feature',
   provides: ['sidebar-panel'],
   requires: ['document-storage'],
@@ -20,20 +19,23 @@ const manifest: PluginManifest = {
 
 export const OutlinePlugin: Plugin = {
   manifest,
-  async activate(context: PluginContext) {
+
+  async activate(context: PluginContext): Promise<void> {
     const panel: SidebarPanel = {
       id: 'readergo.outline.panel',
-      name: 'Outline',
+      name: 'Document Structure',
       icon: ListTree,
       position: 'right',
-      order: 2,
-      render: (props) => <OutlinePanel noteId={props.noteId} context={props.context} />,
+      order: 1,
+      render: ({ noteId }) => <OutlinePanel noteId={noteId} />,
     }
+
     context.registerCapability('sidebar-panel', panel)
-    context.log.info('Outline and Word Count plugin activated')
+    context.log.info('Document Structure outline panel ready')
   },
+
   deactivate(context: PluginContext) {
-    context.log.info('Outline and Word Count plugin deactivated')
+    context.log.info('Document Structure outline panel deactivated')
   },
 }
 

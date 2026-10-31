@@ -49,6 +49,16 @@
       "hash": "28905ef9da75f06f"
     },
     {
+      "id": "readergo.features.outline",
+      "name": "Document Structure",
+      "description": "Right-sidebar heading outline with jump-to-heading and section collapse for the active note.",
+      "category": "feature",
+      "version": "1.1.0",
+      "bundleUrl": "outline.bundle.json",
+      "bundleHash": "a641a3a029fa25a8",
+      "hash": "a641a3a029fa25a8"
+    },
+    {
       "id": "readergo.theme.eink",
       "name": "E-Ink Reading Suite",
       "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
@@ -204,16 +214,6 @@
       "version": "0.1.0",
       "runtimeBundleUrl": "openrouter.runtime.json",
       "runtimeBundleHash": "5965145e8cac42d2"
-    },
-    {
-      "id": "readergo.features.outline",
-      "name": "Outline and Word Count",
-      "description": "Right-sidebar document outline with heading jump, word count, and reading time for the active note.",
-      "category": "feature",
-      "version": "1.0.0",
-      "bundleUrl": "outline.bundle.json",
-      "bundleHash": "04a083cd40588ae7",
-      "hash": "04a083cd40588ae7"
     },
     {
       "id": "readergo.editor.paged",
