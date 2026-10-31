@@ -1,0 +1,27 @@
+{
+  "id": "readergo.features.architecture",
+  "name": "How ReaderGo Works",
+  "version": "1.4.2",
+  "description": "Interactive trees that grow one node at a time and fit any screen: create a spreadsheet, open, save, chat, install.",
+  "category": "feature",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item",
+    "extension-slot"
+  ],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

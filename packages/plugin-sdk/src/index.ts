@@ -2,6 +2,7 @@ export * from './Permission';
 export * from './Manifest';
 export * from './ExtensionDescriptor';
 export * from './ContributionPlace';
+export * from './AgentTool';
 export * from './PluginContext';
 export * from './definePlugin';
 export * from './Capabilities';

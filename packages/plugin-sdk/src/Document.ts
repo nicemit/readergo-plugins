@@ -20,6 +20,45 @@ export interface EditorCapability {
   save?(): Promise<Document>;
 }
 
+/**
+ * Standard Text Formatting Capability for rich text & markdown editors.
+ * Implemented by TipTap, Canvas rich notes, Mindmap nodes, etc.
+ */
+export interface TextFormattingCapability extends EditorCapability {
+  // History
+  undo?(): void;
+  redo?(): void;
+  canUndo?(): boolean;
+  canRedo?(): boolean;
+
+  // Inline formatting
+  toggleBold?(): void;
+  toggleItalic?(): void;
+  toggleUnderline?(): void;
+  toggleStrike?(): void;
+  toggleCode?(): void;
+
+  // Block formatting
+  toggleHeading?(level: 1 | 2 | 3 | 4 | 5 | 6): void;
+  toggleParagraph?(): void;
+  toggleBulletList?(): void;
+  toggleOrderedList?(): void;
+  toggleTaskList?(): void;
+  toggleBlockquote?(): void;
+  toggleCodeBlock?(): void;
+
+  // Lists & structure
+  indent?(): void;
+  outdent?(): void;
+  insertHorizontalRule?(): void;
+
+  // Alignment
+  setTextAlign?(alignment: 'left' | 'center' | 'right' | 'justify'): void;
+
+  // Query state (for active highlight in toolbar)
+  isActive?(name: string, attributes?: Record<string, any>): boolean;
+}
+
 export interface EditorRegistration {
   type: string;
   component: React.FC<any>;

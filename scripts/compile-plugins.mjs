@@ -7,7 +7,7 @@ import esbuild from "esbuild";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pluginsDir = path.join(root, "plugins");
 
-const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@\/.*|jszip|lucide-react)$/;
+const HOST_SPEC = /^(react|react-dom|react\/.*|@readergo\/plugin-sdk(\/.*)?|@\/.*|jszip|lucide-react|marked|lowlight)$/;
 
 function isHostSpec(spec) {
   return HOST_SPEC.test(spec);
@@ -33,11 +33,11 @@ function rewriteClause(clause, expr) {
 
 export function rewriteHostImports(code) {
   return code.replace(
-    /import\s*([\s\S]*?)\s*from\s*(['"])([^'"]+)\2\s*;?/g,
+    /(?:^|[\n;])\s*import\s+([^'"]*?)\s+from\s*(['"])([^'"]+)\2\s*;?/g,
     (full, clause, _quote, spec) => {
       if (!isHostSpec(spec)) return full;
       const expr = `__readergoModule(${JSON.stringify(spec)})`;
-      return rewriteClause(clause.trim(), expr);
+      return '\n' + rewriteClause(clause.trim(), expr);
     },
   );
 }
@@ -80,6 +80,7 @@ function wrapUiEntry(code) {
     }
     return host.module(id);
   };
+  const require = (id) => __readergoModule(id);
 ${body}
   return { ${fields.join(", ")} };
 }
@@ -100,6 +101,7 @@ async function compileUi(entryPath, outfile) {
     minify: false,
     sourcemap: false,
     plugins: [hostExternalPlugin()],
+    loader: { ".txt": "text" },
     logLevel: "warning",
   });
   let code = await fs.readFile(outfile, "utf8");
@@ -152,11 +154,26 @@ async function compileManifest(manifestPath) {
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 }
 
+async function ensurePdfWorkerText() {
+  const src = path.join(root, "node_modules/pdfjs-dist/build/pdf.worker.min.mjs");
+  const dest = path.join(pluginsDir, "paged-reader/src/pdf.worker.min.txt");
+  try {
+    await fs.access(src);
+    await fs.mkdir(path.dirname(dest), { recursive: true });
+    await fs.copyFile(src, dest);
+  } catch {
+    // paged-reader or pdfjs-dist may be absent
+  }
+}
+
 async function main() {
+  await ensurePdfWorkerText();
+  const only = process.argv[2];
   const folders = await fs.readdir(pluginsDir, { withFileTypes: true });
   let count = 0;
   for (const folder of folders) {
     if (!folder.isDirectory()) continue;
+    if (only && folder.name !== only) continue;
     const manifestPath = path.join(pluginsDir, folder.name, "manifest.json");
     try {
       await fs.access(manifestPath);

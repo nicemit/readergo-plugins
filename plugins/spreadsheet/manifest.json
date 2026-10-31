@@ -1,7 +1,7 @@
 {
   "id": "readergo.editor.spreadsheet",
   "name": "Spreadsheet",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A basic grid-based editor for spreadsheet data",
   "category": "editor",
   "provides": [],

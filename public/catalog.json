@@ -6,7 +6,9 @@
       "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "theme-amber-terminal.bundle.json"
+      "bundleUrl": "theme-amber-terminal.bundle.json",
+      "bundleHash": "e97b7a81f143f8f1",
+      "hash": "e97b7a81f143f8f1"
     },
     {
       "id": "readergo.editor.canvas",
@@ -14,7 +16,19 @@
       "description": "Structured infinite canvas for organizing documents",
       "category": "editor",
       "version": "1.0.0",
-      "bundleUrl": "canvas.bundle.json"
+      "bundleUrl": "canvas.bundle.json",
+      "bundleHash": "29a708097dc4481f",
+      "hash": "29a708097dc4481f"
+    },
+    {
+      "id": "readergo.theme.catppuccin",
+      "name": "Catppuccin Mocha",
+      "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-catppuccin.bundle.json",
+      "bundleHash": "bb514571d9689398",
+      "hash": "bb514571d9689398"
     },
     {
       "id": "readergo.chat-store.sqlite",
@@ -22,14 +36,37 @@
       "description": "Stores agent conversations in SQLite under ~/.readergo/agent.",
       "category": "ai",
       "version": "0.1.0",
-      "runtimeBundleUrl": "chat-store-sqlite.runtime.json"
+      "runtimeBundleUrl": "chat-store-sqlite.runtime.json",
+      "runtimeBundleHash": "756b860d6a987e93"
     },
     {
       "id": "demo.external.plugin",
       "name": "Demo External Plugin",
       "description": "",
       "version": "1.0.0",
-      "bundleUrl": "demo-external.bundle.json"
+      "bundleUrl": "demo-external.bundle.json",
+      "bundleHash": "28905ef9da75f06f",
+      "hash": "28905ef9da75f06f"
+    },
+    {
+      "id": "readergo.features.outline",
+      "name": "Document Structure",
+      "description": "Right-sidebar heading outline with jump-to-heading and section collapse for the active note.",
+      "category": "feature",
+      "version": "1.1.0",
+      "bundleUrl": "outline.bundle.json",
+      "bundleHash": "a641a3a029fa25a8",
+      "hash": "a641a3a029fa25a8"
+    },
+    {
+      "id": "readergo.theme.eink",
+      "name": "E-Ink Reading Suite",
+      "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-eink.bundle.json",
+      "bundleHash": "c407d701155810a2",
+      "hash": "c407d701155810a2"
     },
     {
       "id": "readergo.embeddings.local",
@@ -37,7 +74,8 @@
       "description": "Offline local embeddings for agent memory. No API key.",
       "category": "ai",
       "version": "0.1.0",
-      "runtimeBundleUrl": "embeddings-local.runtime.json"
+      "runtimeBundleUrl": "embeddings-local.runtime.json",
+      "runtimeBundleHash": "d5a9fe197cbd5d7d"
     },
     {
       "id": "readergo.embeddings.openrouter",
@@ -45,15 +83,18 @@
       "description": "OpenRouter embeddings API provider for agent memory.",
       "category": "ai",
       "version": "0.1.0",
-      "runtimeBundleUrl": "embeddings-openrouter.runtime.json"
+      "runtimeBundleUrl": "embeddings-openrouter.runtime.json",
+      "runtimeBundleHash": "45c1d6c210b0baea"
     },
     {
       "id": "readergo.editor.epub",
       "name": "EPUB Reader",
-      "description": "Read EPUB books in ReaderGo",
+      "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.0.1",
-      "bundleUrl": "epub.bundle.json"
+      "version": "1.2.3",
+      "bundleUrl": "epub.bundle.json",
+      "bundleHash": "3dadce569f2d613e",
+      "hash": "3dadce569f2d613e"
     },
     {
       "id": "readergo.filesystem",
@@ -61,7 +102,9 @@
       "description": "Runtime filesystem capability for Spaces. Requires Local Runtime Host.",
       "category": "storage",
       "version": "0.3.0",
-      "bundleUrl": "filesystem.bundle.json"
+      "bundleUrl": "filesystem.bundle.json",
+      "bundleHash": "125b62fb4f142ce3",
+      "hash": "125b62fb4f142ce3"
     },
     {
       "id": "readergo.editor.graph",
@@ -69,7 +112,19 @@
       "description": "An interactive knowledge graph editor on an infinite canvas",
       "category": "editor",
       "version": "1.0.0",
-      "bundleUrl": "graph.bundle.json"
+      "bundleUrl": "graph.bundle.json",
+      "bundleHash": "2407ea6406c35b23",
+      "hash": "2407ea6406c35b23"
+    },
+    {
+      "id": "readergo.theme.gruvbox",
+      "name": "Gruvbox Dark",
+      "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-gruvbox.bundle.json",
+      "bundleHash": "f23135733f2b3aad",
+      "hash": "f23135733f2b3aad"
     },
     {
       "id": "readergo.examples.hello-world",
@@ -77,7 +132,19 @@
       "description": "A minimal plugin demonstrating activation and logging.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "hello-world.bundle.json"
+      "bundleUrl": "hello-world.bundle.json",
+      "bundleHash": "9afc0259e4565ee4",
+      "hash": "9afc0259e4565ee4"
+    },
+    {
+      "id": "readergo.features.architecture",
+      "name": "How ReaderGo Works",
+      "description": "Interactive trees that grow one node at a time and fit any screen: create a spreadsheet, open, save, chat, install.",
+      "category": "feature",
+      "version": "1.4.2",
+      "bundleUrl": "architecture-guide.bundle.json",
+      "bundleHash": "678fb4cb859dda27",
+      "hash": "678fb4cb859dda27"
     },
     {
       "id": "readergo.features.link-clipper",
@@ -85,7 +152,9 @@
       "description": "Clip links to create new notes with parsed content",
       "category": "feature",
       "version": "1.0.1",
-      "bundleUrl": "link-clipper.bundle.json"
+      "bundleUrl": "link-clipper.bundle.json",
+      "bundleHash": "36fc91c931cd0c43",
+      "hash": "36fc91c931cd0c43"
     },
     {
       "id": "readergo.plugin.readergolocalbackup",
@@ -93,15 +162,19 @@
       "description": "Periodically exports notes to JSON via the storage capabilities.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "local-backup.bundle.json"
+      "bundleUrl": "local-backup.bundle.json",
+      "bundleHash": "b58b39770995020c",
+      "hash": "b58b39770995020c"
     },
     {
       "id": "readergo.editor.mindmap",
       "name": "Mindmap",
       "description": "Create, edit, and save mind maps.",
       "category": "editor",
-      "version": "0.1.0",
-      "bundleUrl": "mindmap.bundle.json"
+      "version": "0.2.0",
+      "bundleUrl": "mindmap.bundle.json",
+      "bundleHash": "d45ac80ab01da340",
+      "hash": "d45ac80ab01da340"
     },
     {
       "id": "readergo.theme.nord",
@@ -109,7 +182,9 @@
       "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "theme-nord.bundle.json"
+      "bundleUrl": "theme-nord.bundle.json",
+      "bundleHash": "6001dcfbc613aa3b",
+      "hash": "6001dcfbc613aa3b"
     },
     {
       "id": "readergo.tools.note-digest",
@@ -117,7 +192,9 @@
       "description": "Adds a note_digest tool the agent can call for one note.",
       "category": "ai",
       "version": "0.1.0",
-      "bundleUrl": "note-digest.bundle.json"
+      "bundleUrl": "note-digest.bundle.json",
+      "bundleHash": "553bbdab394f0a8a",
+      "hash": "553bbdab394f0a8a"
     },
     {
       "id": "readergo.ai.ollama",
@@ -125,7 +202,9 @@
       "description": "Provides AI-powered insights using Ollama (local or cloud)",
       "category": "ai",
       "version": "1.0.0",
-      "bundleUrl": "ollama.bundle.json"
+      "bundleUrl": "ollama.bundle.json",
+      "bundleHash": "751d94ea9d3a3c68",
+      "hash": "751d94ea9d3a3c68"
     },
     {
       "id": "readergo.llm.openrouter",
@@ -133,15 +212,27 @@
       "description": "OpenRouter model provider for agent chat. Asks for an API key when selected.",
       "category": "ai",
       "version": "0.1.0",
-      "runtimeBundleUrl": "openrouter.runtime.json"
+      "runtimeBundleUrl": "openrouter.runtime.json",
+      "runtimeBundleHash": "5965145e8cac42d2"
+    },
+    {
+      "id": "readergo.editor.paged",
+      "name": "PDF and Comic Reader",
+      "description": "Paged reader for PDF documents and CBZ comic archives (zip of page images), with fit modes, keyboard navigation, and saved place.",
+      "category": "editor",
+      "version": "1.0.3",
+      "bundleUrl": "paged-reader.bundle.json",
+      "bundleHash": "b4c8ef3c39714c7c",
+      "hash": "b4c8ef3c39714c7c"
     },
     {
       "id": "readergo.agent.pi",
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
       "category": "ai",
-      "version": "0.1.1",
-      "runtimeBundleUrl": "pi.runtime.json"
+      "version": "0.2.0",
+      "runtimeBundleUrl": "pi.runtime.json",
+      "runtimeBundleHash": "5c54ef8d0a5c9a1a"
     },
     {
       "id": "readergo.features.pin-notes",
@@ -149,7 +240,9 @@
       "description": "Pin important notes to your dashboard for quick access",
       "category": "feature",
       "version": "1.0.1",
-      "bundleUrl": "pin-notes.bundle.json"
+      "bundleUrl": "pin-notes.bundle.json",
+      "bundleHash": "9ca1850b464212a7",
+      "hash": "9ca1850b464212a7"
     },
     {
       "id": "readergo.plugin.readergodevtools",
@@ -157,7 +250,9 @@
       "description": "Validates runtime introspection by rendering a live dashboard widget.",
       "category": "feature",
       "version": "1.0.1",
-      "bundleUrl": "dev-tools.bundle.json"
+      "bundleUrl": "dev-tools.bundle.json",
+      "bundleHash": "deb859991aa21a86",
+      "hash": "deb859991aa21a86"
     },
     {
       "id": "readergo.features.pollinations",
@@ -165,7 +260,19 @@
       "description": "Beautify notes using Pollinations AI",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "pollinations.bundle.json"
+      "bundleUrl": "pollinations.bundle.json",
+      "bundleHash": "ec8a7b58a9d1879e",
+      "hash": "ec8a7b58a9d1879e"
+    },
+    {
+      "id": "readergo.theme.rose-pine",
+      "name": "Rosé Pine",
+      "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-rose-pine.bundle.json",
+      "bundleHash": "d619a01067d3d0ee",
+      "hash": "d619a01067d3d0ee"
     },
     {
       "id": "readergo.features.selection-actions",
@@ -173,7 +280,9 @@
       "description": "Contribution Places demo: Copy and Log on text selection",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "selection-actions.bundle.json"
+      "bundleUrl": "selection-actions.bundle.json",
+      "bundleHash": "b50bf111fbe78a80",
+      "hash": "b50bf111fbe78a80"
     },
     {
       "id": "readergo.examples.settings-panel",
@@ -181,7 +290,9 @@
       "description": "Demonstrates registering a declarative UI extension without React.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "settings-panel.bundle.json"
+      "bundleUrl": "settings-panel.bundle.json",
+      "bundleHash": "17aa1e622281e658",
+      "hash": "17aa1e622281e658"
     },
     {
       "id": "readergo.sftp-space",
@@ -190,7 +301,10 @@
       "category": "storage",
       "version": "0.1.0",
       "bundleUrl": "sftp-space.bundle.json",
-      "runtimeBundleUrl": "sftp-space.runtime.json"
+      "bundleHash": "8b9eb0a8ed3bcc06",
+      "hash": "8b9eb0a8ed3bcc06",
+      "runtimeBundleUrl": "sftp-space.runtime.json",
+      "runtimeBundleHash": "4f46db13f8b795d6"
     },
     {
       "id": "readergo.editor.simple",
@@ -198,15 +312,29 @@
       "description": "A simple textarea-based editor for verification",
       "category": "editor",
       "version": "1.0.0",
-      "bundleUrl": "simple.bundle.json"
+      "bundleUrl": "simple.bundle.json",
+      "bundleHash": "cc28a927cbaa18dd",
+      "hash": "cc28a927cbaa18dd"
+    },
+    {
+      "id": "readergo.theme.solarized",
+      "name": "Solarized Light",
+      "description": "Ethan Schoonover's Solarized Light palette with Source Serif reading type.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "theme-solarized.bundle.json",
+      "bundleHash": "380cf2e0bb0c7c9e",
+      "hash": "380cf2e0bb0c7c9e"
     },
     {
       "id": "readergo.editor.spreadsheet",
       "name": "Spreadsheet",
       "description": "A basic grid-based editor for spreadsheet data",
       "category": "editor",
-      "version": "1.0.1",
-      "bundleUrl": "spreadsheet.bundle.json"
+      "version": "1.0.2",
+      "bundleUrl": "spreadsheet.bundle.json",
+      "bundleHash": "1c1e62e9a51be1c6",
+      "hash": "1c1e62e9a51be1c6"
     },
     {
       "id": "readergo.examples.sync-style",
@@ -214,7 +342,29 @@
       "description": "Demonstrates obtaining generic capabilities from the host platform.",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "sync-style.bundle.json"
+      "bundleUrl": "sync-style.bundle.json",
+      "bundleHash": "28b1f997b0223ed9",
+      "hash": "28b1f997b0223ed9"
+    },
+    {
+      "id": "readergo.features.thinking-partner",
+      "name": "Thinking Partner",
+      "description": "In-editor intelligence: automatic knowledge connection discovery, unlinked mention linking, and dynamic content-aware actions",
+      "category": "ai",
+      "version": "1.0.9",
+      "bundleUrl": "thinking-partner.bundle.json",
+      "bundleHash": "345b1c3ba64b1fdd",
+      "hash": "345b1c3ba64b1fdd"
+    },
+    {
+      "id": "readergo.editor.note",
+      "name": "TipTap Note Editor",
+      "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
+      "category": "editor",
+      "version": "1.0.0",
+      "bundleUrl": "note.bundle.json",
+      "bundleHash": "497eea43c59bc322",
+      "hash": "497eea43c59bc322"
     },
     {
       "id": "readergo.vector-store.lancedb",
@@ -222,7 +372,8 @@
       "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
       "category": "ai",
       "version": "0.1.0",
-      "runtimeBundleUrl": "vector-store-lancedb.runtime.json"
+      "runtimeBundleUrl": "vector-store-lancedb.runtime.json",
+      "runtimeBundleHash": "057f1273623c5ecb"
     },
     {
       "id": "readergo.editor.whiteboard",
@@ -230,7 +381,9 @@
       "description": "Infinite canvas whiteboard documents",
       "category": "editor",
       "version": "1.0.0",
-      "bundleUrl": "whiteboard.bundle.json"
+      "bundleUrl": "whiteboard.bundle.json",
+      "bundleHash": "61bc553788de0f7e",
+      "hash": "61bc553788de0f7e"
     },
     {
       "id": "readergo.features.zettelkasten",
@@ -238,7 +391,9 @@
       "description": "Bidirectional note linking via [[Note Title]], link autocomplete, backlinks, and forward links",
       "category": "feature",
       "version": "1.0.0",
-      "bundleUrl": "zettelkasten.bundle.json"
+      "bundleUrl": "zettelkasten.bundle.json",
+      "bundleHash": "fe63de21bfad1f51",
+      "hash": "fe63de21bfad1f51"
     }
   ]
 }
