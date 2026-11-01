@@ -114,7 +114,7 @@ export function ArchitectureGuide() {
         })}
       </nav>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 [scrollbar-gutter:stable]">
         <div className="mx-auto w-full max-w-5xl rounded-3xl border border-border/60 bg-muted/10 p-4 sm:p-8">
           {revealedIds.length === 0 ? (
             <div className="flex min-h-[22rem] flex-col items-center justify-center px-6 text-center">
