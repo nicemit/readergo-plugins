@@ -216,6 +216,12 @@ function TipTapEditorContent({
     immediatelyRender: false,
     onUpdate: handleUpdate,
     onSelectionUpdate: ({ editor: ed }) => {
+      // Selecting text in the chat pane blurs the editor. If we publish an
+      // empty selection here, ProseMirror also tries to restore its caret and
+      // the chat highlight vanishes immediately.
+      if (!ed.isFocused) {
+        return
+      }
       const { from, to, empty } = ed.state.selection
       if (empty || from === to) {
         setSelectionMenu(null)
