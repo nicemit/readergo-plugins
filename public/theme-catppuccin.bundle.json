@@ -1,0 +1,24 @@
+{
+  "manifest": {
+    "id": "readergo.theme.catppuccin",
+    "name": "Catppuccin Mocha",
+    "version": "1.0.0",
+    "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
+    "category": "feature",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-catppuccin/src/index.ts\nvar NUNITO = {\n  id: \"nunito\",\n  name: \"Nunito\",\n  family: \"'Nunito', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap\",\n  targets: [\"all\"]\n};\nvar THEME = {\n  id: \"catppuccin-mocha\",\n  name: \"Catppuccin Mocha\",\n  type: \"dark\",\n  author: \"Catppuccin\",\n  description: \"Soothing pastel mocha palette with mauve highlights for late-night reading.\",\n  colors: {\n    background: \"240 21% 15%\",\n    foreground: \"226 64% 88%\",\n    card: \"240 21% 12%\",\n    cardForeground: \"226 64% 88%\",\n    border: \"237 16% 23%\",\n    primary: \"267 84% 81%\",\n    primaryForeground: \"240 21% 15%\",\n    secondary: \"237 16% 23%\",\n    secondaryForeground: \"226 64% 88%\",\n    muted: \"237 16% 23%\",\n    mutedForeground: \"228 17% 64%\",\n    accent: \"199 76% 69%\",\n    accentForeground: \"240 21% 15%\",\n    destructive: \"343 81% 75%\",\n    destructiveForeground: \"240 21% 15%\",\n    success: \"115 54% 76%\",\n    successForeground: \"240 21% 15%\",\n    warning: \"41 86% 83%\",\n    warningForeground: \"240 21% 15%\",\n    info: \"217 92% 76%\",\n    infoForeground: \"240 21% 15%\",\n    input: \"240 21% 12%\",\n    ring: \"267 84% 81%\",\n    heading1: \"267 84% 81%\",\n    heading2: \"199 76% 69%\",\n    heading3: \"217 92% 76%\"\n  },\n  fonts: {\n    display: NUNITO,\n    body: NUNITO\n  }\n};\nvar CatppuccinThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.catppuccin\",\n    name: \"Catppuccin Mocha\",\n    version: \"1.0.0\",\n    description: \"Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", {\n      getThemes: () => [THEME]\n    });\n    await context.registerCapability(\"font-provider\", {\n      getFonts: () => [NUNITO]\n    });\n    context.log.info(\"Catppuccin Mocha theme activated\");\n  },\n  deactivate(context) {\n    context.log.info(\"Catppuccin Mocha theme deactivated\");\n  }\n};\nvar index_default = CatppuccinThemePlugin;\n\n\n  return { CatppuccinThemePlugin: CatppuccinThemePlugin, default: index_default };\n}\n"
+}

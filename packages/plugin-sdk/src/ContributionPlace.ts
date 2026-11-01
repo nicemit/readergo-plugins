@@ -8,6 +8,7 @@
 /** Well-known place ids. Open string for future places. */
 export const WellKnownPlaces = {
   EDITOR_SELECTION_MENU: 'editor/selection-menu',
+  EDITOR_TOOLBAR: 'editor/toolbar',
 } as const;
 
 export type WellKnownPlace =

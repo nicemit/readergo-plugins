@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.eink",
+  "name": "E-Ink Reading Suite",
+  "version": "1.0.0",
+  "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

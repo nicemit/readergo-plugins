@@ -1,11 +1,12 @@
 import { definePlugin, type EditorProvider, type PluginContext } from '@readergo/plugin-sdk';
 import { Network } from 'lucide-react';
 import { MindmapEditor, createMindmapDocument } from './MindmapEditor';
+import { registerMindmapTools } from './tools';
 
 const manifest = {
   id: 'readergo.editor.mindmap',
   name: 'Mindmap',
-  version: '0.1.0',
+  version: '0.2.0',
   description: 'Create, edit, and save mind maps.',
   category: 'editor' as const,
   provides: ['editor-provider', 'activity-bar-item'],
@@ -47,8 +48,13 @@ export default definePlugin({
       order: 6,
     });
 
+    // Expose dedicated Agent/MCP tools for AI assistants
+    await registerMindmapTools(context);
+
     return async () => {
       context.log.info('Mindmap plugin deactivated');
     };
   },
 });
+
+

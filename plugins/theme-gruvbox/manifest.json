@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.gruvbox",
+  "name": "Gruvbox Dark",
+  "version": "1.0.0",
+  "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

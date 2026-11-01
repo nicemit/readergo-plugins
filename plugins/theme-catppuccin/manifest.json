@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.catppuccin",
+  "name": "Catppuccin Mocha",
+  "version": "1.0.0",
+  "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

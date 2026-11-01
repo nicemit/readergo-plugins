@@ -19,6 +19,9 @@ export interface ActivityBarItem {
     /** Unique identifier for this item */
     id: string;
 
+    /** Owning plugin id when the host attaches registration metadata */
+    pluginId?: string;
+
     /** Icon from the plugin: a component, or a React node / legacy name string */
     icon: PluginIcon | ReactNode;
 

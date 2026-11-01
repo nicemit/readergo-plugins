@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import crypto from "node:crypto";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pluginsDir = path.join(root, "plugins");
 const catalogDir = path.join(root, "public");
@@ -44,11 +46,14 @@ for (const entry of entries) {
     try {
       const entryCode = await fs.readFile(entryPath, "utf8");
       const bundleName = `${entry.name}.bundle.json`;
+      const bundleData = JSON.stringify({ manifest, entryCode }, null, 2);
       await fs.writeFile(
         path.join(catalogDir, bundleName),
-        JSON.stringify({ manifest, entryCode }, null, 2),
+        bundleData,
       );
       row.bundleUrl = bundleName;
+      row.bundleHash = crypto.createHash('sha256').update(bundleData).digest('hex').slice(0, 16);
+      row.hash = row.bundleHash;
       wrote = true;
     } catch (err) {
       console.warn(`Could not read UI entry for ${entry.name}: ${err.message}`);
@@ -68,18 +73,20 @@ for (const entry of entries) {
         },
       };
       const runtimeBundle = `${entry.name}.runtime.json`;
+      const runtimeData = JSON.stringify(
+        {
+          manifest: runtimeManifest,
+          files: { [runtimeName]: runtimeSource },
+        },
+        null,
+        2,
+      );
       await fs.writeFile(
         path.join(catalogDir, runtimeBundle),
-        JSON.stringify(
-          {
-            manifest: runtimeManifest,
-            files: { [runtimeName]: runtimeSource },
-          },
-          null,
-          2,
-        ),
+        runtimeData,
       );
       row.runtimeBundleUrl = runtimeBundle;
+      row.runtimeBundleHash = crypto.createHash('sha256').update(runtimeData).digest('hex').slice(0, 16);
       wrote = true;
     } catch (err) {
       console.warn(`Could not read runtime entry for ${entry.name}: ${err.message}`);

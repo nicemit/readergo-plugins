@@ -1,0 +1,20 @@
+{
+  "id": "readergo.features.focus",
+  "name": "Focus Mode",
+  "version": "1.0.0",
+  "description": "Hides the side panes with a smooth animation so the document can take the whole workbench.",
+  "category": "feature",
+  "provides": [
+    "activity-bar-item"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

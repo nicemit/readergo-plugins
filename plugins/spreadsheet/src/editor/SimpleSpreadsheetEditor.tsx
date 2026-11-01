@@ -75,13 +75,6 @@ export function SimpleSpreadsheetEditor({
         };
     }, [context, engine, currentNote?.id, capability]);
 
-    const handleSave = () => {
-        const payload: SpreadsheetDocumentData = { grid: state.data };
-        onDataChange?.(payload);
-        onSave?.('');
-        engine.actions.setDirty(false);
-    };
-
     const data = state.data;
     const activeCellState = state.activeCell;
 
@@ -143,14 +136,6 @@ export function SimpleSpreadsheetEditor({
                     </table>
                 </div>
             </div>
-            {/* Minimal floating save button since toolbar is external */}
-            <button
-                onClick={handleSave}
-                className="fixed bottom-6 right-6 px-4 py-2 bg-blue-600 shadow-lg text-white font-medium rounded-full hover:bg-blue-700 active:scale-95 transition-all text-sm flex items-center gap-2 z-50"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                Save Data
-            </button>
 
             {/* Right-click Context Menu mapped to body to break out of all CSS offset contexts */}
             {contextMenu && typeof window !== 'undefined' && createPortal(
