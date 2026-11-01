@@ -1,0 +1,23 @@
+{
+  "manifest": {
+    "id": "readergo.features.focus",
+    "name": "Focus Mode",
+    "version": "1.0.0",
+    "description": "Hides the side panes with a smooth animation so the document can take the whole workbench.",
+    "category": "feature",
+    "provides": [
+      "activity-bar-item"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.tsx"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/focus-mode/src/index.tsx\nconst { Maximize2 } = __readergoModule(\"lucide-react\");\nvar manifest = {\n  id: \"readergo.features.focus\",\n  name: \"Focus Mode\",\n  version: \"1.0.0\",\n  description: \"Hides the side panes with a smooth animation so the document can take the whole workbench.\",\n  category: \"feature\",\n  provides: [\"activity-bar-item\"],\n  requires: [],\n  permissions: [],\n  trust: \"trusted\",\n  source: \"external\",\n  runtime: \"local\"\n};\nvar FocusModePlugin = {\n  manifest,\n  async activate(context) {\n    const toggleFocus = () => {\n      void context.executeCommand(\"readergo.workbench.toggleFocusMode\");\n    };\n    context.registerCapability(\"activity-bar-item\", {\n      id: \"readergo.focus.toggle\",\n      label: \"Focus\",\n      icon: Maximize2,\n      position: \"bottom\",\n      order: 10,\n      onClick: toggleFocus\n    });\n    await context.registerCommand({\n      id: \"readergo.focus.toggle\",\n      title: \"Toggle Focus Mode\",\n      category: \"Workbench\",\n      handler: async () => context.executeCommand(\"readergo.workbench.toggleFocusMode\")\n    });\n    await context.registerCommand({\n      id: \"readergo.focus.hideLeft\",\n      title: \"Hide Left Pane\",\n      category: \"Workbench\",\n      handler: async () => context.executeCommand(\"readergo.workbench.setPanes\", { left: false })\n    });\n    await context.registerCommand({\n      id: \"readergo.focus.hideRight\",\n      title: \"Hide Right Pane\",\n      category: \"Workbench\",\n      handler: async () => context.executeCommand(\"readergo.workbench.setPanes\", { right: false })\n    });\n    await context.registerCommand({\n      id: \"readergo.focus.showPanes\",\n      title: \"Show Workbench Panes\",\n      category: \"Workbench\",\n      handler: async () => context.executeCommand(\"readergo.workbench.setPanes\", { left: true, right: true })\n    });\n    context.log.info(\"Focus mode activity item ready\");\n  },\n  deactivate(context) {\n    context.log.info(\"Focus mode deactivated\");\n  }\n};\nvar index_default = FocusModePlugin;\n\n\n  return { FocusModePlugin: FocusModePlugin, default: index_default };\n}\n"
+}

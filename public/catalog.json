@@ -107,6 +107,16 @@
       "hash": "125b62fb4f142ce3"
     },
     {
+      "id": "readergo.features.focus",
+      "name": "Focus Mode",
+      "description": "Hides the side panes with a smooth animation so the document can take the whole workbench.",
+      "category": "feature",
+      "version": "1.0.0",
+      "bundleUrl": "focus-mode.bundle.json",
+      "bundleHash": "0ea8c4f5a1dd865c",
+      "hash": "0ea8c4f5a1dd865c"
+    },
+    {
       "id": "readergo.editor.graph",
       "name": "Graph",
       "description": "An interactive knowledge graph editor on an infinite canvas",
