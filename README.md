@@ -84,10 +84,14 @@ npm run build
 This compiles every plugin with `esbuild`, writes self-contained `public/*.bundle.json` (browser UI) and `public/*.runtime.json` (Local Runtime) packages, and regenerates `public/catalog.json`.
 
 ### Run a local catalog server
+
 ```bash
 npm run serve
 ```
-Serves `public/` at `http://localhost:3001/catalog.json` with permissive CORS headers.
+
+Serves `public/` at `http://localhost:3002/catalog.json` with CORS headers. Override with `PORT=3001 npm run serve` or `npm run serve -- --port 3001`.
+
+Host-side install for the app, runtime, and this catalog: [readergo/docs/setup/LOCAL.md](https://github.com/nicemit/readergo/blob/dev/docs/setup/LOCAL.md).
 
 ---
 
@@ -99,12 +103,19 @@ ReaderGo resolves the catalog from the environment and the current deployment:
 | --- | --- |
 | `dev`, preview, localhost | `https://raw.githubusercontent.com/nicemit/readergo-plugins/dev/public/catalog.json` |
 | production | `https://raw.githubusercontent.com/nicemit/readergo-plugins/main/public/catalog.json` |
-| local catalog server | `http://localhost:3001/catalog.json` |
+| local catalog server | `http://localhost:3002/catalog.json` |
 
-To point a local ReaderGo checkout at this repo's serve command, set:
+To point a local ReaderGo checkout at this repo's serve command, set in `readergo/envs/.local.env` and restart `npm run dev`:
 
 ```bash
-NEXT_PUBLIC_PLUGIN_CATALOG_URL="http://localhost:3001/catalog.json"
+NEXT_PUBLIC_PLUGIN_CATALOG_URL=http://localhost:3002/catalog.json
+```
+
+Or in the app tab, without restarting Next.js:
+
+```javascript
+localStorage.setItem("readergo-plugin-catalog-url", "http://localhost:3002/catalog.json");
+location.reload();
 ```
 
 Pushing compiled bundles to `dev` is enough for hosted ReaderGo `dev` / preview builds: they fetch `catalog.json` from this branch at startup and auto-sync installed plugins whose version or hash changed.
