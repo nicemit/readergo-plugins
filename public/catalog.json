@@ -91,10 +91,10 @@
       "name": "EPUB Reader",
       "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "3dadce569f2d613e",
-      "hash": "3dadce569f2d613e"
+      "bundleHash": "cd8b9cd4f9df7af4",
+      "hash": "cd8b9cd4f9df7af4"
     },
     {
       "id": "readergo.filesystem",
@@ -230,10 +230,10 @@
       "name": "PDF and Comic Reader",
       "description": "Paged reader for PDF documents and CBZ comic archives (zip of page images), with fit modes, keyboard navigation, and saved place.",
       "category": "editor",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "bundleUrl": "paged-reader.bundle.json",
-      "bundleHash": "b4c8ef3c39714c7c",
-      "hash": "b4c8ef3c39714c7c"
+      "bundleHash": "a5427364e4b489ca",
+      "hash": "a5427364e4b489ca"
     },
     {
       "id": "readergo.agent.pi",
@@ -371,10 +371,10 @@
       "name": "TipTap Note Editor",
       "description": "Rich text note editor (TipTap) with markdown support, tables, and collapsible headings",
       "category": "editor",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "bundleUrl": "note.bundle.json",
-      "bundleHash": "497eea43c59bc322",
-      "hash": "497eea43c59bc322"
+      "bundleHash": "3561a9314c3f5366",
+      "hash": "3561a9314c3f5366"
     },
     {
       "id": "readergo.vector-store.lancedb",

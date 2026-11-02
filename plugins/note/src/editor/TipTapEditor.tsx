@@ -76,6 +76,8 @@ interface TipTapEditorProps {
   notes?: Array<{ id: string; title: string }>
   isLoading?: boolean
   hideToolbars?: boolean
+  /** Public article / share view - TipTap must not accept edits. */
+  readOnly?: boolean
 }
 
 function safeGetHTML(ed: Editor | null | undefined): string {
@@ -104,7 +106,8 @@ function TipTapEditorContent({
   handleCreateNote,
   notes = [],
   isLoading = false,
-  hideToolbars = false
+  hideToolbars = false,
+  readOnly = false,
 }: TipTapEditorProps) {
   const manager = usePluginManager()
   const effectiveInstanceId = instanceId || (currentNote?.id ? `note-${currentNote.id}` : 'note-default')
@@ -154,7 +157,7 @@ function TipTapEditorContent({
     context: {
       hasSelection: !!selectionMenu && selectionMenu.text.length > 0,
       selectionLength: selectionMenu?.text.length ?? 0,
-      readOnly: false,
+      readOnly,
     },
   })
 
@@ -213,6 +216,7 @@ function TipTapEditorContent({
   const editor = useEditor({
     extensions: pluginExtensions,
     content,
+    editable: !readOnly,
     immediatelyRender: false,
     onUpdate: handleUpdate,
     onSelectionUpdate: ({ editor: ed }) => {
@@ -275,6 +279,11 @@ function TipTapEditorContent({
       },
     },
   }, [pluginExtensions, effectiveInstanceId, manager])
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+    editor.setEditable(!readOnly)
+  }, [editor, readOnly])
 
   // Multi-instance Editor Capability registration
   const formattingCapability = useMemo<TextFormattingCapability>(() => {
