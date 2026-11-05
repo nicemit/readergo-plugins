@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "description": "A simple textarea-based editor for verification",
     "category": "editor",
-    "provides": [],
+    "provides": [
+      "editor-provider"
+    ],
     "requires": [],
     "permissions": [],
     "trust": "trusted",

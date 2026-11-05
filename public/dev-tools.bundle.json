@@ -5,7 +5,9 @@
     "version": "1.0.1",
     "description": "Validates runtime introspection by rendering a live dashboard widget.",
     "category": "feature",
-    "provides": [],
+    "provides": [
+      "sidebar-panel"
+    ],
     "requires": [],
     "permissions": [],
     "trust": "trusted",

@@ -5,7 +5,11 @@
     "version": "1.0.2",
     "description": "A basic grid-based editor for spreadsheet data",
     "category": "editor",
-    "provides": [],
+    "provides": [
+      "editor-provider",
+      "activity-bar-item",
+      "extension-slot"
+    ],
     "requires": [],
     "permissions": [],
     "trust": "trusted",

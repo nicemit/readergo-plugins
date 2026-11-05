@@ -38,6 +38,7 @@ for (const entry of entries) {
     description: manifest.description || "",
     category: manifest.category,
     version: manifest.version || "1.0.0",
+    provides: Array.isArray(manifest.provides) ? manifest.provides : [],
   };
   let wrote = false;
 

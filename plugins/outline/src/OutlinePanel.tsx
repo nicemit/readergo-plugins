@@ -166,7 +166,7 @@ export function OutlinePanel({ noteId }: OutlinePanelProps) {
   const updateUrlWithLoc = useCallback(
     (headingId: string) => {
       if (!noteId) return
-      window.history.pushState({}, '', `/notes?noteId=${noteId}&loc=${headingId}`)
+      window.history.pushState({}, '', `/documents?noteId=${noteId}&loc=${headingId}`)
       setLoc(headingId)
     },
     [noteId],

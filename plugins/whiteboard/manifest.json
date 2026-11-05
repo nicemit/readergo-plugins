@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "description": "Infinite canvas whiteboard documents",
   "category": "editor",
-  "provides": [],
+  "provides": [
+    "editor-provider",
+    "activity-bar-item"
+  ],
   "requires": [],
   "permissions": [],
   "trust": "trusted",

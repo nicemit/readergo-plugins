@@ -1,0 +1,23 @@
+{
+  "id": "readergo.features.explorer",
+  "name": "Explorer",
+  "version": "1.0.0",
+  "description": "Folder tree for the documents workspace. Other plugins can register a replacement left explorer.",
+  "category": "feature",
+  "provides": [
+    "left-explorer"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}
