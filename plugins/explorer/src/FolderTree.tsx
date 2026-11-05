@@ -428,7 +428,7 @@ function FolderNode({
           className={`
             flex items-center py-1.5 px-1 rounded-md border border-transparent
             transition-colors duration-150 ease-out group/folder
-            hover:bg-zinc-800/40 hover:shadow-[inset_0_0_0_1px_rgba(139,92,246,0.16),0_4px_10px_rgba(2,6,23,0.2)]
+            hover:bg-muted/50 hover:border-border/50
           `}
           style={{
             paddingLeft: `${level * 20 + 4}px`,
@@ -440,7 +440,7 @@ function FolderNode({
             type="button"
             aria-expanded={isExpanded}
             aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
-            className="p-1 mr-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors flex items-center justify-center"
+            className="p-1 mr-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors flex items-center justify-center"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -448,18 +448,18 @@ function FolderNode({
             }}
           >
             {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <ChevronDown className="w-4 h-4" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <ChevronRight className="w-4 h-4" />
             )}
           </button>
 
           {/* Folder Icon */}
           <div className="mr-2 flex-shrink-0">
             {isExpanded ? (
-              <FolderOpen className="w-4 h-4 text-blue-600" />
+              <FolderOpen className="w-4 h-4 text-primary" />
             ) : (
-              <FolderIcon className="w-4 h-4 text-blue-500" />
+              <FolderIcon className="w-4 h-4 text-primary" />
             )}
           </div>
 
@@ -471,28 +471,28 @@ function FolderNode({
               onChange={(e) => setEditName(e.target.value)}
               onBlur={handleRename}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-white dark:bg-gray-800 border border-blue-500 rounded px-1 py-0.5 text-sm"
+              className="flex-1 bg-background text-foreground border border-primary rounded px-1 py-0.5 text-sm"
               autoFocus
             />
           ) : (
-            <span className="flex-1 text-base font-medium text-gray-700 dark:text-gray-300 whitespace-normal break-words">
+            <span className="flex-1 text-base font-medium text-foreground whitespace-normal break-words">
               {folder.name}
             </span>
           )}
 
           {!isEditing && (
-            <span className="mr-1 rounded-full bg-gray-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:bg-gray-700/80 dark:text-gray-300">
+            <span className="mr-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
               {directNoteCount}
             </span>
           )}
 
           {!isEditing && (
             <button
-              className="opacity-0 group-hover/folder:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all ml-1 flex-shrink-0"
+              className="opacity-0 group-hover/folder:opacity-100 p-1 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-all ml-1 flex-shrink-0"
               onClick={handleMenuClick}
               title="Options"
             >
-              <MoreHorizontal className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" />
+              <MoreHorizontal className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -795,7 +795,7 @@ export function FolderTree({
   if (isLoading) {
     return (
       <div className="p-4">
-        <div className="text-base text-gray-500">Loading folders...</div>
+        <div className="text-base text-muted-foreground">Loading folders...</div>
       </div>
     )
   }
@@ -926,7 +926,7 @@ export function FolderTree({
             />
             <div className="flex items-center gap-1">
               {isCreatingFolder ? (
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <button
@@ -936,7 +936,7 @@ export function FolderTree({
                       }
                     }}
                     disabled={!newFolderName.trim()}
-                    className="p-1 hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 rounded transition-colors disabled:opacity-30"
+                    className="p-1 hover:bg-muted text-primary rounded transition-colors disabled:opacity-30"
                     title="Create (Enter)"
                   >
                     <Check className="w-3.5 h-3.5" />
@@ -947,7 +947,7 @@ export function FolderTree({
                       setShowCreateFolder(false)
                       setCreatingSubfolderFor(null)
                     }}
-                    className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400 rounded transition-colors"
+                    className="p-1 hover:bg-muted text-destructive rounded transition-colors"
                     title="Cancel (Esc)"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -956,7 +956,7 @@ export function FolderTree({
               )}
             </div>
           </div>
-          <div className="px-2 mt-1 text-[10px] text-gray-400 flex justify-end gap-2">
+          <div className="px-2 mt-1 text-[10px] text-muted-foreground flex justify-end gap-2">
             <span>↵ Enter to save</span>
             <span>Esc to cancel</span>
           </div>
@@ -967,7 +967,7 @@ export function FolderTree({
       {/* Pinned Notes Section */}
       {viewMode === 'folder' && pinnedNoteIds.length > 0 && (
         <div className="mb-4">
-          <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500/80 dark:text-gray-400/80 uppercase tracking-widest flex items-center gap-1.5 mb-1">
+          <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mb-1">
             <Pin className="w-3.5 h-3.5" />
             <span>Pinned</span>
           </div>
@@ -1001,7 +1001,7 @@ export function FolderTree({
           {/* Folder Tree */}
           <div className="mt-2 mb-4">
             {folderTree.length > 0 && (
-              <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500/80 dark:text-gray-400/80 uppercase tracking-widest mb-1">
+              <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Folders
               </div>
             )}
@@ -1041,7 +1041,7 @@ export function FolderTree({
           {/* Root Level Notes (notes not in any folder and not pinned) */}
           {sortedNotes.filter(note => !note.folderId && !pinnedNoteIds.includes(note.id)).length > 0 && (
             <div className="mb-4">
-              <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500/80 dark:text-gray-400/80 uppercase tracking-widest mb-1">
+              <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Notes
               </div>
               <div className="space-y-0.5">
@@ -1069,7 +1069,7 @@ export function FolderTree({
           )}
 
           {folderTree.length === 0 && notes.length === 0 && (
-            <div className="text-sm text-gray-500 text-center py-6 bg-gray-50/50 dark:bg-gray-900/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-800 mx-2">
+            <div className="text-sm text-muted-foreground text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border mx-2">
               {getDisplayName('noFoldersYet', 'ui')}
             </div>
           )}
@@ -1098,7 +1098,7 @@ export function FolderTree({
               ))}
             </div>
           ) : (
-            <div className="text-sm text-gray-500 text-center py-6 bg-gray-50/50 dark:bg-gray-900/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-800 mx-2">
+            <div className="text-sm text-muted-foreground text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border mx-2">
               No notes found.
             </div>
           )}

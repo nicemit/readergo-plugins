@@ -253,14 +253,14 @@ export function NoteContextMenu({
                 <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
               </svg>
               {isPinned && (
-                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-blue-500" />
+                <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
               )}
             </div>
             <span>{isPinned ? 'Unpin from Dashboard' : 'Pin to Dashboard'}</span>
           </ContextMenuItem>
         )}
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={onDelete} className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
+        <ContextMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
           <Trash2 className="mr-2 h-4 w-4" />
           <span>Delete</span>
         </ContextMenuItem>
