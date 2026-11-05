@@ -425,8 +425,20 @@ function TipTapEditorContent({
   // Update content when prop changes and keep title height in sync
   useEffect(() => {
     if (editor && !editor.isDestroyed && editor.schema && content !== safeGetHTML(editor)) {
-      // Don't update content if user is actively typing
-      if (isUserTypingRef.current) {
+      const editorText = safeGetHTML(editor)
+        .replace(/<br[^>]*>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+      const incomingText = (content || '')
+        .replace(/<br[^>]*>/gi, '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .trim()
+      // The editor's own mount reports an update. That is not typing, and it
+      // must not block the saved body from being applied onto a blank doc.
+      const fillingBlankEditor = editorText.length === 0 && incomingText.length > 0
+      if (isUserTypingRef.current && !fillingBlankEditor) {
         return
       }
 
