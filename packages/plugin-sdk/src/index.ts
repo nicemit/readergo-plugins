@@ -23,6 +23,7 @@ export * from './KnowledgeBase';
 export type { NoteService } from './NoteService';
 export * from './NoteStorage';
 export * from './SidebarPanel';
+export * from './LeftExplorer';
 export * from './Space';
 export * from './TaskRunner';
 export * from './ToastService';

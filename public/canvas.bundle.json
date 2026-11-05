@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "description": "Structured infinite canvas for organizing documents",
     "category": "editor",
-    "provides": [],
+    "provides": [
+      "editor-provider",
+      "activity-bar-item"
+    ],
     "requires": [],
     "permissions": [],
     "trust": "trusted",
