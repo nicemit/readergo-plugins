@@ -50,7 +50,6 @@ export interface LeftExplorerRenderProps {
   onDuplicateNote?: (noteId: string, noteTitle: string) => void;
   onMoveNote?: (noteId: string, noteTitle: string) => void;
   onDeleteNote?: (noteId: string, noteTitle: string) => void;
-  onOpenReadible?: (noteId: string) => void;
   onFoldersUpdated?: () => void;
   onCreateFolder?: (name: string, parentId?: string) => Promise<void>;
   onRenameFolder?: (folderId: string, newName: string) => Promise<void>;

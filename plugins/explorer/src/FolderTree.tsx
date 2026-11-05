@@ -113,7 +113,6 @@ interface FolderTreeProps {
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
   onDeleteNote?: (noteId: string, noteTitle: string) => void
-  onOpenReadible?: (noteId: string) => void
   onFoldersUpdated?: () => void
   // Folder operation callbacks (for SpaceManager integration)
   onCreateFolder?: (name: string, parentId?: string) => Promise<void>
@@ -148,7 +147,6 @@ interface FolderNodeProps {
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
   onDeleteNote?: (noteId: string, noteTitle: string) => void
-  onOpenReadible?: (noteId: string) => void
   dateDisplayMode: Map<string, 'relative' | 'absolute'>
   onToggleDateDisplay: (noteId: string, e: React.MouseEvent) => void
   // Folder operation callbacks
@@ -175,7 +173,6 @@ interface NoteItemProps {
   level?: number
   selectedNoteId?: string | null
   onNoteSelect?: (noteId: string) => void
-  onOpenReadible?: (noteId: string) => void
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
   onDeleteNote?: (noteId: string, noteTitle: string) => void
@@ -191,7 +188,6 @@ function NoteItem({
   level = 0,
   selectedNoteId,
   onNoteSelect,
-  onOpenReadible,
   onDuplicateNote,
   onMoveNote,
   onDeleteNote,
@@ -228,11 +224,6 @@ function NoteItem({
       noteId={note.id}
       noteTitle={displayTitle}
       onEdit={() => onNoteSelect?.(note.id)}
-      onOpenReadible={(noteId: string) => {
-        if (onOpenReadible) {
-          onOpenReadible(noteId)
-        }
-      }}
       onDuplicate={() => onDuplicateNote?.(note.id, displayTitle)}
       onMove={() => onMoveNote?.(note.id, displayTitle)}
       onDelete={() => onDeleteNote?.(note.id, displayTitle)}
@@ -329,7 +320,6 @@ function FolderNode({
   onDuplicateNote,
   onMoveNote,
   onDeleteNote,
-  onOpenReadible,
   dateDisplayMode,
   onToggleDateDisplay,
   onRenameFolderAsync,
@@ -528,7 +518,6 @@ function FolderNode({
               onDuplicateNote={onDuplicateNote}
               onMoveNote={onMoveNote}
               onDeleteNote={onDeleteNote}
-              onOpenReadible={onOpenReadible}
               onRenameFolderAsync={onRenameFolderAsync}
               onDeleteFolderAsync={onDeleteFolderAsync}
               onTogglePin={onTogglePin}
@@ -548,7 +537,6 @@ function FolderNode({
                 level={level + 1}
                 selectedNoteId={selectedNoteId}
                 onNoteSelect={onNoteSelect}
-                onOpenReadible={onOpenReadible}
                 onDuplicateNote={onDuplicateNote}
                 onMoveNote={onMoveNote}
                 onDeleteNote={onDeleteNote}
@@ -584,7 +572,6 @@ export function FolderTree({
   onDuplicateNote,
   onMoveNote,
   onDeleteNote,
-  onOpenReadible,
   onFoldersUpdated,
   onCreateFolder: onCreateFolderProp,
   onRenameFolder: onRenameFolderProp,
@@ -980,7 +967,6 @@ export function FolderTree({
                   note={note}
                   selectedNoteId={selectedNoteId}
                   onNoteSelect={onNoteSelect}
-                  onOpenReadible={onOpenReadible}
                   onDuplicateNote={onDuplicateNote}
                   onMoveNote={onMoveNote}
                   onDeleteNote={onDeleteNote}
@@ -1024,7 +1010,6 @@ export function FolderTree({
                   onDuplicateNote={onDuplicateNote}
                   onMoveNote={onMoveNote}
                   onDeleteNote={onDeleteNote}
-                  onOpenReadible={onOpenReadible}
                   dateDisplayMode={dateDisplayMode}
                   onToggleDateDisplay={toggleDateDisplay}
                   onRenameFolderAsync={onRenameFolderProp}
@@ -1053,7 +1038,6 @@ export function FolderTree({
                       note={note}
                       selectedNoteId={selectedNoteId}
                       onNoteSelect={onNoteSelect}
-                      onOpenReadible={onOpenReadible}
                       onDuplicateNote={onDuplicateNote}
                       onMoveNote={onMoveNote}
                       onDeleteNote={onDeleteNote}
@@ -1085,7 +1069,6 @@ export function FolderTree({
                   note={note}
                   selectedNoteId={selectedNoteId}
                   onNoteSelect={onNoteSelect}
-                  onOpenReadible={onOpenReadible}
                   onDuplicateNote={onDuplicateNote}
                   onMoveNote={onMoveNote}
                   onDeleteNote={onDeleteNote}

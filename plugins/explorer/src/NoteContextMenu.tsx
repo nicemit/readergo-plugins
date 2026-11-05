@@ -8,8 +8,10 @@ import {
   Trash2,
   Edit,
   MoreHorizontal,
-  Play
 } from 'lucide-react'
+import { WellKnownPlaces } from '@readergo/plugin-sdk'
+import { executeCommand } from '@/lib/platform/actions'
+import { usePlaceContributions } from '@/hooks/usePlaceContributions'
 import { cn } from './cn'
 
 const ContextMenu = ContextMenuPrimitive.Root
@@ -186,6 +188,31 @@ const ContextMenuShortcut = ({
 }
 ContextMenuShortcut.displayName = 'ContextMenuShortcut'
 
+function ExplorerNoteMenuContributions({ noteId }: { noteId: string }) {
+  const contributions = usePlaceContributions({
+    place: WellKnownPlaces.EXPLORER_NOTE_CONTEXT_MENU,
+    surface: { capabilities: [] },
+  })
+
+  if (contributions.length === 0) return null
+
+  return (
+    <>
+      {contributions.map((item) => (
+        <ContextMenuItem
+          key={item.id}
+          onClick={() => {
+            if (!item.commandId) return
+            void executeCommand(item.commandId, { noteId })
+          }}
+        >
+          <span>{item.title}</span>
+        </ContextMenuItem>
+      ))}
+    </>
+  )
+}
+
 // Note-specific context menu component
 interface NoteContextMenuProps {
   children: React.ReactNode
@@ -195,7 +222,6 @@ interface NoteContextMenuProps {
   onDuplicate?: () => void
   onMove?: () => void
   onDelete?: () => void
-  onOpenReadible?: (noteId: string) => void
 }
 
 export function NoteContextMenu({
@@ -206,7 +232,6 @@ export function NoteContextMenu({
   onDuplicate,
   onMove,
   onDelete,
-  onOpenReadible,
   onPin,
   isPinned
 }: NoteContextMenuProps & { onPin?: () => void; isPinned?: boolean }) {
@@ -220,14 +245,7 @@ export function NoteContextMenu({
           <Edit className="mr-2 h-4 w-4" />
           <span>Edit</span>
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => {
-          if (onOpenReadible) {
-            onOpenReadible(noteId)
-          }
-        }}>
-          <Play className="mr-2 h-4 w-4" />
-          <span>Open in Readible</span>
-        </ContextMenuItem>
+        <ExplorerNoteMenuContributions noteId={noteId} />
         <ContextMenuItem onClick={onDuplicate}>
           <Copy className="mr-2 h-4 w-4" />
           <span>Duplicate</span>

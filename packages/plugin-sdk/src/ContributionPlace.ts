@@ -9,6 +9,7 @@
 export const WellKnownPlaces = {
   EDITOR_SELECTION_MENU: 'editor/selection-menu',
   EDITOR_TOOLBAR: 'editor/toolbar',
+  EXPLORER_NOTE_CONTEXT_MENU: 'explorer/note-context-menu',
 } as const;
 
 export type WellKnownPlace =
