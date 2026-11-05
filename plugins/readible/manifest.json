@@ -1,0 +1,22 @@
+{
+  "id": "readergo.features.readible",
+  "name": "Readible",
+  "version": "1.0.0",
+  "description": "Word-by-word reader for an open document. Speeds and place are remembered per document.",
+  "category": "feature",
+  "provides": [
+    "center-pane-overlay"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

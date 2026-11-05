@@ -1,7 +1,7 @@
 {
   "id": "readergo.features.explorer",
   "name": "Explorer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Folder tree for the documents workspace. Other plugins can register a replacement left explorer.",
   "category": "feature",
   "provides": [

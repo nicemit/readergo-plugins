@@ -5,7 +5,7 @@ import { FolderTree } from './FolderTree'
 const manifest: PluginManifest = {
   id: 'readergo.features.explorer',
   name: 'Explorer',
-  version: '1.0.0',
+  version: '1.1.0',
   description: 'Folder tree for the documents workspace. Other plugins can register a replacement left explorer.',
   category: 'feature',
   provides: ['left-explorer'],
@@ -35,7 +35,6 @@ export const ExplorerPlugin: Plugin = {
           onDuplicateNote={props.onDuplicateNote}
           onMoveNote={props.onMoveNote}
           onDeleteNote={props.onDeleteNote}
-          onOpenReadible={props.onOpenReadible}
           onFoldersUpdated={props.onFoldersUpdated}
           onCreateFolder={props.onCreateFolder}
           onRenameFolder={props.onRenameFolder}

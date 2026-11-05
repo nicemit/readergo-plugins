@@ -134,13 +134,13 @@
       "name": "Explorer",
       "description": "Folder tree for the documents workspace. Other plugins can register a replacement left explorer.",
       "category": "feature",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "provides": [
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "5eabbd916bff7715",
-      "hash": "5eabbd916bff7715"
+      "bundleHash": "3e0f8eb3d2dbc529",
+      "hash": "3e0f8eb3d2dbc529"
     },
     {
       "id": "readergo.filesystem",
@@ -377,6 +377,19 @@
       "bundleUrl": "pollinations.bundle.json",
       "bundleHash": "ec8a7b58a9d1879e",
       "hash": "ec8a7b58a9d1879e"
+    },
+    {
+      "id": "readergo.features.readible",
+      "name": "Readible",
+      "description": "Word-by-word reader for an open document. Speeds and place are remembered per document.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "center-pane-overlay"
+      ],
+      "bundleUrl": "readible.bundle.json",
+      "bundleHash": "e509b8670e01ecb3",
+      "hash": "e509b8670e01ecb3"
     },
     {
       "id": "readergo.theme.rose-pine",
