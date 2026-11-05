@@ -437,8 +437,12 @@ function FolderNode({
         >
           {/* Expand/Collapse Button */}
           <button
+            type="button"
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
             className="p-1 mr-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors flex items-center justify-center"
             onClick={(e) => {
+              e.preventDefault()
               e.stopPropagation()
               onToggle(folder.id)
             }}
@@ -494,9 +498,15 @@ function FolderNode({
         </div>
       </FolderContextMenu>
 
-      {/* Children */}
-      <div className={`grid transition-all duration-200 ease-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-80'}`}>
-        <div className="overflow-hidden">
+      {/* Children. Inline grid rows, not Tailwind arbitrary classes: those are not in the host stylesheet, so a click only changed opacity. */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: isExpanded ? '1fr' : '0fr',
+          transition: 'grid-template-rows 200ms ease-out',
+        }}
+      >
+        <div style={{ overflow: 'hidden', minHeight: 0 }}>
           {/* Subfolders */}
           {folder.children && folder.children.length > 0 && folder.children.map((child) => (
             <FolderNode
