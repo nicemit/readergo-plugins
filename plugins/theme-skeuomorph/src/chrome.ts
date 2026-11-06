@@ -3,16 +3,124 @@
  * Host wraps each theme stylesheet under [data-theme="<id>"].
  */
 
+/** Narrow tool rail - recessed channel with raised icon wells. */
+export const ACTIVITY_BAR_CHROME = `
+  /* Outer rail: darker recessed channel with a hard metal/leather edge */
+  [data-rg-chrome="activity-bar"] {
+    background-color: hsl(var(--background));
+    background-image:
+      linear-gradient(90deg, rgb(0 0 0 / 0.28), transparent 55%),
+      linear-gradient(180deg, rgb(255 255 255 / 0.04), transparent 30%);
+    border-right-color: hsl(var(--border));
+    border-right-width: 1px;
+    box-shadow:
+      inset -1px 0 0 rgb(255 255 255 / 0.06),
+      inset 2px 0 6px rgb(0 0 0 / 0.35),
+      2px 0 10px rgb(0 0 0 / 0.25);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-rg-chrome="activity-panel"] {
+    background-color: hsl(var(--card));
+    background-image:
+      linear-gradient(180deg, rgb(255 255 255 / 0.05), transparent 28%),
+      linear-gradient(90deg, rgb(0 0 0 / 0.12), transparent 40%);
+    box-shadow: var(--inset-shadow), 4px 0 18px rgb(0 0 0 / 0.2);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-rg-chrome="activity-bottom"] {
+    border-top-color: hsl(var(--border));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  /* Brand plate at the top of the rail */
+  [data-rg-chrome="activity-brand"] {
+    margin: 0.35rem 0.35rem 0.15rem;
+    width: calc(3rem - 0.7rem) !important;
+    height: 2.75rem !important;
+    border-radius: var(--radius-md);
+    border: 1px solid hsl(var(--border));
+    background-image:
+      linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 55%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.2), transparent 40%);
+    box-shadow: var(--inset-highlight), var(--shadow-sm);
+  }
+
+  [data-rg-chrome="activity-brand"]:hover {
+    background-color: hsl(var(--muted));
+  }
+
+  /* Icon wells - physical buttons sitting in the channel */
+  [data-rg-chrome="activity-item"],
+  [data-rg-chrome="activity-collapse"] {
+    margin: 0.15rem 0.35rem;
+    width: calc(3rem - 0.7rem) !important;
+    height: calc(3rem - 0.55rem) !important;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.03), transparent 60%);
+  }
+
+  [data-rg-chrome="activity-item"]:hover,
+  [data-rg-chrome="activity-collapse"]:hover {
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--muted));
+    background-image:
+      linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 50%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.15), transparent 40%);
+    box-shadow: var(--inset-highlight), var(--shadow-sm);
+    color: hsl(var(--foreground));
+  }
+
+  /* Active tool - pressed / latched into the rail */
+  [data-rg-chrome="activity-item"][data-rg-active="true"] {
+    border-color: hsl(var(--primary) / 0.45);
+    background-color: hsl(var(--primary) / 0.16);
+    background-image:
+      linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 45%),
+      linear-gradient(0deg, rgb(0 0 0 / 0.28), transparent 50%);
+    box-shadow:
+      var(--inset-shadow),
+      0 0 0 1px hsl(var(--primary) / 0.2),
+      inset 0 0 10px hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+
+  [data-rg-chrome="activity-item"][data-rg-active="true"]:hover {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+
+  /* Inlaid active indicator - brass/LED strip instead of a flat bar */
+  [data-rg-chrome="activity-indicator"] {
+    left: 0.1rem !important;
+    width: 3px !important;
+    border-radius: 999px;
+    box-shadow:
+      0 0 6px hsl(var(--primary) / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.35);
+  }
+
+  [data-rg-chrome="activity-item"][data-rg-active="true"] [data-rg-chrome="activity-indicator"] {
+    opacity: 1 !important;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary)),
+      hsl(var(--primary) / 0.65)
+    ) !important;
+  }
+`;
+
 /** Embossed panels, recessed fields, raised actuators - works with ThemeMaterials vars. */
 export const SHARED_CHROME = `
-  /* Recessed trays (side rails, inspector, activity bar) */
+  ${ACTIVITY_BAR_CHROME}
+
+  /* Recessed trays (inspector / misc side rails) */
   aside,
   [data-sidebar],
-  nav[aria-label],
-  .border-r.bg-background\\/95,
-  .border-r.bg-background\\/70,
-  .border-r.bg-background\\/85,
-  .border-l {
+  nav[aria-label] {
     box-shadow: var(--inset-shadow);
   }
 
@@ -34,15 +142,15 @@ export const SHARED_CHROME = `
     border-color: hsl(var(--border));
   }
 
-  /* Raised actuators */
-  button,
-  [role="button"],
+  /* Raised actuators - skip activity-bar items (styled above) */
+  button:not([data-rg-chrome^="activity"]),
+  [role="button"]:not([data-rg-chrome^="activity"]),
   .bg-primary {
     box-shadow: var(--inset-highlight), var(--shadow-sm);
   }
 
-  button:active,
-  [role="button"]:active {
+  button:not([data-rg-chrome^="activity"]):active,
+  [role="button"]:not([data-rg-chrome^="activity"]):active {
     box-shadow: var(--inset-shadow);
     transform: translateY(1px);
   }

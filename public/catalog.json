@@ -460,14 +460,14 @@
       "name": "Skeuomorph Suite",
       "description": "Physical chrome themes: Leather Desk, Brushed Steel, Bound Journal, and Walnut Library - materials tokens plus scoped grain stylesheets.",
       "category": "feature",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
       "bundleUrl": "theme-skeuomorph.bundle.json",
-      "bundleHash": "59e024f4f14d4ee7",
-      "hash": "59e024f4f14d4ee7"
+      "bundleHash": "999b1a905606f812",
+      "hash": "999b1a905606f812"
     },
     {
       "id": "readergo.theme.solarized",
