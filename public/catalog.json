@@ -4,43 +4,100 @@
       "id": "readergo.theme.abyss-teal",
       "name": "Abyss Teal",
       "description": "Deep ocean workspace with teal phosphor accents and calm DM Sans typography.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "A deep-ocean workspace for focused reading and writing. Cool teal actuators sit on trench-dark panels with soft cyan focus rings. Best when you want a calm, aquatic alternative to purple-heavy dark themes.",
+      "style": "Ocean · Dark · Teal phosphor",
+      "tags": [
+        "dark",
+        "ocean",
+        "teal",
+        "calm"
+      ],
+      "preview": {
+        "background": "198 40% 7%",
+        "foreground": "186 35% 92%",
+        "card": "198 32% 11%",
+        "primary": "174 62% 48%",
+        "accent": "186 70% 52%",
+        "border": "196 24% 22%",
+        "muted": "198 26% 13%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-abyss-teal.bundle.json",
-      "bundleHash": "768d75b55c861a74",
-      "hash": "768d75b55c861a74"
+      "bundleHash": "72d25faeb1e95c7d",
+      "hash": "72d25faeb1e95c7d",
+      "screenshot": "screenshots/theme-abyss-teal.svg"
     },
     {
       "id": "readergo.theme.amber",
       "name": "Amber CRT Terminal",
       "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "1980s phosphor terminal vibes: radiant amber ink on matte obsidian, VT323 monospace everywhere. Ideal for telemetry-heavy workspaces and nostalgia without sacrificing readability.",
+      "style": "Retro CRT · Dark · Monochrome amber",
+      "tags": [
+        "dark",
+        "retro",
+        "crt",
+        "monospace"
+      ],
+      "preview": {
+        "background": "0 0% 8%",
+        "foreground": "38 95% 62%",
+        "card": "0 0% 12%",
+        "primary": "38 95% 54%",
+        "accent": "38 95% 54%",
+        "border": "38 45% 24%",
+        "muted": "0 0% 13%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-amber-terminal.bundle.json",
-      "bundleHash": "e97b7a81f143f8f1",
-      "hash": "e97b7a81f143f8f1"
+      "bundleHash": "c958f7e0ac0d48fb",
+      "hash": "c958f7e0ac0d48fb",
+      "screenshot": "screenshots/theme-amber-terminal.svg"
     },
     {
       "id": "readergo.theme.arcade-neon",
       "name": "Arcade Neon",
       "description": "Night-arcade dark with magenta and cyan neon signals plus Orbitron display type.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Night-arcade cabinet black with hard geometric radii, magenta primary, and cyan accent LEDs. Orbitron headings sell the scoreboard feel - loud by design for creative sessions.",
+      "style": "Synthwave · Dark · Neon magenta/cyan",
+      "tags": [
+        "dark",
+        "neon",
+        "arcade",
+        "display"
+      ],
+      "preview": {
+        "background": "260 30% 6%",
+        "foreground": "300 20% 94%",
+        "card": "260 28% 10%",
+        "primary": "320 85% 58%",
+        "accent": "180 90% 48%",
+        "border": "280 25% 22%",
+        "muted": "260 20% 12%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-arcade-neon.bundle.json",
-      "bundleHash": "1ad61e8948574967",
-      "hash": "1ad61e8948574967"
+      "bundleHash": "78c81ce2cf449768",
+      "hash": "78c81ce2cf449768",
+      "screenshot": "screenshots/theme-arcade-neon.svg"
     },
     {
       "id": "readergo.editor.canvas",
@@ -60,15 +117,34 @@
       "id": "readergo.theme.catppuccin",
       "name": "Catppuccin Mocha",
       "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Catppuccin Mocha pastel dark: soft mauve accents, low-glare surfaces, and Nunito typography. A cozy late-night palette that stays gentle on the eyes.",
+      "style": "Pastel · Dark · Mocha comfort",
+      "tags": [
+        "dark",
+        "pastel",
+        "mocha",
+        "soft"
+      ],
+      "preview": {
+        "background": "240 21% 15%",
+        "foreground": "226 64% 88%",
+        "card": "240 21% 12%",
+        "primary": "267 84% 81%",
+        "accent": "316 72% 78%",
+        "border": "237 16% 23%",
+        "muted": "240 21% 18%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-catppuccin.bundle.json",
-      "bundleHash": "bb514571d9689398",
-      "hash": "bb514571d9689398"
+      "bundleHash": "77ba839cadf37be3",
+      "hash": "77ba839cadf37be3",
+      "screenshot": "screenshots/theme-catppuccin.svg"
     },
     {
       "id": "readergo.chat-store.sqlite",
@@ -86,6 +162,7 @@
       "id": "demo.external.plugin",
       "name": "Demo External Plugin",
       "description": "",
+      "category": "feature",
       "version": "1.0.0",
       "provides": [],
       "bundleUrl": "demo-external.bundle.json",
@@ -109,15 +186,34 @@
       "id": "readergo.theme.eink",
       "name": "E-Ink Reading Suite",
       "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Suite of e-paper atmospheres (Carta, Warm, Night, High Contrast) with print typography and anti-ghosting CSS. Built for distraction-free reading on E-Ink tablets and stark focus modes.",
+      "style": "E-paper · Multi-mode · High contrast",
+      "tags": [
+        "eink",
+        "reading",
+        "print",
+        "high-contrast"
+      ],
+      "preview": {
+        "background": "0 0% 100%",
+        "foreground": "0 0% 0%",
+        "card": "0 0% 100%",
+        "primary": "0 0% 0%",
+        "accent": "0 0% 35%",
+        "border": "0 0% 0%",
+        "muted": "0 0% 93%",
+        "type": "light"
+      },
       "bundleUrl": "theme-eink.bundle.json",
-      "bundleHash": "c407d701155810a2",
-      "hash": "c407d701155810a2"
+      "bundleHash": "116deeac1c76fa28",
+      "hash": "116deeac1c76fa28",
+      "screenshot": "screenshots/theme-eink.svg"
     },
     {
       "id": "readergo.embeddings.local",
@@ -200,15 +296,34 @@
       "id": "readergo.theme.forest-moss",
       "name": "Forest Moss",
       "description": "Canopy-dark greens with lichen accents and Literata reading typography.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Under-canopy greens with lichen yellow accents and Literata for long-form reading. Feels like a desk under trees - organic, quiet, and easy on night vision.",
+      "style": "Nature · Dark · Canopy green",
+      "tags": [
+        "dark",
+        "green",
+        "reading",
+        "organic"
+      ],
+      "preview": {
+        "background": "140 22% 9%",
+        "foreground": "90 18% 90%",
+        "card": "140 18% 13%",
+        "primary": "118 42% 48%",
+        "accent": "72 45% 48%",
+        "border": "140 14% 22%",
+        "muted": "140 12% 15%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-forest-moss.bundle.json",
-      "bundleHash": "1bf334069f2c59fe",
-      "hash": "1bf334069f2c59fe"
+      "bundleHash": "89ab70eec0a56abf",
+      "hash": "89ab70eec0a56abf",
+      "screenshot": "screenshots/theme-forest-moss.svg"
     },
     {
       "id": "readergo.editor.graph",
@@ -229,15 +344,34 @@
       "id": "readergo.theme.gruvbox",
       "name": "Gruvbox Dark",
       "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Classic Gruvbox Dark: warm earth tones, soft orange accents, IBM Plex Sans. Designed for long coding and reading sessions without cold blue glare.",
+      "style": "Retro warm · Dark · Earthy orange",
+      "tags": [
+        "dark",
+        "warm",
+        "retro",
+        "earthy"
+      ],
+      "preview": {
+        "background": "0 0% 16%",
+        "foreground": "43 59% 81%",
+        "card": "20 5% 22%",
+        "primary": "25 80% 55%",
+        "accent": "40 70% 55%",
+        "border": "20 5% 30%",
+        "muted": "20 5% 20%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-gruvbox.bundle.json",
-      "bundleHash": "f23135733f2b3aad",
-      "hash": "f23135733f2b3aad"
+      "bundleHash": "6e64a4f7c025aad1",
+      "hash": "6e64a4f7c025aad1",
+      "screenshot": "screenshots/theme-gruvbox.svg"
     },
     {
       "id": "readergo.examples.hello-world",
@@ -307,29 +441,67 @@
       "id": "readergo.theme.newsprint",
       "name": "Newsprint",
       "description": "Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Stark broadsheet monochrome - India ink on cold paper, hairline rules, near-zero radius. Libre Baskerville for headlines and IBM Plex for UI. Feels like a newspaper layout tool.",
+      "style": "Editorial · Light · Monochrome broadsheet",
+      "tags": [
+        "light",
+        "mono",
+        "editorial",
+        "print"
+      ],
+      "preview": {
+        "background": "40 10% 96%",
+        "foreground": "0 0% 8%",
+        "card": "0 0% 100%",
+        "primary": "0 0% 10%",
+        "accent": "0 0% 22%",
+        "border": "0 0% 78%",
+        "muted": "40 6% 93%",
+        "type": "light"
+      },
       "bundleUrl": "theme-newsprint.bundle.json",
-      "bundleHash": "9ffb89830441c09c",
-      "hash": "9ffb89830441c09c"
+      "bundleHash": "7add2857ab45efc4",
+      "hash": "7add2857ab45efc4",
+      "screenshot": "screenshots/theme-newsprint.svg"
     },
     {
       "id": "readergo.theme.nord",
       "name": "Nord Frost Theme",
       "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Nord Frost arctic palette: north-bluish surfaces, cyan frost primary, mint accents. Clean Plus Jakarta Sans typography for calm, low-strain focus.",
+      "style": "Arctic · Dark · Frost cyan",
+      "tags": [
+        "dark",
+        "nord",
+        "cool",
+        "calm"
+      ],
+      "preview": {
+        "background": "220 16% 14%",
+        "foreground": "218 27% 92%",
+        "card": "222 16% 19%",
+        "primary": "193 43% 67%",
+        "accent": "179 25% 65%",
+        "border": "220 17% 28%",
+        "muted": "222 16% 19%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-nord.bundle.json",
-      "bundleHash": "6001dcfbc613aa3b",
-      "hash": "6001dcfbc613aa3b"
+      "bundleHash": "c32773343075cece",
+      "hash": "c32773343075cece",
+      "screenshot": "screenshots/theme-nord.svg"
     },
     {
       "id": "readergo.tools.note-digest",
@@ -451,29 +623,67 @@
       "id": "readergo.theme.rose-pine",
       "name": "Rosé Pine",
       "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Rose Pine natural dark with soft rose accents and Instrument Serif display type. A quieter, literary alternative to high-contrast neon themes.",
+      "style": "Poetic · Dark · Rose pine",
+      "tags": [
+        "dark",
+        "soft",
+        "rose",
+        "serif"
+      ],
+      "preview": {
+        "background": "249 22% 12%",
+        "foreground": "245 50% 91%",
+        "card": "247 23% 15%",
+        "primary": "2 55% 75%",
+        "accent": "197 49% 65%",
+        "border": "248 15% 25%",
+        "muted": "247 15% 18%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-rose-pine.bundle.json",
-      "bundleHash": "d619a01067d3d0ee",
-      "hash": "d619a01067d3d0ee"
+      "bundleHash": "f9816a7dee125cbd",
+      "hash": "f9816a7dee125cbd",
+      "screenshot": "screenshots/theme-rose-pine.svg"
     },
     {
       "id": "readergo.theme.sakura-ink",
       "name": "Sakura Ink",
       "description": "Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Paper-white ink wash with soft sakura pink signals and Shippori Mincho headings. Scholarly light theme for prose and notes without cream-terracotta clichés.",
+      "style": "Ink wash · Light · Sakura accents",
+      "tags": [
+        "light",
+        "japanese",
+        "ink",
+        "serif"
+      ],
+      "preview": {
+        "background": "0 0% 98%",
+        "foreground": "220 20% 16%",
+        "card": "0 0% 100%",
+        "primary": "340 55% 48%",
+        "accent": "200 35% 42%",
+        "border": "340 12% 88%",
+        "muted": "220 10% 95%",
+        "type": "light"
+      },
       "bundleUrl": "theme-sakura-ink.bundle.json",
-      "bundleHash": "e3ecd2326a8881c1",
-      "hash": "e3ecd2326a8881c1"
+      "bundleHash": "27187e36a83a7bfe",
+      "hash": "27187e36a83a7bfe",
+      "screenshot": "screenshots/theme-sakura-ink.svg"
     },
     {
       "id": "readergo.features.selection-actions",
@@ -529,29 +739,67 @@
       "id": "readergo.theme.skeuomorph",
       "name": "Skeuomorph Suite",
       "description": "Eight physical chrome themes: Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, and Brass Console.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.2.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Eight physical atmospheres (Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, Brass Console). Uses materials tokens and scoped grain stylesheets for embossed cards, recessed trays, and a tactile activity rail.",
+      "style": "Skeuomorphic · Suite · Physical chrome",
+      "tags": [
+        "skeuomorph",
+        "materials",
+        "suite",
+        "physical"
+      ],
+      "preview": {
+        "background": "25 28% 12%",
+        "foreground": "36 40% 88%",
+        "card": "25 24% 16%",
+        "primary": "36 55% 48%",
+        "accent": "36 55% 48%",
+        "border": "30 22% 28%",
+        "muted": "25 16% 18%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-skeuomorph.bundle.json",
-      "bundleHash": "2927617fc4d3b6de",
-      "hash": "2927617fc4d3b6de"
+      "bundleHash": "b9c70b6f8a3bc378",
+      "hash": "b9c70b6f8a3bc378",
+      "screenshot": "screenshots/theme-skeuomorph.svg"
     },
     {
       "id": "readergo.theme.solarized",
       "name": "Solarized Light",
       "description": "Ethan Schoonover's Solarized Light palette with Source Serif reading type.",
-      "category": "feature",
+      "category": "theme",
       "version": "1.0.0",
       "provides": [
         "theme-provider",
         "font-provider"
       ],
+      "longDescription": "Solarized Dark precision palette with Source Serif for reading and Source Sans for UI. A classic low-contrast scientific look that ages well.",
+      "style": "Solarized · Dark · Precision reading",
+      "tags": [
+        "dark",
+        "solarized",
+        "classic",
+        "serif"
+      ],
+      "preview": {
+        "background": "192 100% 11%",
+        "foreground": "44 87% 94%",
+        "card": "192 81% 14%",
+        "primary": "45 100% 35%",
+        "accent": "68 100% 30%",
+        "border": "192 20% 25%",
+        "muted": "192 40% 16%",
+        "type": "dark"
+      },
       "bundleUrl": "theme-solarized.bundle.json",
-      "bundleHash": "380cf2e0bb0c7c9e",
-      "hash": "380cf2e0bb0c7c9e"
+      "bundleHash": "d31a592e6bd2700e",
+      "hash": "d31a592e6bd2700e",
+      "screenshot": "screenshots/theme-solarized.svg"
     },
     {
       "id": "readergo.editor.spreadsheet",

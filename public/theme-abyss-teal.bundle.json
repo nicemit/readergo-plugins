@@ -4,7 +4,7 @@
     "name": "Abyss Teal",
     "version": "1.0.0",
     "description": "Deep ocean workspace with teal phosphor accents and calm DM Sans typography.",
-    "category": "feature",
+    "category": "theme",
     "provides": [
       "theme-provider",
       "font-provider"
@@ -18,6 +18,24 @@
     "autoActivate": true,
     "compile": {
       "ui": "./src/index.ts"
+    },
+    "style": "Ocean · Dark · Teal phosphor",
+    "tags": [
+      "dark",
+      "ocean",
+      "teal",
+      "calm"
+    ],
+    "longDescription": "A deep-ocean workspace for focused reading and writing. Cool teal actuators sit on trench-dark panels with soft cyan focus rings. Best when you want a calm, aquatic alternative to purple-heavy dark themes.",
+    "preview": {
+      "background": "198 40% 7%",
+      "foreground": "186 35% 92%",
+      "card": "198 32% 11%",
+      "primary": "174 62% 48%",
+      "accent": "186 70% 52%",
+      "border": "196 24% 22%",
+      "muted": "198 26% 13%",
+      "type": "dark"
     }
   },
   "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-abyss-teal/src/index.ts\nvar DM_SANS = {\n  id: \"dm-sans-abyss\",\n  name: \"DM Sans\",\n  family: \"'DM Sans', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap\",\n  targets: [\"all\"]\n};\nvar THEME = {\n  id: \"abyss-teal\",\n  name: \"Abyss Teal\",\n  type: \"dark\",\n  author: \"ReaderGo Studio\",\n  description: \"Deep ocean trench palette with teal phosphor signals and soft cyan focus rings.\",\n  colors: {\n    background: \"198 40% 7%\",\n    foreground: \"186 35% 92%\",\n    card: \"198 32% 11%\",\n    cardForeground: \"186 35% 92%\",\n    border: \"196 24% 22%\",\n    primary: \"174 62% 48%\",\n    primaryForeground: \"198 40% 6%\",\n    secondary: \"198 28% 15%\",\n    secondaryForeground: \"186 30% 86%\",\n    muted: \"198 26% 13%\",\n    mutedForeground: \"190 14% 55%\",\n    accent: \"186 70% 52%\",\n    accentForeground: \"198 40% 6%\",\n    destructive: \"4 70% 52%\",\n    destructiveForeground: \"0 0% 100%\",\n    success: \"160 50% 42%\",\n    successForeground: \"0 0% 100%\",\n    warning: \"38 80% 52%\",\n    warningForeground: \"198 40% 6%\",\n    info: \"186 70% 52%\",\n    infoForeground: \"198 40% 6%\",\n    input: \"198 30% 10%\",\n    ring: \"174 62% 48%\",\n    heading1: \"174 70% 68%\",\n    heading2: \"186 55% 66%\",\n    heading3: \"190 40% 64%\"\n  },\n  fonts: { display: DM_SANS, body: DM_SANS, editor: DM_SANS, mono: DM_SANS },\n  materials: {\n    radius: \"0.55rem\",\n    radius2xl: \"0.9rem\",\n    surfaceBlur: \"8px\",\n    shadowMd: \"0 4px 18px rgb(0 40 50 / 0.45)\"\n  }\n};\nvar AbyssTealThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.abyss-teal\",\n    name: \"Abyss Teal\",\n    version: \"1.0.0\",\n    description: \"Deep ocean workspace with teal phosphor accents and calm DM Sans typography.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", { getThemes: () => [THEME] });\n    await context.registerCapability(\"font-provider\", { getFonts: () => [DM_SANS] });\n  },\n  deactivate() {\n  }\n};\nvar index_default = AbyssTealThemePlugin;\n\n\n  return { AbyssTealThemePlugin: AbyssTealThemePlugin, default: index_default };\n}\n"

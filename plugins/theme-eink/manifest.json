@@ -3,7 +3,7 @@
   "name": "E-Ink Reading Suite",
   "version": "1.0.0",
   "description": "Comprehensive high-contrast monochromatic e-paper themes, print typography, and anti-ghosting performance optimizations for E-Ink tablets and distraction-free reading.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "E-paper · Multi-mode · High contrast",
+  "tags": [
+    "eink",
+    "reading",
+    "print",
+    "high-contrast"
+  ],
+  "longDescription": "Suite of e-paper atmospheres (Carta, Warm, Night, High Contrast) with print typography and anti-ghosting CSS. Built for distraction-free reading on E-Ink tablets and stark focus modes.",
+  "preview": {
+    "background": "0 0% 100%",
+    "foreground": "0 0% 0%",
+    "card": "0 0% 100%",
+    "primary": "0 0% 0%",
+    "accent": "0 0% 35%",
+    "border": "0 0% 0%",
+    "muted": "0 0% 93%",
+    "type": "light"
   }
 }

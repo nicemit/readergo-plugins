@@ -3,7 +3,7 @@
   "name": "Gruvbox Dark",
   "version": "1.0.0",
   "description": "Warm retro-groove dark theme with orange accents and IBM Plex Sans.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Retro warm · Dark · Earthy orange",
+  "tags": [
+    "dark",
+    "warm",
+    "retro",
+    "earthy"
+  ],
+  "longDescription": "Classic Gruvbox Dark: warm earth tones, soft orange accents, IBM Plex Sans. Designed for long coding and reading sessions without cold blue glare.",
+  "preview": {
+    "background": "0 0% 16%",
+    "foreground": "43 59% 81%",
+    "card": "20 5% 22%",
+    "primary": "25 80% 55%",
+    "accent": "40 70% 55%",
+    "border": "20 5% 30%",
+    "muted": "20 5% 20%",
+    "type": "dark"
   }
 }

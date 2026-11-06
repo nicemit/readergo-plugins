@@ -3,7 +3,7 @@
   "name": "Sakura Ink",
   "version": "1.0.0",
   "description": "Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Ink wash · Light · Sakura accents",
+  "tags": [
+    "light",
+    "japanese",
+    "ink",
+    "serif"
+  ],
+  "longDescription": "Paper-white ink wash with soft sakura pink signals and Shippori Mincho headings. Scholarly light theme for prose and notes without cream-terracotta clichés.",
+  "preview": {
+    "background": "0 0% 98%",
+    "foreground": "220 20% 16%",
+    "card": "0 0% 100%",
+    "primary": "340 55% 48%",
+    "accent": "200 35% 42%",
+    "border": "340 12% 88%",
+    "muted": "220 10% 95%",
+    "type": "light"
   }
 }

@@ -3,7 +3,7 @@
   "name": "Rosé Pine",
   "version": "1.0.0",
   "description": "All natural pine, faux fur and a bit of soho vibes for the classy minimalist. Instrument Serif headings.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Poetic · Dark · Rose pine",
+  "tags": [
+    "dark",
+    "soft",
+    "rose",
+    "serif"
+  ],
+  "longDescription": "Rose Pine natural dark with soft rose accents and Instrument Serif display type. A quieter, literary alternative to high-contrast neon themes.",
+  "preview": {
+    "background": "249 22% 12%",
+    "foreground": "245 50% 91%",
+    "card": "247 23% 15%",
+    "primary": "2 55% 75%",
+    "accent": "197 49% 65%",
+    "border": "248 15% 25%",
+    "muted": "247 15% 18%",
+    "type": "dark"
   }
 }

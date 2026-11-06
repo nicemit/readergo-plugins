@@ -3,7 +3,7 @@
   "name": "Amber CRT Terminal",
   "version": "1.0.0",
   "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Retro CRT · Dark · Monochrome amber",
+  "tags": [
+    "dark",
+    "retro",
+    "crt",
+    "monospace"
+  ],
+  "longDescription": "1980s phosphor terminal vibes: radiant amber ink on matte obsidian, VT323 monospace everywhere. Ideal for telemetry-heavy workspaces and nostalgia without sacrificing readability.",
+  "preview": {
+    "background": "0 0% 8%",
+    "foreground": "38 95% 62%",
+    "card": "0 0% 12%",
+    "primary": "38 95% 54%",
+    "accent": "38 95% 54%",
+    "border": "38 45% 24%",
+    "muted": "0 0% 13%",
+    "type": "dark"
   }
 }

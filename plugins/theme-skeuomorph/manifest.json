@@ -3,7 +3,7 @@
   "name": "Skeuomorph Suite",
   "version": "1.2.0",
   "description": "Eight physical chrome themes: Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, and Brass Console.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Skeuomorphic · Suite · Physical chrome",
+  "tags": [
+    "skeuomorph",
+    "materials",
+    "suite",
+    "physical"
+  ],
+  "longDescription": "Eight physical atmospheres (Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, Brass Console). Uses materials tokens and scoped grain stylesheets for embossed cards, recessed trays, and a tactile activity rail.",
+  "preview": {
+    "background": "25 28% 12%",
+    "foreground": "36 40% 88%",
+    "card": "25 24% 16%",
+    "primary": "36 55% 48%",
+    "accent": "36 55% 48%",
+    "border": "30 22% 28%",
+    "muted": "25 16% 18%",
+    "type": "dark"
   }
 }

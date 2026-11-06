@@ -3,7 +3,7 @@
   "name": "Abyss Teal",
   "version": "1.0.0",
   "description": "Deep ocean workspace with teal phosphor accents and calm DM Sans typography.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Ocean · Dark · Teal phosphor",
+  "tags": [
+    "dark",
+    "ocean",
+    "teal",
+    "calm"
+  ],
+  "longDescription": "A deep-ocean workspace for focused reading and writing. Cool teal actuators sit on trench-dark panels with soft cyan focus rings. Best when you want a calm, aquatic alternative to purple-heavy dark themes.",
+  "preview": {
+    "background": "198 40% 7%",
+    "foreground": "186 35% 92%",
+    "card": "198 32% 11%",
+    "primary": "174 62% 48%",
+    "accent": "186 70% 52%",
+    "border": "196 24% 22%",
+    "muted": "198 26% 13%",
+    "type": "dark"
   }
 }

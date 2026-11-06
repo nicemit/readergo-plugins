@@ -3,7 +3,7 @@
   "name": "Newsprint",
   "version": "1.0.0",
   "description": "Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Editorial · Light · Monochrome broadsheet",
+  "tags": [
+    "light",
+    "mono",
+    "editorial",
+    "print"
+  ],
+  "longDescription": "Stark broadsheet monochrome - India ink on cold paper, hairline rules, near-zero radius. Libre Baskerville for headlines and IBM Plex for UI. Feels like a newspaper layout tool.",
+  "preview": {
+    "background": "40 10% 96%",
+    "foreground": "0 0% 8%",
+    "card": "0 0% 100%",
+    "primary": "0 0% 10%",
+    "accent": "0 0% 22%",
+    "border": "0 0% 78%",
+    "muted": "40 6% 93%",
+    "type": "light"
   }
 }
