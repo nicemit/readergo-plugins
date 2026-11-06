@@ -3,7 +3,7 @@
   "name": "Catppuccin Mocha",
   "version": "1.0.0",
   "description": "Soothing pastel dark theme (Mocha) with mauve accents and Nunito typography.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Pastel · Dark · Mocha comfort",
+  "tags": [
+    "dark",
+    "pastel",
+    "mocha",
+    "soft"
+  ],
+  "longDescription": "Catppuccin Mocha pastel dark: soft mauve accents, low-glare surfaces, and Nunito typography. A cozy late-night palette that stays gentle on the eyes.",
+  "preview": {
+    "background": "240 21% 15%",
+    "foreground": "226 64% 88%",
+    "card": "240 21% 12%",
+    "primary": "267 84% 81%",
+    "accent": "316 72% 78%",
+    "border": "237 16% 23%",
+    "muted": "240 21% 18%",
+    "type": "dark"
   }
 }

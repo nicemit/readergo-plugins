@@ -1,0 +1,39 @@
+{
+  "id": "readergo.theme.forest-moss",
+  "name": "Forest Moss",
+  "version": "1.0.0",
+  "description": "Canopy-dark greens with lichen accents and Literata reading typography.",
+  "category": "theme",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  },
+  "style": "Nature · Dark · Canopy green",
+  "tags": [
+    "dark",
+    "green",
+    "reading",
+    "organic"
+  ],
+  "longDescription": "Under-canopy greens with lichen yellow accents and Literata for long-form reading. Feels like a desk under trees - organic, quiet, and easy on night vision.",
+  "preview": {
+    "background": "140 22% 9%",
+    "foreground": "90 18% 90%",
+    "card": "140 18% 13%",
+    "primary": "118 42% 48%",
+    "accent": "72 45% 48%",
+    "border": "140 14% 22%",
+    "muted": "140 12% 15%",
+    "type": "dark"
+  }
+}

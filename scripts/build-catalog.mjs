@@ -4,12 +4,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import crypto from "node:crypto";
+import { buildThemePreviewSvg } from "./theme-preview-svg.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pluginsDir = path.join(root, "plugins");
 const catalogDir = path.join(root, "public");
+const screenshotsDir = path.join(catalogDir, "screenshots");
 
 await fs.mkdir(catalogDir, { recursive: true });
+await fs.mkdir(screenshotsDir, { recursive: true });
 
 const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
 const catalog = [];
@@ -19,6 +22,12 @@ function runtimeBundleName(runtimeRel) {
     return null;
   }
   return path.basename(runtimeRel);
+}
+
+function isThemeManifest(manifest) {
+  const category = String(manifest.category || "").toLowerCase();
+  const provides = Array.isArray(manifest.provides) ? manifest.provides : [];
+  return category === "theme" || provides.includes("theme-provider");
 }
 
 for (const entry of entries) {
@@ -32,14 +41,32 @@ for (const entry of entries) {
     continue;
   }
 
+  const provides = Array.isArray(manifest.provides) ? manifest.provides : [];
+  const category =
+    manifest.category ||
+    (provides.includes("theme-provider") ? "theme" : "feature");
+
   const row = {
     id: manifest.id,
     name: manifest.name,
     description: manifest.description || "",
-    category: manifest.category,
+    category,
     version: manifest.version || "1.0.0",
-    provides: Array.isArray(manifest.provides) ? manifest.provides : [],
+    provides,
   };
+
+  if (manifest.longDescription) row.longDescription = manifest.longDescription;
+  if (manifest.style) row.style = manifest.style;
+  if (Array.isArray(manifest.tags) && manifest.tags.length > 0) {
+    row.tags = manifest.tags;
+  }
+  if (manifest.preview && typeof manifest.preview === "object") {
+    row.preview = manifest.preview;
+  }
+  if (typeof manifest.screenshot === "string" && manifest.screenshot.trim()) {
+    row.screenshot = manifest.screenshot.trim();
+  }
+
   let wrote = false;
 
   if (manifest.main && String(manifest.main).endsWith(".js")) {
@@ -92,6 +119,35 @@ for (const entry of entries) {
     } catch (err) {
       console.warn(`Could not read runtime entry for ${entry.name}: ${err.message}`);
     }
+  }
+
+  // Auto-generate theme preview screenshots from palette metadata when missing.
+  if (wrote && row.id && isThemeManifest(manifest) && row.preview && !row.screenshot) {
+    const shotName = `${entry.name}.svg`;
+    const svg = buildThemePreviewSvg({
+      ...row.preview,
+      label: row.name,
+      style: row.style,
+      name: row.name,
+    });
+    await fs.writeFile(path.join(screenshotsDir, shotName), svg);
+    row.screenshot = `screenshots/${shotName}`;
+  } else if (
+    wrote &&
+    row.id &&
+    typeof row.screenshot === "string" &&
+    row.screenshot.endsWith(".svg") &&
+    row.preview
+  ) {
+    // Keep generated SVG in sync when preview colors change.
+    const base = path.basename(row.screenshot);
+    const svg = buildThemePreviewSvg({
+      ...row.preview,
+      label: row.name,
+      style: row.style,
+      name: row.name,
+    });
+    await fs.writeFile(path.join(screenshotsDir, base), svg);
   }
 
   if (wrote && row.id) {

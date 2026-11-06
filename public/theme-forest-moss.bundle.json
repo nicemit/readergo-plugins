@@ -1,0 +1,42 @@
+{
+  "manifest": {
+    "id": "readergo.theme.forest-moss",
+    "name": "Forest Moss",
+    "version": "1.0.0",
+    "description": "Canopy-dark greens with lichen accents and Literata reading typography.",
+    "category": "theme",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    },
+    "style": "Nature · Dark · Canopy green",
+    "tags": [
+      "dark",
+      "green",
+      "reading",
+      "organic"
+    ],
+    "longDescription": "Under-canopy greens with lichen yellow accents and Literata for long-form reading. Feels like a desk under trees - organic, quiet, and easy on night vision.",
+    "preview": {
+      "background": "140 22% 9%",
+      "foreground": "90 18% 90%",
+      "card": "140 18% 13%",
+      "primary": "118 42% 48%",
+      "accent": "72 45% 48%",
+      "border": "140 14% 22%",
+      "muted": "140 12% 15%",
+      "type": "dark"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-forest-moss/src/index.ts\nvar LITERATA = {\n  id: \"literata-forest\",\n  name: \"Literata\",\n  family: \"'Literata', 'Georgia', serif\",\n  category: \"serif\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&display=swap\",\n  targets: [\"display\", \"editor\"]\n};\nvar SOURCE_SANS = {\n  id: \"source-sans-forest\",\n  name: \"Source Sans 3\",\n  family: \"'Source Sans 3', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap\",\n  targets: [\"body\", \"all\"]\n};\nvar THEME = {\n  id: \"forest-moss\",\n  name: \"Forest Moss\",\n  type: \"dark\",\n  author: \"ReaderGo Studio\",\n  description: \"Under-canopy greens with lichen yellow accents for long reading sessions.\",\n  colors: {\n    background: \"140 22% 9%\",\n    foreground: \"90 18% 90%\",\n    card: \"140 18% 13%\",\n    cardForeground: \"90 18% 90%\",\n    border: \"140 14% 22%\",\n    primary: \"118 42% 48%\",\n    primaryForeground: \"140 30% 6%\",\n    secondary: \"140 14% 17%\",\n    secondaryForeground: \"90 14% 84%\",\n    muted: \"140 12% 15%\",\n    mutedForeground: \"120 10% 55%\",\n    accent: \"72 45% 48%\",\n    accentForeground: \"140 30% 6%\",\n    destructive: \"8 65% 48%\",\n    destructiveForeground: \"0 0% 100%\",\n    success: \"118 42% 42%\",\n    successForeground: \"0 0% 100%\",\n    warning: \"48 70% 48%\",\n    warningForeground: \"140 30% 6%\",\n    info: \"170 40% 45%\",\n    infoForeground: \"0 0% 100%\",\n    input: \"140 16% 11%\",\n    ring: \"118 42% 48%\",\n    heading1: \"90 40% 72%\",\n    heading2: \"118 35% 66%\",\n    heading3: \"72 35% 62%\"\n  },\n  fonts: { display: LITERATA, body: SOURCE_SANS, editor: LITERATA, mono: SOURCE_SANS },\n  materials: {\n    radius: \"0.6rem\",\n    radius2xl: \"1rem\",\n    surfaceBlur: \"0px\",\n    shadowMd: \"0 6px 20px rgb(0 20 10 / 0.45)\"\n  },\n  stylesheet: `\n    background-image:\n      radial-gradient(ellipse at 15% 20%, rgb(60 120 70 / 0.18), transparent 45%),\n      radial-gradient(ellipse at 85% 80%, rgb(20 40 20 / 0.35), transparent 50%);\n  `,\n  stylesheetScoped: true\n};\nvar ForestMossThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.forest-moss\",\n    name: \"Forest Moss\",\n    version: \"1.0.0\",\n    description: \"Canopy-dark greens with lichen accents and Literata reading typography.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", { getThemes: () => [THEME] });\n    await context.registerCapability(\"font-provider\", { getFonts: () => [LITERATA, SOURCE_SANS] });\n  },\n  deactivate() {\n  }\n};\nvar index_default = ForestMossThemePlugin;\n\n\n  return { ForestMossThemePlugin: ForestMossThemePlugin, default: index_default };\n}\n"
+}

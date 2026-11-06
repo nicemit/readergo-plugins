@@ -1,0 +1,39 @@
+{
+  "id": "readergo.theme.arcade-neon",
+  "name": "Arcade Neon",
+  "version": "1.0.0",
+  "description": "Night-arcade dark with magenta and cyan neon signals plus Orbitron display type.",
+  "category": "theme",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  },
+  "style": "Synthwave · Dark · Neon magenta/cyan",
+  "tags": [
+    "dark",
+    "neon",
+    "arcade",
+    "display"
+  ],
+  "longDescription": "Night-arcade cabinet black with hard geometric radii, magenta primary, and cyan accent LEDs. Orbitron headings sell the scoreboard feel - loud by design for creative sessions.",
+  "preview": {
+    "background": "260 30% 6%",
+    "foreground": "300 20% 94%",
+    "card": "260 28% 10%",
+    "primary": "320 85% 58%",
+    "accent": "180 90% 48%",
+    "border": "280 25% 22%",
+    "muted": "260 20% 12%",
+    "type": "dark"
+  }
+}

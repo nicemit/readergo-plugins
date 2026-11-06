@@ -1,0 +1,42 @@
+{
+  "manifest": {
+    "id": "readergo.theme.newsprint",
+    "name": "Newsprint",
+    "version": "1.0.0",
+    "description": "Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.",
+    "category": "theme",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    },
+    "style": "Editorial · Light · Monochrome broadsheet",
+    "tags": [
+      "light",
+      "mono",
+      "editorial",
+      "print"
+    ],
+    "longDescription": "Stark broadsheet monochrome - India ink on cold paper, hairline rules, near-zero radius. Libre Baskerville for headlines and IBM Plex for UI. Feels like a newspaper layout tool.",
+    "preview": {
+      "background": "40 10% 96%",
+      "foreground": "0 0% 8%",
+      "card": "0 0% 100%",
+      "primary": "0 0% 10%",
+      "accent": "0 0% 22%",
+      "border": "0 0% 78%",
+      "muted": "40 6% 93%",
+      "type": "light"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-newsprint/src/index.ts\nvar BASKERVILLE = {\n  id: \"libre-baskerville\",\n  name: \"Libre Baskerville\",\n  family: \"'Libre Baskerville', 'Georgia', serif\",\n  category: \"serif\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap\",\n  targets: [\"display\", \"editor\"]\n};\nvar IBM_PLEX = {\n  id: \"ibm-plex-sans-news\",\n  name: \"IBM Plex Sans\",\n  family: \"'IBM Plex Sans', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap\",\n  targets: [\"body\", \"all\"]\n};\nvar IBM_MONO = {\n  id: \"ibm-plex-mono-news\",\n  name: \"IBM Plex Mono\",\n  family: \"'IBM Plex Mono', ui-monospace, monospace\",\n  category: \"mono\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap\",\n  targets: [\"mono\"]\n};\nvar THEME = {\n  id: \"newsprint\",\n  name: \"Newsprint\",\n  type: \"light\",\n  author: \"ReaderGo Studio\",\n  description: \"Broadsheet monochrome - India ink on cold paper, hairline borders, zero chrome glow.\",\n  colors: {\n    background: \"40 10% 96%\",\n    foreground: \"0 0% 8%\",\n    card: \"0 0% 100%\",\n    cardForeground: \"0 0% 8%\",\n    border: \"0 0% 78%\",\n    primary: \"0 0% 10%\",\n    primaryForeground: \"0 0% 98%\",\n    secondary: \"40 8% 92%\",\n    secondaryForeground: \"0 0% 12%\",\n    muted: \"40 6% 93%\",\n    mutedForeground: \"0 0% 38%\",\n    accent: \"0 0% 22%\",\n    accentForeground: \"0 0% 98%\",\n    destructive: \"0 0% 20%\",\n    destructiveForeground: \"0 0% 100%\",\n    success: \"0 0% 25%\",\n    successForeground: \"0 0% 100%\",\n    warning: \"0 0% 30%\",\n    warningForeground: \"0 0% 100%\",\n    info: \"0 0% 28%\",\n    infoForeground: \"0 0% 100%\",\n    input: \"0 0% 100%\",\n    ring: \"0 0% 10%\",\n    heading1: \"0 0% 5%\",\n    heading2: \"0 0% 12%\",\n    heading3: \"0 0% 18%\"\n  },\n  fonts: { display: BASKERVILLE, body: IBM_PLEX, editor: BASKERVILLE, mono: IBM_MONO },\n  materials: {\n    radius: \"0.15rem\",\n    radiusSm: \"0.1rem\",\n    radiusMd: \"0.12rem\",\n    radiusLg: \"0.15rem\",\n    radiusXl: \"0.2rem\",\n    radius2xl: \"0.25rem\",\n    surfaceBlur: \"0px\",\n    shadowSm: \"none\",\n    shadowMd: \"0 1px 0 rgb(0 0 0 / 0.08)\",\n    shadowLg: \"0 2px 0 rgb(0 0 0 / 0.06)\",\n    shadowXl: \"0 3px 0 rgb(0 0 0 / 0.05)\",\n    insetHighlight: \"none\",\n    insetShadow: \"none\",\n    borderWidth: \"1px\"\n  },\n  stylesheet: `\n    background-image:\n      repeating-linear-gradient(\n        0deg,\n        rgb(0 0 0 / 0.015) 0 1px,\n        transparent 1px 4px\n      );\n  `,\n  stylesheetScoped: true\n};\nvar NewsprintThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.newsprint\",\n    name: \"Newsprint\",\n    version: \"1.0.0\",\n    description: \"Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", { getThemes: () => [THEME] });\n    await context.registerCapability(\"font-provider\", {\n      getFonts: () => [BASKERVILLE, IBM_PLEX, IBM_MONO]\n    });\n  },\n  deactivate() {\n  }\n};\nvar index_default = NewsprintThemePlugin;\n\n\n  return { NewsprintThemePlugin: NewsprintThemePlugin, default: index_default };\n}\n"
+}

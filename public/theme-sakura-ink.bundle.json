@@ -1,0 +1,42 @@
+{
+  "manifest": {
+    "id": "readergo.theme.sakura-ink",
+    "name": "Sakura Ink",
+    "version": "1.0.0",
+    "description": "Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.",
+    "category": "theme",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    },
+    "style": "Ink wash · Light · Sakura accents",
+    "tags": [
+      "light",
+      "japanese",
+      "ink",
+      "serif"
+    ],
+    "longDescription": "Paper-white ink wash with soft sakura pink signals and Shippori Mincho headings. Scholarly light theme for prose and notes without cream-terracotta clichés.",
+    "preview": {
+      "background": "0 0% 98%",
+      "foreground": "220 20% 16%",
+      "card": "0 0% 100%",
+      "primary": "340 55% 48%",
+      "accent": "200 35% 42%",
+      "border": "340 12% 88%",
+      "muted": "220 10% 95%",
+      "type": "light"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-sakura-ink/src/index.ts\nvar SHIPPORI = {\n  id: \"shippori-mincho\",\n  name: \"Shippori Mincho\",\n  family: \"'Shippori Mincho', 'Georgia', serif\",\n  category: \"serif\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&display=swap\",\n  targets: [\"display\", \"editor\"]\n};\nvar NOTO_SANS = {\n  id: \"noto-sans-jp-ui\",\n  name: \"Noto Sans\",\n  family: \"'Noto Sans', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap\",\n  targets: [\"body\", \"all\"]\n};\nvar THEME = {\n  id: \"sakura-ink\",\n  name: \"Sakura Ink\",\n  type: \"light\",\n  author: \"ReaderGo Studio\",\n  description: \"Paper-white ink wash with soft sakura pink signals and scholarly serif headings.\",\n  colors: {\n    background: \"0 0% 98%\",\n    foreground: \"220 20% 16%\",\n    card: \"0 0% 100%\",\n    cardForeground: \"220 20% 16%\",\n    border: \"340 12% 88%\",\n    primary: \"340 55% 48%\",\n    primaryForeground: \"0 0% 100%\",\n    secondary: \"340 20% 95%\",\n    secondaryForeground: \"220 18% 22%\",\n    muted: \"220 10% 95%\",\n    mutedForeground: \"220 8% 42%\",\n    accent: \"200 35% 42%\",\n    accentForeground: \"0 0% 100%\",\n    destructive: \"4 70% 46%\",\n    destructiveForeground: \"0 0% 100%\",\n    success: \"152 40% 36%\",\n    successForeground: \"0 0% 100%\",\n    warning: \"32 70% 42%\",\n    warningForeground: \"0 0% 100%\",\n    info: \"200 40% 42%\",\n    infoForeground: \"0 0% 100%\",\n    input: \"0 0% 97%\",\n    ring: \"340 55% 48%\",\n    heading1: \"340 50% 38%\",\n    heading2: \"220 25% 28%\",\n    heading3: \"200 30% 36%\"\n  },\n  fonts: { display: SHIPPORI, body: NOTO_SANS, editor: SHIPPORI, mono: NOTO_SANS },\n  materials: {\n    radius: \"0.4rem\",\n    radius2xl: \"0.75rem\",\n    surfaceBlur: \"0px\",\n    shadowMd: \"0 2px 10px rgb(40 20 30 / 0.06)\",\n    insetShadow: \"inset 0 1px 2px rgb(40 20 30 / 0.05)\"\n  },\n  stylesheet: `\n    background-image:\n      radial-gradient(ellipse at 90% 5%, rgb(255 180 200 / 0.18), transparent 40%),\n      radial-gradient(ellipse at 10% 90%, rgb(180 210 230 / 0.12), transparent 45%);\n  `,\n  stylesheetScoped: true\n};\nvar SakuraInkThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.sakura-ink\",\n    name: \"Sakura Ink\",\n    version: \"1.0.0\",\n    description: \"Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", { getThemes: () => [THEME] });\n    await context.registerCapability(\"font-provider\", { getFonts: () => [SHIPPORI, NOTO_SANS] });\n  },\n  deactivate() {\n  }\n};\nvar index_default = SakuraInkThemePlugin;\n\n\n  return { SakuraInkThemePlugin: SakuraInkThemePlugin, default: index_default };\n}\n"
+}

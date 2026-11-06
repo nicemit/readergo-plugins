@@ -3,7 +3,7 @@
   "name": "Nord Frost Theme",
   "version": "1.0.0",
   "description": "Arctic, north-bluish palette engineered for calm focus and reduced eye strain.",
-  "category": "feature",
+  "category": "theme",
   "provides": [
     "theme-provider",
     "font-provider"
@@ -17,5 +17,23 @@
   "autoActivate": true,
   "compile": {
     "ui": "./src/index.ts"
+  },
+  "style": "Arctic · Dark · Frost cyan",
+  "tags": [
+    "dark",
+    "nord",
+    "cool",
+    "calm"
+  ],
+  "longDescription": "Nord Frost arctic palette: north-bluish surfaces, cyan frost primary, mint accents. Clean Plus Jakarta Sans typography for calm, low-strain focus.",
+  "preview": {
+    "background": "220 16% 14%",
+    "foreground": "218 27% 92%",
+    "card": "222 16% 19%",
+    "primary": "193 43% 67%",
+    "accent": "179 25% 65%",
+    "border": "220 17% 28%",
+    "muted": "222 16% 19%",
+    "type": "dark"
   }
 }
