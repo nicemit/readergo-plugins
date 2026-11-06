@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.sakura-ink",
+  "name": "Sakura Ink",
+  "version": "1.0.0",
+  "description": "Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

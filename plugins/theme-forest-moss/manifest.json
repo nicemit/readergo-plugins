@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.forest-moss",
+  "name": "Forest Moss",
+  "version": "1.0.0",
+  "description": "Canopy-dark greens with lichen accents and Literata reading typography.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}

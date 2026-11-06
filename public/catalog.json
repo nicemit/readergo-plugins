@@ -1,6 +1,20 @@
 {
   "plugins": [
     {
+      "id": "readergo.theme.abyss-teal",
+      "name": "Abyss Teal",
+      "description": "Deep ocean workspace with teal phosphor accents and calm DM Sans typography.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-abyss-teal.bundle.json",
+      "bundleHash": "768d75b55c861a74",
+      "hash": "768d75b55c861a74"
+    },
+    {
       "id": "readergo.theme.amber",
       "name": "Amber CRT Terminal",
       "description": "Vintage 1980s monochrome phosphor amber theme on matte obsidian for retro computing aesthetics.",
@@ -13,6 +27,20 @@
       "bundleUrl": "theme-amber-terminal.bundle.json",
       "bundleHash": "e97b7a81f143f8f1",
       "hash": "e97b7a81f143f8f1"
+    },
+    {
+      "id": "readergo.theme.arcade-neon",
+      "name": "Arcade Neon",
+      "description": "Night-arcade dark with magenta and cyan neon signals plus Orbitron display type.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-arcade-neon.bundle.json",
+      "bundleHash": "1ad61e8948574967",
+      "hash": "1ad61e8948574967"
     },
     {
       "id": "readergo.editor.canvas",
@@ -169,6 +197,20 @@
       "hash": "0ea8c4f5a1dd865c"
     },
     {
+      "id": "readergo.theme.forest-moss",
+      "name": "Forest Moss",
+      "description": "Canopy-dark greens with lichen accents and Literata reading typography.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-forest-moss.bundle.json",
+      "bundleHash": "1bf334069f2c59fe",
+      "hash": "1bf334069f2c59fe"
+    },
+    {
       "id": "readergo.editor.graph",
       "name": "Graph",
       "description": "An interactive knowledge graph editor on an infinite canvas",
@@ -260,6 +302,20 @@
       "bundleUrl": "mindmap.bundle.json",
       "bundleHash": "d45ac80ab01da340",
       "hash": "d45ac80ab01da340"
+    },
+    {
+      "id": "readergo.theme.newsprint",
+      "name": "Newsprint",
+      "description": "Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-newsprint.bundle.json",
+      "bundleHash": "9ffb89830441c09c",
+      "hash": "9ffb89830441c09c"
     },
     {
       "id": "readergo.theme.nord",
@@ -404,6 +460,20 @@
       "bundleUrl": "theme-rose-pine.bundle.json",
       "bundleHash": "d619a01067d3d0ee",
       "hash": "d619a01067d3d0ee"
+    },
+    {
+      "id": "readergo.theme.sakura-ink",
+      "name": "Sakura Ink",
+      "description": "Light ink-wash workspace with cherry blossom accents and Shippori Mincho headings.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-sakura-ink.bundle.json",
+      "bundleHash": "e3ecd2326a8881c1",
+      "hash": "e3ecd2326a8881c1"
     },
     {
       "id": "readergo.features.selection-actions",

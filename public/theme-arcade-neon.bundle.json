@@ -1,0 +1,24 @@
+{
+  "manifest": {
+    "id": "readergo.theme.arcade-neon",
+    "name": "Arcade Neon",
+    "version": "1.0.0",
+    "description": "Night-arcade dark with magenta and cyan neon signals plus Orbitron display type.",
+    "category": "feature",
+    "provides": [
+      "theme-provider",
+      "font-provider"
+    ],
+    "requires": [],
+    "permissions": [],
+    "trust": "trusted",
+    "source": "external",
+    "main": "dist/ui.js",
+    "runtime": "local",
+    "autoActivate": true,
+    "compile": {
+      "ui": "./src/index.ts"
+    }
+  },
+  "entryCode": "export function __readergoStart(host) {\n  const __readergoModule = (id) => {\n    if (!host || typeof host.module !== \"function\") {\n      throw new Error(\"ReaderGo plugin host is not installed\");\n    }\n    return host.module(id);\n  };\n  const require = (id) => __readergoModule(id);\n// plugins/theme-arcade-neon/src/index.ts\nvar ORBITRON = {\n  id: \"orbitron-arcade\",\n  name: \"Orbitron\",\n  family: \"'Orbitron', system-ui, sans-serif\",\n  category: \"display\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700&display=swap\",\n  targets: [\"display\"]\n};\nvar EXO = {\n  id: \"exo-2-arcade\",\n  name: \"Exo 2\",\n  family: \"'Exo 2', system-ui, sans-serif\",\n  category: \"sans\",\n  cssUrl: \"https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,400&display=swap\",\n  targets: [\"body\", \"editor\", \"all\"]\n};\nvar THEME = {\n  id: \"arcade-neon\",\n  name: \"Arcade Neon\",\n  type: \"dark\",\n  author: \"ReaderGo Studio\",\n  description: \"Cabinet-black night with magenta / cyan neon actuators and hard geometric chrome.\",\n  colors: {\n    background: \"260 30% 6%\",\n    foreground: \"300 20% 94%\",\n    card: \"260 28% 10%\",\n    cardForeground: \"300 20% 94%\",\n    border: \"280 25% 22%\",\n    primary: \"320 85% 58%\",\n    primaryForeground: \"260 40% 6%\",\n    secondary: \"260 22% 14%\",\n    secondaryForeground: \"180 40% 80%\",\n    muted: \"260 20% 12%\",\n    mutedForeground: \"270 12% 55%\",\n    accent: \"180 90% 48%\",\n    accentForeground: \"260 40% 6%\",\n    destructive: \"0 85% 55%\",\n    destructiveForeground: \"0 0% 100%\",\n    success: \"150 80% 45%\",\n    successForeground: \"260 40% 6%\",\n    warning: \"45 95% 55%\",\n    warningForeground: \"260 40% 6%\",\n    info: \"180 90% 48%\",\n    infoForeground: \"260 40% 6%\",\n    input: \"260 26% 9%\",\n    ring: \"320 85% 58%\",\n    heading1: \"320 90% 72%\",\n    heading2: \"180 85% 65%\",\n    heading3: \"280 50% 70%\"\n  },\n  fonts: { display: ORBITRON, body: EXO, editor: EXO, mono: EXO },\n  materials: {\n    radius: \"0.25rem\",\n    radiusSm: \"0.15rem\",\n    radiusMd: \"0.2rem\",\n    radiusLg: \"0.25rem\",\n    radiusXl: \"0.35rem\",\n    radius2xl: \"0.45rem\",\n    surfaceBlur: \"0px\",\n    shadowMd: \"0 0 0 1px rgb(255 0 180 / 0.15), 0 8px 24px rgb(0 0 0 / 0.55)\",\n    insetHighlight: \"inset 0 1px 0 rgb(255 100 220 / 0.15)\"\n  },\n  stylesheet: `\n    background-image:\n      radial-gradient(ellipse at 10% 0%, rgb(255 0 160 / 0.12), transparent 40%),\n      radial-gradient(ellipse at 90% 100%, rgb(0 255 220 / 0.1), transparent 45%),\n      linear-gradient(180deg, transparent 60%, rgb(0 0 0 / 0.35));\n  `,\n  stylesheetScoped: true\n};\nvar ArcadeNeonThemePlugin = {\n  manifest: {\n    id: \"readergo.theme.arcade-neon\",\n    name: \"Arcade Neon\",\n    version: \"1.0.0\",\n    description: \"Night-arcade dark with magenta and cyan neon signals plus Orbitron display type.\",\n    category: \"feature\",\n    provides: [\"theme-provider\", \"font-provider\"],\n    permissions: []\n  },\n  async activate(context) {\n    await context.registerCapability(\"theme-provider\", { getThemes: () => [THEME] });\n    await context.registerCapability(\"font-provider\", { getFonts: () => [ORBITRON, EXO] });\n  },\n  deactivate() {\n  }\n};\nvar index_default = ArcadeNeonThemePlugin;\n\n\n  return { ArcadeNeonThemePlugin: ArcadeNeonThemePlugin, default: index_default };\n}\n"
+}

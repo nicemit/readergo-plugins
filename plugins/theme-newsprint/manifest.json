@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.newsprint",
+  "name": "Newsprint",
+  "version": "1.0.0",
+  "description": "Stark editorial monochrome with hairline rules and Libre Baskerville / IBM Plex typography.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}
