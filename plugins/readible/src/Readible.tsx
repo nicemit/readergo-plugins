@@ -8,7 +8,8 @@ import {
   processTextForHighlighting, 
   type ProcessedParagraph,
   type ReadibleState,
-  DEFAULT_READIBLE_SETTINGS 
+  DEFAULT_READIBLE_SETTINGS,
+  clampWordFontSize,
 } from './textProcessing'
 import { FullTextView } from './FullTextView'
 
@@ -16,6 +17,7 @@ export interface ReadiblePrefs {
   wordSpeed: number
   punctuationSpeed: number
   currentWordIndex: number
+  wordFontSize: number
 }
 
 interface ReadibleProps {
@@ -25,6 +27,7 @@ interface ReadibleProps {
   initialWordSpeed?: number
   initialPunctuationSpeed?: number
   initialWordIndex?: number
+  initialWordFontSize?: number
   onPrefsChange?: (prefs: ReadiblePrefs) => void
   onClose?: () => void
 }
@@ -44,6 +47,7 @@ export function Readible({
   initialWordSpeed = DEFAULT_READIBLE_SETTINGS.wordSpeed,
   initialPunctuationSpeed = DEFAULT_READIBLE_SETTINGS.punctuationSpeed,
   initialWordIndex = 0,
+  initialWordFontSize = DEFAULT_READIBLE_SETTINGS.wordFontSize,
   onPrefsChange,
   onClose,
 }: ReadibleProps) {
@@ -53,6 +57,7 @@ export function Readible({
     isPlaying: false,
     wordSpeed: initialWordSpeed,
     punctuationSpeed: initialPunctuationSpeed,
+    wordFontSize: clampWordFontSize(initialWordFontSize),
     progress: 0,
     totalWords: 0
   })
@@ -77,6 +82,7 @@ export function Readible({
       isPlaying: false,
       wordSpeed: initialWordSpeed,
       punctuationSpeed: initialPunctuationSpeed,
+      wordFontSize: clampWordFontSize(initialWordFontSize),
     }))
 
     setParagraphs(processedParagraphs)
@@ -85,15 +91,16 @@ export function Readible({
       clearInterval(intervalRef.current)
       intervalRef.current = null
     }
-  }, [text, noteId, initialWordIndex, initialWordSpeed, initialPunctuationSpeed])
+  }, [text, noteId, initialWordIndex, initialWordSpeed, initialPunctuationSpeed, initialWordFontSize])
 
   useEffect(() => {
     onPrefsChange?.({
       wordSpeed: state.wordSpeed,
       punctuationSpeed: state.punctuationSpeed,
       currentWordIndex: state.currentWordIndex,
+      wordFontSize: state.wordFontSize,
     })
-  }, [onPrefsChange, state.wordSpeed, state.punctuationSpeed, state.currentWordIndex])
+  }, [onPrefsChange, state.wordSpeed, state.punctuationSpeed, state.currentWordIndex, state.wordFontSize])
 
   // Update progress when current word changes
   useEffect(() => {
@@ -201,6 +208,10 @@ export function Readible({
     setState(prev => ({ ...prev, punctuationSpeed: speed }))
   }, [])
 
+  const handleWordFontSizeChange = useCallback((size: number) => {
+    setState(prev => ({ ...prev, wordFontSize: clampWordFontSize(size) }))
+  }, [])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -294,7 +305,10 @@ export function Readible({
         </p>
         <div className="flex min-h-[4.5rem] items-center justify-center px-2 text-center">
           {currentWord && (
-            <div className="max-w-4xl break-words text-6xl font-light leading-none text-foreground transition-all duration-300 ease-in-out sm:text-7xl md:text-8xl">
+            <div
+              className="max-w-4xl break-words font-light leading-none text-foreground transition-all duration-300 ease-in-out"
+              style={{ fontSize: state.wordFontSize }}
+            >
               {currentWord.text}
             </div>
           )}
@@ -345,11 +359,29 @@ export function Readible({
           </button>
           <button
             type="button"
+            onClick={() => handleWordFontSizeChange(state.wordFontSize - 8)}
+            disabled={state.wordFontSize <= DEFAULT_READIBLE_SETTINGS.minWordFontSize}
+            className={controlButton('outline', 'px-2 py-1 text-xs')}
+            aria-label="Smaller word"
+          >
+            A-
+          </button>
+          <button
+            type="button"
+            onClick={() => handleWordFontSizeChange(state.wordFontSize + 8)}
+            disabled={state.wordFontSize >= DEFAULT_READIBLE_SETTINGS.maxWordFontSize}
+            className={controlButton('outline', 'px-2 py-1 text-sm')}
+            aria-label="Larger word"
+          >
+            A+
+          </button>
+          <button
+            type="button"
             onClick={() => setShowSettings(!showSettings)}
             className={controlButton('outline', 'px-2 py-1 text-xs')}
           >
             <Settings className="w-3 h-3" />
-            <span className="hidden sm:inline">Speed</span>
+            <span className="hidden sm:inline">Settings</span>
           </button>
         </div>
 
@@ -364,8 +396,10 @@ export function Readible({
             <SpeedControls
               wordSpeed={state.wordSpeed}
               punctuationSpeed={state.punctuationSpeed}
+              wordFontSize={state.wordFontSize}
               onWordSpeedChange={handleWordSpeedChange}
               onPunctuationSpeedChange={handlePunctuationSpeedChange}
+              onWordFontSizeChange={handleWordFontSizeChange}
             />
           </div>
         )}

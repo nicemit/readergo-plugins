@@ -5,15 +5,19 @@ import { DEFAULT_READIBLE_SETTINGS } from './textProcessing'
 interface SpeedControlsProps {
   wordSpeed: number
   punctuationSpeed: number
+  wordFontSize: number
   onWordSpeedChange: (speed: number) => void
   onPunctuationSpeedChange: (speed: number) => void
+  onWordFontSizeChange: (size: number) => void
 }
 
 export function SpeedControls({
   wordSpeed,
   punctuationSpeed,
+  wordFontSize,
   onWordSpeedChange,
-  onPunctuationSpeedChange
+  onPunctuationSpeedChange,
+  onWordFontSizeChange,
 }: SpeedControlsProps) {
   const formatSpeed = (speed: number) => {
     if (speed < 1000) {
@@ -87,6 +91,27 @@ export function SpeedControls({
               <span>Very Slow</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="space-y-2 sm:space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium">Word size</label>
+          <div className="text-xs sm:text-sm text-muted-foreground">{wordFontSize}px</div>
+        </div>
+        <input
+          type="range"
+          min={DEFAULT_READIBLE_SETTINGS.minWordFontSize}
+          max={DEFAULT_READIBLE_SETTINGS.maxWordFontSize}
+          step="4"
+          value={wordFontSize}
+          onChange={(e) => onWordFontSizeChange(Number(e.target.value))}
+          aria-label="Word size"
+          className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
+        />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Small</span>
+          <span>Large</span>
         </div>
       </div>
 

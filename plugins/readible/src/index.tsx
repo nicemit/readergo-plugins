@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import type { CenterPaneOverlay, Plugin, PluginContext, PluginManifest } from '@readergo/plugin-sdk'
 import { DOCUMENT_OVERLAY_UPDATED, DOCUMENT_SURFACE_CHANGED, WellKnownPlaces } from '@readergo/plugin-sdk'
 import { Readible, type ReadiblePrefs } from './Readible'
-import { DEFAULT_READIBLE_SETTINGS } from './textProcessing'
+import { DEFAULT_READIBLE_SETTINGS, clampWordFontSize } from './textProcessing'
 
 const PREFS_NS = 'readible'
 
@@ -64,6 +64,7 @@ function defaultPrefs(): ReadiblePrefs {
     wordSpeed: DEFAULT_READIBLE_SETTINGS.wordSpeed,
     punctuationSpeed: DEFAULT_READIBLE_SETTINGS.punctuationSpeed,
     currentWordIndex: 0,
+    wordFontSize: DEFAULT_READIBLE_SETTINGS.wordFontSize,
   }
 }
 
@@ -74,6 +75,7 @@ function normalizePrefs(value: unknown): ReadiblePrefs {
   const wordSpeed = Number(raw.wordSpeed)
   const punctuationSpeed = Number(raw.punctuationSpeed)
   const currentWordIndex = Number(raw.currentWordIndex)
+  const wordFontSize = Number(raw.wordFontSize)
   return {
     wordSpeed: Number.isFinite(wordSpeed) ? wordSpeed : base.wordSpeed,
     punctuationSpeed: Number.isFinite(punctuationSpeed) ? punctuationSpeed : base.punctuationSpeed,
@@ -81,6 +83,7 @@ function normalizePrefs(value: unknown): ReadiblePrefs {
       Number.isFinite(currentWordIndex) && currentWordIndex >= 0
         ? Math.floor(currentWordIndex)
         : 0,
+    wordFontSize: clampWordFontSize(wordFontSize),
   }
 }
 
@@ -296,6 +299,7 @@ function ReadibleOverlay(props: {
             initialWordSpeed={current.prefs.wordSpeed}
             initialPunctuationSpeed={current.prefs.punctuationSpeed}
             initialWordIndex={current.prefs.currentWordIndex}
+            initialWordFontSize={current.prefs.wordFontSize}
             onPrefsChange={onPrefsChange}
             onClose={() => {
               void closeReadible()
@@ -310,7 +314,7 @@ function ReadibleOverlay(props: {
 const manifest: PluginManifest = {
   id: 'readergo.features.readible',
   name: 'Readible',
-  version: '1.1.0',
+  version: '1.2.0',
   description: 'Word-by-word reader for an open document. Speeds and place are remembered per document.',
   category: 'feature',
   provides: ['center-pane-overlay'],

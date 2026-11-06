@@ -238,6 +238,7 @@ export interface ReadibleState {
   isPlaying: boolean
   wordSpeed: number
   punctuationSpeed: number
+  wordFontSize: number
   progress: number
   totalWords: number
 }
@@ -249,5 +250,17 @@ export const DEFAULT_READIBLE_SETTINGS = {
   wordSpeed: 500, // milliseconds
   punctuationSpeed: 1000, // milliseconds
   minSpeed: 50,
-  maxSpeed: 3000
+  maxSpeed: 3000,
+  wordFontSize: 96,
+  minWordFontSize: 32,
+  maxWordFontSize: 160,
 } as const
+
+export function clampWordFontSize(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_READIBLE_SETTINGS.wordFontSize
+  const rounded = Math.round(value)
+  return Math.min(
+    DEFAULT_READIBLE_SETTINGS.maxWordFontSize,
+    Math.max(DEFAULT_READIBLE_SETTINGS.minWordFontSize, rounded),
+  )
+}
