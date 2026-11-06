@@ -247,3 +247,48 @@ export const WALNUT_GRAIN = `
       transparent 1px 6px
     );
 `;
+
+export const PORCELAIN_GLOSS = `
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgb(255 255 255 / 0.9), transparent 45%),
+    radial-gradient(ellipse at 80% 100%, rgb(180 200 220 / 0.18), transparent 50%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.35), transparent 40%);
+`;
+
+export const LACQUER_SHEEN = `
+  background-image:
+    radial-gradient(ellipse at 15% 10%, rgb(180 40 40 / 0.22), transparent 40%),
+    radial-gradient(ellipse at 85% 90%, rgb(0 0 0 / 0.45), transparent 45%),
+    linear-gradient(135deg, rgb(255 200 160 / 0.05), transparent 40%),
+    repeating-linear-gradient(
+      120deg,
+      rgb(255 255 255 / 0.02) 0 1px,
+      transparent 1px 5px
+    );
+`;
+
+export const DENIM_TWILL = `
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgb(255 255 255 / 0.03) 0 1px,
+      transparent 1px 4px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgb(0 0 0 / 0.05) 0 1px,
+      transparent 1px 4px
+    ),
+    radial-gradient(ellipse at 50% 0%, rgb(100 140 200 / 0.12), transparent 55%);
+`;
+
+export const BRASS_PATINA = `
+  background-image:
+    radial-gradient(ellipse at 25% 15%, rgb(220 170 80 / 0.14), transparent 45%),
+    radial-gradient(ellipse at 75% 85%, rgb(40 25 10 / 0.35), transparent 50%),
+    repeating-linear-gradient(
+      92deg,
+      rgb(255 210 120 / 0.04) 0 1px,
+      transparent 1px 3px
+    );
+`;
