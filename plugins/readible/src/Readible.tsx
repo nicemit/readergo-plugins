@@ -58,6 +58,7 @@ export function Readible({
   })
 
   const [showSettings, setShowSettings] = useState(false)
+  const [showText, setShowText] = useState(false)
   const [paragraphs, setParagraphs] = useState<ProcessedParagraph[]>([])
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -274,146 +275,120 @@ export function Readible({
     )
   }
 
+  const previousWord = state.words[state.currentWordIndex - 1]
+  const nextWord = state.words[state.currentWordIndex + 1]
+
   return (
-    <div className="h-full flex flex-col min-h-0">
-      {/* Progress Bar */}
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex-shrink-0">
-        <ProgressBar 
+        <ProgressBar
           progress={state.progress}
           currentWord={state.currentWordIndex + 1}
           totalWords={state.totalWords}
         />
       </div>
 
-      {/* Main Layout */}
-      <div className="flex-1 flex">
-        {/* Desktop Only: Left Side - Full Text */}
-        <div className="hidden lg:flex lg:flex-1 border-r">
-          <FullTextView 
-            paragraphs={paragraphs}
-            currentWordIndex={state.currentWordIndex}
-            isPlaying={state.isPlaying}
-            title={title}
-          />
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-8">
+        <p className="mb-10 min-h-6 text-center text-base text-muted-foreground/60">
+          {previousWord?.text || ''}
+        </p>
+        <div className="flex min-h-[4.5rem] items-center justify-center px-2 text-center">
+          {currentWord && (
+            <div className="max-w-4xl break-words text-6xl font-light leading-none text-foreground transition-all duration-300 ease-in-out sm:text-7xl md:text-8xl">
+              {currentWord.text}
+            </div>
+          )}
+        </div>
+        <p className="mt-10 min-h-6 text-center text-base text-muted-foreground/60">
+          {nextWord?.text || ''}
+        </p>
+        <p className="mt-6 text-xs text-muted-foreground">
+          {title} · word {state.currentWordIndex + 1} of {state.totalWords}
+        </p>
+
+        <div className="mt-8 flex items-center justify-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={restart}
+            disabled={isAtStart}
+            className={controlButton('outline', 'px-2 py-1 text-xs')}
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span className="hidden sm:inline">Restart</span>
+          </button>
+          <button
+            type="button"
+            onClick={goToPreviousWord}
+            disabled={isAtStart}
+            className={controlButton('outline', 'p-2')}
+          >
+            <SkipBack className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={togglePlayPause}
+            className={controlButton('primary', 'px-8 py-3')}
+          >
+            {state.isPlaying ? (
+              <Pause className="h-6 w-6" />
+            ) : (
+              <Play className="h-6 w-6" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={goToNextWord}
+            disabled={isAtEnd}
+            className={controlButton('outline', 'p-2')}
+          >
+            <SkipForward className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSettings(!showSettings)}
+            className={controlButton('outline', 'px-2 py-1 text-xs')}
+          >
+            <Settings className="w-3 h-3" />
+            <span className="hidden sm:inline">Speed</span>
+          </button>
         </div>
 
-        {/* Always Visible: Right Side - Word Player & Controls */}
-        <div className="w-full lg:w-96 xl:w-[28rem] flex flex-col bg-background">
-          {/* Word Player Section */}
-          <div className="flex flex-col items-center justify-center p-4 lg:p-6 min-h-[300px] lg:min-h-[400px]">
-            <div className="text-center w-full max-w-md">
-              <div className="mb-4 lg:mb-6">
-                <h2 className="text-lg xl:text-xl font-medium text-muted-foreground mb-2 px-2">
-                  {title}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Word {state.currentWordIndex + 1} of {state.totalWords}
-                </p>
-              </div>
-              
-              <div className="min-h-[120px] lg:min-h-[160px] xl:min-h-[200px] flex items-center justify-center px-4">
-                {currentWord && (
-                  <div className="text-3xl lg:text-4xl xl:text-5xl font-light text-foreground transition-all duration-300 ease-in-out break-words text-center">
-                    {currentWord.text}
-                  </div>
-                )}
-              </div>
-            </div>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          <kbd className="rounded bg-muted px-1 py-0.5">Space</kbd> play
+          <kbd className="ml-2 rounded bg-muted px-1 py-0.5">←</kbd>
+          <kbd className="ml-1 rounded bg-muted px-1 py-0.5">→</kbd> step
+        </p>
+
+        {showSettings && (
+          <div className="mt-6 w-full max-w-xl">
+            <SpeedControls
+              wordSpeed={state.wordSpeed}
+              punctuationSpeed={state.punctuationSpeed}
+              onWordSpeedChange={handleWordSpeedChange}
+              onPunctuationSpeedChange={handlePunctuationSpeedChange}
+            />
           </div>
+        )}
+      </div>
 
-          {/* Controls Section */}
-          <div className="flex-shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="p-3 lg:p-4">
-              {/* Navigation Controls */}
-              <div className="flex items-center justify-center gap-2 lg:gap-3 mb-3 lg:mb-4">
-                <button
-                  type="button"
-                  onClick={restart}
-                  disabled={isAtStart}
-                  className={controlButton('outline', 'px-2 py-1 text-xs')}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  <span className="hidden xl:inline">Restart</span>
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={goToPreviousWord}
-                  disabled={isAtStart}
-                  className={controlButton('outline', 'p-2')}
-                >
-                  <SkipBack className="w-4 h-4" />
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={togglePlayPause}
-                  className={controlButton('primary', 'px-6 lg:px-8 py-2 lg:py-3')}
-                >
-                  {state.isPlaying ? (
-                    <Pause className="w-5 h-5 lg:w-6 lg:h-6" />
-                  ) : (
-                    <Play className="w-5 h-5 lg:w-6 lg:h-6" />
-                  )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={goToNextWord}
-                  disabled={isAtEnd}
-                  className={controlButton('outline', 'p-2')}
-                >
-                  <SkipForward className="w-4 h-4" />
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={controlButton('outline', 'px-2 py-1 text-xs')}
-                >
-                  <Settings className="w-3 h-3" />
-                  <span className="hidden xl:inline">Settings</span>
-                </button>
-              </div>
-
-              {/* Speed Controls */}
-              {showSettings && (
-                <div className="border-t pt-3 lg:pt-4">
-                  <SpeedControls
-                    wordSpeed={state.wordSpeed}
-                    punctuationSpeed={state.punctuationSpeed}
-                    onWordSpeedChange={handleWordSpeedChange}
-                    onPunctuationSpeedChange={handlePunctuationSpeedChange}
-                  />
-                </div>
-              )}
-
-              {/* Keyboard Shortcuts Help */}
-              <div className="text-center mt-3 lg:mt-4">
-                <p className="text-xs text-muted-foreground hidden lg:block">
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Space</kbd> Play/Pause • 
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded ml-1">←</kbd> Previous • 
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded ml-1">→</kbd> Next • 
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded ml-1">Ctrl+R</kbd> Restart
-                </p>
-                <p className="text-xs text-muted-foreground lg:hidden">
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded">Space</kbd> Play • 
-                  <kbd className="px-1 py-0.5 text-xs bg-muted rounded ml-1">←→</kbd> Navigate
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Full Text View */}
-          <div className="lg:hidden border-t">
-            <FullTextView 
+      <div className="flex-shrink-0 border-t">
+        <button
+          type="button"
+          onClick={() => setShowText((open) => !open)}
+          className="w-full px-4 py-2 text-left text-xs text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+        >
+          {showText ? 'Hide text' : 'Show text'}
+        </button>
+        {showText && (
+          <div className="h-40 min-h-0 overflow-hidden">
+            <FullTextView
               paragraphs={paragraphs}
               currentWordIndex={state.currentWordIndex}
               isPlaying={state.isPlaying}
               title={title}
             />
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
