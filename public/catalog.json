@@ -383,13 +383,13 @@
       "name": "Readible",
       "description": "Word-by-word reader for an open document. Speeds and place are remembered per document.",
       "category": "feature",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "provides": [
         "center-pane-overlay"
       ],
       "bundleUrl": "readible.bundle.json",
-      "bundleHash": "6bfa7650e753b4bd",
-      "hash": "6bfa7650e753b4bd"
+      "bundleHash": "905d6066295327ed",
+      "hash": "905d6066295327ed"
     },
     {
       "id": "readergo.theme.rose-pine",
