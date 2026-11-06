@@ -1,0 +1,21 @@
+{
+  "id": "readergo.theme.skeuomorph",
+  "name": "Leather Desk",
+  "version": "1.0.0",
+  "description": "Skeuomorphic leather-and-brass workspace chrome with physical materials and a scoped theme stylesheet.",
+  "category": "feature",
+  "provides": [
+    "theme-provider",
+    "font-provider"
+  ],
+  "requires": [],
+  "permissions": [],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.ts"
+  }
+}
