@@ -187,18 +187,20 @@ export const SHARED_CHROME = `
   }
 `;
 
+/** Grain strength reads --rg-leather-grain (Style Settings toggle: 1 on, 0 off). */
 export const LEATHER_GRAIN = `
+  --rg-leather-grain: 1;
   background-image:
-    radial-gradient(ellipse at 18% 8%, rgb(140 80 45 / 0.22), transparent 42%),
-    radial-gradient(ellipse at 82% 92%, rgb(30 14 8 / 0.35), transparent 48%),
+    radial-gradient(ellipse at 18% 8%, rgb(140 80 45 / calc(0.22 * var(--rg-leather-grain, 1))), transparent 42%),
+    radial-gradient(ellipse at 82% 92%, rgb(30 14 8 / calc(0.35 * var(--rg-leather-grain, 1))), transparent 48%),
     repeating-linear-gradient(
       118deg,
-      rgb(255 230 180 / 0.025) 0 1px,
+      rgb(255 230 180 / calc(0.025 * var(--rg-leather-grain, 1))) 0 1px,
       transparent 1px 4px
     ),
     repeating-linear-gradient(
       28deg,
-      rgb(0 0 0 / 0.04) 0 2px,
+      rgb(0 0 0 / calc(0.04 * var(--rg-leather-grain, 1))) 0 2px,
       transparent 2px 5px
     );
 `;

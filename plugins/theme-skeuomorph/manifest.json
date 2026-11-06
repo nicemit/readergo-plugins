@@ -1,8 +1,8 @@
 {
   "id": "readergo.theme.skeuomorph",
   "name": "Skeuomorph Suite",
-  "version": "1.2.0",
-  "description": "Eight physical chrome themes: Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, and Brass Console.",
+  "version": "1.3.0",
+  "description": "Eight physical chrome themes. Leather Desk ships editor tokens and Style Settings knobs; all use materials and scoped grain stylesheets.",
   "category": "theme",
   "provides": [
     "theme-provider",
@@ -25,7 +25,7 @@
     "suite",
     "physical"
   ],
-  "longDescription": "Eight physical atmospheres (Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, Brass Console). Uses materials tokens and scoped grain stylesheets for embossed cards, recessed trays, and a tactile activity rail.",
+  "longDescription": "Eight physical atmospheres (Leather Desk, Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, Brass Console). Leather Desk includes editor/chrome tokens and Style Settings (radius, measure, brass accent, density, grain). Uses materials tokens and scoped grain stylesheets for embossed cards, recessed trays, and a tactile activity rail.",
   "preview": {
     "background": "25 28% 12%",
     "foreground": "36 40% 88%",
