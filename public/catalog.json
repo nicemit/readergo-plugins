@@ -224,20 +224,6 @@
       "hash": "a732e76137d8ce79"
     },
     {
-      "id": "readergo.theme.skeuomorph",
-      "name": "Leather Desk",
-      "description": "Skeuomorphic leather-and-brass workspace chrome with physical materials and a scoped theme stylesheet.",
-      "category": "feature",
-      "version": "1.0.0",
-      "provides": [
-        "theme-provider",
-        "font-provider"
-      ],
-      "bundleUrl": "theme-skeuomorph.bundle.json",
-      "bundleHash": "1ee551182074e14d",
-      "hash": "1ee551182074e14d"
-    },
-    {
       "id": "readergo.features.link-clipper",
       "name": "Link Clipper",
       "description": "Clip links to create new notes with parsed content",
@@ -468,6 +454,20 @@
       "bundleUrl": "simple.bundle.json",
       "bundleHash": "1080ee463e3c7560",
       "hash": "1080ee463e3c7560"
+    },
+    {
+      "id": "readergo.theme.skeuomorph",
+      "name": "Skeuomorph Suite",
+      "description": "Physical chrome themes: Leather Desk, Brushed Steel, Bound Journal, and Walnut Library - materials tokens plus scoped grain stylesheets.",
+      "category": "feature",
+      "version": "1.1.0",
+      "provides": [
+        "theme-provider",
+        "font-provider"
+      ],
+      "bundleUrl": "theme-skeuomorph.bundle.json",
+      "bundleHash": "59e024f4f14d4ee7",
+      "hash": "59e024f4f14d4ee7"
     },
     {
       "id": "readergo.theme.solarized",
