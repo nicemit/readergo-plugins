@@ -1,7 +1,7 @@
 {
   "id": "readergo.features.readible",
   "name": "Readible",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Word-by-word reader for an open document. Speeds and place are remembered per document.",
   "category": "feature",
   "provides": [

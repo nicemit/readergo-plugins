@@ -8,7 +8,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "node scripts/compile-plugins.mjs && node scripts/build-catalog.mjs",
+    "build": "node scripts/check-overlay-scope.mjs && node scripts/compile-plugins.mjs && node scripts/build-catalog.mjs",
+    "check:overlay": "node scripts/check-overlay-scope.mjs",
     "compile": "node scripts/compile-plugins.mjs",
     "catalog": "node scripts/build-catalog.mjs",
     "serve": "node scripts/serve.mjs",

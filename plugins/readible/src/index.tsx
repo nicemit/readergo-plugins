@@ -1,7 +1,7 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import { X } from 'lucide-react'
 import type { CenterPaneOverlay, Plugin, PluginContext, PluginManifest } from '@readergo/plugin-sdk'
-import { WellKnownPlaces } from '@readergo/plugin-sdk'
+import { DOCUMENT_OVERLAY_UPDATED, DOCUMENT_SURFACE_CHANGED, WellKnownPlaces } from '@readergo/plugin-sdk'
 import { Readible, type ReadiblePrefs } from './Readible'
 import { DEFAULT_READIBLE_SETTINGS } from './textProcessing'
 
@@ -36,14 +36,18 @@ type Session = {
 }
 
 let pluginContext: PluginContext | null = null
+let surfaceSubscription: string | null = null
 let session: Session | null = null
 let livePrefs: ReadiblePrefs | null = null
 let generation = 0
+let anchoredSessionId: string | null = null
+let anchorHostNoteId: string | null | undefined = undefined
 let persistTimer: ReturnType<typeof setTimeout> | null = null
 const listeners = new Set<() => void>()
 
 function emit() {
   listeners.forEach((fn) => fn())
+  void pluginContext?.emit(DOCUMENT_OVERLAY_UPDATED, { id: 'readergo.features.readible' })
 }
 
 function subscribe(listener: () => void) {
@@ -196,6 +200,25 @@ async function openReadible(noteId: string) {
   return { success: true }
 }
 
+function watchHostNote(sessionNoteId: string, hostNoteId: string | null) {
+  if (anchoredSessionId !== sessionNoteId) {
+    anchoredSessionId = sessionNoteId
+    anchorHostNoteId = hostNoteId
+    return
+  }
+  if (!hostNoteId) {
+    if (anchorHostNoteId) void closeReadible()
+    return
+  }
+  if (hostNoteId === sessionNoteId) {
+    anchorHostNoteId = hostNoteId
+    return
+  }
+  if (hostNoteId !== anchorHostNoteId) {
+    void closeReadible()
+  }
+}
+
 async function closeReadible() {
   const context = pluginContext
   const current = session
@@ -207,6 +230,8 @@ async function closeReadible() {
   }
   session = null
   livePrefs = null
+  anchoredSessionId = null
+  anchorHostNoteId = undefined
   emit()
   if (context && current && prefs) {
     await writePrefs(context, current.spaceKey, prefs)
@@ -217,12 +242,24 @@ async function closeReadible() {
   return { success: true }
 }
 
-function ReadibleOverlay() {
+function ReadibleOverlay(props: {
+  noteId?: string | null
+  viewMode?: 'dashboard' | 'editor'
+}) {
   const current = useSyncExternalStore(subscribe, getSession, getSession)
   const onPrefsChange = useCallback((prefs: ReadiblePrefs) => {
     if (!current) return
     reportPrefs(current.noteId, prefs)
   }, [current])
+
+  useEffect(() => {
+    if (!current) return
+    if (props.viewMode === 'dashboard') {
+      void closeReadible()
+      return
+    }
+    watchHostNote(current.noteId, props.noteId ?? null)
+  }, [current, props.noteId, props.viewMode])
 
   if (!current) return null
 
@@ -273,7 +310,7 @@ function ReadibleOverlay() {
 const manifest: PluginManifest = {
   id: 'readergo.features.readible',
   name: 'Readible',
-  version: '1.0.0',
+  version: '1.1.0',
   description: 'Word-by-word reader for an open document. Speeds and place are remembered per document.',
   category: 'feature',
   provides: ['center-pane-overlay'],
@@ -315,15 +352,32 @@ export const ReadiblePlugin: Plugin = {
     const overlay: CenterPaneOverlay = {
       id: 'readergo.features.readible',
       name: 'Readible',
+      scope: 'active-document',
+      get boundNoteId() {
+        return session?.noteId ?? null
+      },
       order: 10,
-      renderOverlay: () => <ReadibleOverlay />,
+      renderOverlay: (props) => (
+        <ReadibleOverlay noteId={props.noteId} viewMode={props.viewMode} />
+      ),
     }
     await context.registerCapability('center-pane-overlay', overlay)
+    surfaceSubscription = await context.subscribe(DOCUMENT_SURFACE_CHANGED, (payload) => {
+      const next = payload as { noteId?: string | null; viewMode?: string }
+      if (!session) return
+      if (next?.viewMode === 'dashboard' || next?.noteId !== session.noteId) {
+        void closeReadible()
+      }
+    })
     context.log.info('Readible ready')
   },
 
   deactivate() {
+    const context = pluginContext
+    const subscription = surfaceSubscription
+    surfaceSubscription = null
     void closeReadible()
+    if (context && subscription) void context.unsubscribe(subscription)
     pluginContext = null
   },
 }
