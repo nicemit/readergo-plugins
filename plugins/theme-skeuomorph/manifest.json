@@ -1,7 +1,7 @@
 {
   "id": "readergo.theme.skeuomorph",
   "name": "Skeuomorph Suite",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Eight physical chrome themes. Leather Desk ships editor tokens and Style Settings knobs; all use materials and scoped grain stylesheets.",
   "category": "theme",
   "provides": [

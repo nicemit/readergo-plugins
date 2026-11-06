@@ -179,8 +179,8 @@
         "sidebar-panel"
       ],
       "bundleUrl": "outline.bundle.json",
-      "bundleHash": "a62e28eb60c18649",
-      "hash": "a62e28eb60c18649"
+      "bundleHash": "1f8033ab895b5b3c",
+      "hash": "1f8033ab895b5b3c"
     },
     {
       "id": "readergo.theme.eink",
@@ -263,8 +263,8 @@
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "3e0f8eb3d2dbc529",
-      "hash": "3e0f8eb3d2dbc529"
+      "bundleHash": "820bb5bfa51a9619",
+      "hash": "820bb5bfa51a9619"
     },
     {
       "id": "readergo.filesystem",
@@ -740,7 +740,7 @@
       "name": "Skeuomorph Suite",
       "description": "Eight physical chrome themes. Leather Desk ships editor tokens and Style Settings knobs; all use materials and scoped grain stylesheets.",
       "category": "theme",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "provides": [
         "theme-provider",
         "font-provider"
@@ -764,8 +764,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-skeuomorph.bundle.json",
-      "bundleHash": "905d7f17d5981a32",
-      "hash": "905d7f17d5981a32",
+      "bundleHash": "3c17a8e057adfeb0",
+      "hash": "3c17a8e057adfeb0",
       "screenshot": "screenshots/theme-skeuomorph.svg"
     },
     {
@@ -852,8 +852,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "note.bundle.json",
-      "bundleHash": "12015c77c5607bce",
-      "hash": "12015c77c5607bce"
+      "bundleHash": "5cb964f2e9e14af4",
+      "hash": "5cb964f2e9e14af4"
     },
     {
       "id": "readergo.vector-store.lancedb",

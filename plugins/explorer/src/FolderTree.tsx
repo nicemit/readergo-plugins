@@ -428,9 +428,11 @@ function FolderNode({
           {/* Expand/Collapse Button */}
           <button
             type="button"
+            data-rg-chrome="tree-toggle"
+            data-rg-quiet="true"
             aria-expanded={isExpanded}
             aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
-            className="p-1 mr-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded transition-colors flex items-center justify-center"
+            className="p-1 mr-1.5 hover:bg-muted/60 text-muted-foreground hover:text-foreground rounded-md transition-colors flex items-center justify-center shadow-none border-0 bg-transparent"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
