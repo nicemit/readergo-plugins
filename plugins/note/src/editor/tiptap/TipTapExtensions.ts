@@ -164,7 +164,7 @@ export const getTipTapExtensions = (): Extension[] => {
             // active (blue/underline) while ProseMirror swallowed navigation.
             openOnClick: true,
             HTMLAttributes: {
-                class: 'text-blue-600 underline hover:text-blue-800 cursor-pointer',
+                class: 'rg-editor-link',
                 target: '_blank',
                 rel: 'noopener noreferrer',
             },

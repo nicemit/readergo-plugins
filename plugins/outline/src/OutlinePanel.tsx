@@ -359,10 +359,12 @@ export function OutlinePanel({ noteId }: OutlinePanelProps) {
               {heading.hasChildren ? (
                 <button
                   type="button"
+                  data-rg-chrome="tree-toggle"
+                  data-rg-quiet="true"
                   onClick={() => toggleHeading(heading.id)}
                   aria-expanded={!isCollapsed}
                   aria-label={`${isCollapsed ? 'Expand' : 'Collapse'} ${heading.text}`}
-                  className="mt-1 flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  className="mt-1 flex-shrink-0 p-0.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shadow-none border-0 bg-transparent"
                 >
                   <ChevronRight
                     className={`w-3.5 h-3.5 transition-transform duration-150 ${

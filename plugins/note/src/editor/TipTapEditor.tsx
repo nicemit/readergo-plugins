@@ -265,7 +265,8 @@ function TipTapEditorContent({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-slate prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none leading-relaxed whitespace-normal break-words',
+        // rg-prose binds Tailwind Typography vars to --rg-* theme tokens (see globals.css)
+        class: 'tiptap prose rg-prose prose-sm sm:prose-base lg:prose-lg xl:prose-xl max-w-none focus:outline-none leading-relaxed whitespace-normal break-words',
       },
       transformPastedHTML(html) {
         return html

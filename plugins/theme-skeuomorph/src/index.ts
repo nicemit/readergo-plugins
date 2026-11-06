@@ -22,7 +22,7 @@ export const SkeuomorphThemePlugin: Plugin = {
   manifest: {
     id: 'readergo.theme.skeuomorph',
     name: 'Skeuomorph Suite',
-    version: '1.3.0',
+    version: '1.3.1',
     description:
       'Eight physical chrome themes: Leather Desk (editor tokens + Style Settings), Brushed Steel, Bound Journal, Walnut Library, Soft Porcelain, Cinnabar Lacquer, Denim Bench, and Brass Console.',
     category: 'feature',

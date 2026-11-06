@@ -147,6 +147,10 @@ export const LEATHER_DESK_THEME = {
     activityActiveBg: 'hsl(36 55% 48% / 0.18)',
     sidebarBg: 'hsl(25 26% 11% / 0.94)',
     sidebarBorder: 'hsl(30 22% 28% / 0.7)',
+    /* Matching leather surfaces - explorer darkest blotter, editor desk, inspector tray */
+    paneExplorerBg: 'hsl(25 30% 10%)',
+    paneEditorBg: 'hsl(25 24% 13%)',
+    paneInspectorBg: 'hsl(25 22% 15%)',
     scrollbarThumb: 'hsl(30 22% 32%)',
     scrollbarTrack: 'transparent',
     density: 'comfortable' as const,

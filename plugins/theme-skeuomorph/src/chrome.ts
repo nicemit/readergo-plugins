@@ -142,17 +142,32 @@ export const SHARED_CHROME = `
     border-color: hsl(var(--border));
   }
 
-  /* Raised actuators - skip activity-bar items (styled above) */
-  button:not([data-rg-chrome^="activity"]),
-  [role="button"]:not([data-rg-chrome^="activity"]),
+  /* Raised actuators - skip activity chrome, quiet tree toggles, and icon ghosts */
+  button:not([data-rg-chrome^="activity"]):not([data-rg-quiet]):not([data-rg-chrome="tree-toggle"]),
+  [role="button"]:not([data-rg-chrome^="activity"]):not([data-rg-quiet]):not([data-rg-chrome="tree-toggle"]),
   .bg-primary {
     box-shadow: var(--inset-highlight), var(--shadow-sm);
   }
 
-  button:not([data-rg-chrome^="activity"]):active,
-  [role="button"]:not([data-rg-chrome^="activity"]):active {
+  button:not([data-rg-chrome^="activity"]):not([data-rg-quiet]):not([data-rg-chrome="tree-toggle"]):active,
+  [role="button"]:not([data-rg-chrome^="activity"]):not([data-rg-quiet]):not([data-rg-chrome="tree-toggle"]):active {
     box-shadow: var(--inset-shadow);
     transform: translateY(1px);
+  }
+
+  /* Tree expand/collapse - flat glyph, never a mini raised plate */
+  [data-rg-chrome="tree-toggle"],
+  button[data-rg-quiet] {
+    box-shadow: none !important;
+    background-image: none !important;
+    border-color: transparent !important;
+    transform: none !important;
+  }
+
+  [data-rg-chrome="tree-toggle"]:hover,
+  button[data-rg-quiet]:hover {
+    background-color: hsl(var(--muted) / 0.55);
+    box-shadow: none !important;
   }
 
   /* Recessed fields */
