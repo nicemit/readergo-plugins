@@ -41,6 +41,10 @@ export function createPiTools(input: {
   vectorStore: VectorStoreCapability | null;
 }): AgentTool[] {
   const browserTools = input.req.tools ?? [];
+  if (input.req.disableTools === true) {
+    // One-shot generations (Concept Learn plan, etc.) must not enter a note-tool loop.
+    return [];
+  }
   const browserNames = new Set(browserTools.map((tool) => tool.name));
   const tools: AgentTool[] = [
     tool(
@@ -368,6 +372,13 @@ function capText(text: string): string {
 }
 
 export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[]): string {
+  if (req.disableTools === true) {
+    return [
+      'You are a helpful assistant inside ReaderGo.',
+      'Tools are disabled for this turn. Answer directly from the user message.',
+      'Follow the output format in the user message exactly. Do not call tools.',
+    ].join('\n\n');
+  }
   const lines = [
     'You are a helpful assistant inside ReaderGo.',
     'When the user refers to "this", "the article", or selected text, use the provided source context.',

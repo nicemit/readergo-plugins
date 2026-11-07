@@ -169,8 +169,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "concept-learn.bundle.json",
-      "bundleHash": "c19c050b9ba0a8a7",
-      "hash": "c19c050b9ba0a8a7"
+      "bundleHash": "699bb41bf511ea2f",
+      "hash": "699bb41bf511ea2f"
     },
     {
       "id": "demo.external.plugin",
@@ -578,7 +578,7 @@
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "5c54ef8d0a5c9a1a"
+      "runtimeBundleHash": "00d3562185e4d365"
     },
     {
       "id": "readergo.features.pin-notes",

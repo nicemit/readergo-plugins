@@ -9,13 +9,14 @@ import {
 import {
   appendChatMessage,
   createChatConversation,
+  getChatConversation,
   sendAgentChat,
 } from '@/lib/runtime/runtimeRpc';
 import {
   localFallbackPlan,
   normalizeConceptData,
 } from './schema';
-import type { ConceptData, ConceptSeed } from './types';
+import type { ConceptData, ConceptSeed, TutorMessage } from './types';
 
 const AGENT_SDK_KEY = 'readergo_agent_sdk';
 
@@ -50,12 +51,36 @@ function extractJsonObject(text: string): unknown | null {
   }
 }
 
+export function formatError(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'string' && err.trim()) return err;
+  if (err && typeof err === 'object') {
+    const record = err as { message?: unknown; code?: unknown; error?: unknown };
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message;
+    }
+    if (typeof record.error === 'string' && record.error.trim()) {
+      return record.error;
+    }
+    if (typeof record.code === 'string' && record.code.trim()) {
+      return record.code;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch {
+      // fall through
+    }
+  }
+  return 'AI request failed';
+}
+
 async function runAgentTurn(input: {
   conversationId: string;
   message: string;
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
   onChunk?: (text: string) => void;
   signal?: AbortSignal;
+  disableTools?: boolean;
 }): Promise<string> {
   const provider = loadLlmProviderSelection();
   const memory = loadMemorySelection();
@@ -79,6 +104,7 @@ async function runAgentTurn(input: {
       message: input.message,
       history: input.history,
       tools: [],
+      disableTools: input.disableTools === true,
       agent: { id: agentId },
       provider: {
         id: provider.id,
@@ -132,7 +158,6 @@ export async function generateConceptPlan(input: {
   seed: ConceptSeed;
   onChunk?: (text: string) => void;
   signal?: AbortSignal;
-  persistThread?: boolean;
 }): Promise<ConceptData> {
   const conversationId = newId('concept_plan');
   const seedBlock =
@@ -141,44 +166,16 @@ export async function generateConceptPlan(input: {
       : `Topic: ${input.seed.topic}`;
 
   try {
-    const memory = loadMemorySelection();
-    if (input.persistThread && memory.chatStoreId) {
-      try {
-        await createChatConversation({
-          providerId: memory.chatStoreId,
-          id: conversationId,
-          title: `Plan: ${input.seed.topic}`,
-        });
-        await appendChatMessage({
-          providerId: memory.chatStoreId,
-          conversationId,
-          role: 'user',
-          content: seedBlock,
-        });
-      } catch {
-        // Persistence is optional for plan generation.
-      }
-    }
-
+    input.onChunk?.(
+      'Calling the shared AI backend (no note tools). Waiting for the model…',
+    );
     const reply = await runAgentTurn({
       conversationId,
       message: `${PLAN_PROMPT}\n\n${seedBlock}`,
       onChunk: input.onChunk,
       signal: input.signal,
+      disableTools: true,
     });
-
-    if (input.persistThread && memory.chatStoreId && reply.trim()) {
-      try {
-        await appendChatMessage({
-          providerId: memory.chatStoreId,
-          conversationId,
-          role: 'assistant',
-          content: reply,
-        });
-      } catch {
-        // ignore
-      }
-    }
 
     const parsed = extractJsonObject(reply);
     if (!parsed || typeof parsed !== 'object') {
@@ -225,27 +222,27 @@ export async function generateConceptPlan(input: {
   }
 }
 
-function formatError(err: unknown): string {
-  if (err instanceof Error && err.message) return err.message;
-  if (typeof err === 'string' && err.trim()) return err;
-  if (err && typeof err === 'object') {
-    const record = err as { message?: unknown; code?: unknown; error?: unknown };
-    if (typeof record.message === 'string' && record.message.trim()) {
-      return record.message;
-    }
-    if (typeof record.error === 'string' && record.error.trim()) {
-      return record.error;
-    }
-    if (typeof record.code === 'string' && record.code.trim()) {
-      return record.code;
-    }
-    try {
-      return JSON.stringify(err);
-    } catch {
-      // fall through
-    }
+export async function loadTutorHistory(
+  tutorThreadId: string | undefined,
+): Promise<TutorMessage[]> {
+  if (!tutorThreadId) return [];
+  const memory = loadMemorySelection();
+  if (!memory.chatStoreId) return [];
+  try {
+    const conversation = await getChatConversation({
+      providerId: memory.chatStoreId,
+      conversationId: tutorThreadId,
+    });
+    if (!conversation?.messages?.length) return [];
+    return conversation.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({
+        role: m.role as 'user' | 'assistant',
+        text: m.content,
+      }));
+  } catch {
+    return [];
   }
-  return 'AI request failed';
 }
 
 export async function sendTutorMessage(input: {
@@ -309,6 +306,7 @@ export async function sendTutorMessage(input: {
     history: input.history,
     onChunk: input.onChunk,
     signal: input.signal,
+    disableTools: true,
   });
 
   if (memory.chatStoreId && text.trim()) {

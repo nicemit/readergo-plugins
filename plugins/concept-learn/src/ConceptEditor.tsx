@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
-import { generateConceptPlan, sendTutorMessage } from './ai';
+import {
+  formatError,
+  generateConceptPlan,
+  loadTutorHistory,
+  sendTutorMessage,
+} from './ai';
 import { EmptyState } from './EmptyState';
 import { MapRail } from './MapStrip';
 import { PlaygroundHost } from './playgrounds/PlaygroundHost';
@@ -24,6 +29,10 @@ function activeNode(data: ConceptData) {
   return data.map.nodes.find((n) => n.id === data.activeNodeId) || null;
 }
 
+/** Fill the DynamicEditor absolute pane without growing the outer scroll. */
+const SHELL =
+  'absolute inset-0 flex min-h-0 w-full flex-col overflow-hidden bg-background';
+
 export function ConceptEditor(props: EditorProps) {
   const note = props.currentNote as
     | { id?: string; data?: unknown; content?: string; title?: string }
@@ -39,8 +48,8 @@ export function ConceptEditor(props: EditorProps) {
   const [tutorError, setTutorError] = useState<string | null>(null);
   const [planStream, setPlanStream] = useState('');
   const [mobileTab, setMobileTab] = useState<
-    'map' | 'explain' | 'play' | 'tutor'
-  >('explain');
+    'map' | 'learn' | 'tutor'
+  >('learn');
   const [mapCollapsed, setMapCollapsed] = useState(false);
 
   const dataRef = useRef(data);
@@ -49,6 +58,7 @@ export function ConceptEditor(props: EditorProps) {
   const onTitleChangeRef = useRef(props.onTitleChange);
   const abortRef = useRef<AbortController | null>(null);
   const autoBuildKeyRef = useRef<string | null>(null);
+  const loadedThreadRef = useRef<string | null>(null);
 
   dataRef.current = data;
   onDataChangeRef.current = props.onDataChange;
@@ -73,19 +83,24 @@ export function ConceptEditor(props: EditorProps) {
       seed,
       building: true,
       buildError: undefined,
+      tutorThreadId: dataRef.current.tutorThreadId,
     };
     commit(building, seed.topic);
     setPlanStream('');
-    setTutorMessages([]);
 
     const plan = await generateConceptPlan({
       seed,
       signal: controller.signal,
       onChunk: setPlanStream,
-      persistThread: false,
     });
     if (controller.signal.aborted) return;
-    commit(plan, seed.topic);
+    commit(
+      {
+        ...plan,
+        tutorThreadId: dataRef.current.tutorThreadId || plan.tutorThreadId,
+      },
+      seed.topic,
+    );
     setPlanStream('');
   };
 
@@ -108,6 +123,27 @@ export function ConceptEditor(props: EditorProps) {
     autoBuildKeyRef.current = key;
     void startFromSeed(data.seed);
   }, [note?.id, data.seed, data.building, data.map.nodes.length]);
+
+  useEffect(() => {
+    setTutorMessages([]);
+    loadedThreadRef.current = null;
+  }, [note?.id]);
+
+  // Reload tutor transcript from runtime chat-store when opening a concept.
+  useEffect(() => {
+    const threadId = data.tutorThreadId;
+    if (!threadId || data.building) return;
+    if (loadedThreadRef.current === threadId) return;
+    loadedThreadRef.current = threadId;
+    let cancelled = false;
+    void loadTutorHistory(threadId).then((messages) => {
+      if (cancelled) return;
+      setTutorMessages(messages);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [data.tutorThreadId, data.building, note?.id]);
 
   const onTutorSend = async (text: string) => {
     setTutorError(null);
@@ -139,15 +175,10 @@ export function ConceptEditor(props: EditorProps) {
       ]);
       if (result.tutorThreadId !== dataRef.current.tutorThreadId) {
         commit({ ...dataRef.current, tutorThreadId: result.tutorThreadId });
+        loadedThreadRef.current = result.tutorThreadId;
       }
     } catch (err) {
-      setTutorError(
-        err instanceof Error && err.message
-          ? err.message
-          : err && typeof err === 'object' && 'message' in err
-            ? String((err as { message: unknown }).message)
-            : 'Tutor request failed',
-      );
+      setTutorError(formatError(err));
       setStreaming('');
     } finally {
       setTutorBusy(false);
@@ -156,7 +187,7 @@ export function ConceptEditor(props: EditorProps) {
 
   if (!data.seed && !data.building) {
     return (
-      <div className={`h-full min-h-0 ${props.className || ''}`}>
+      <div className={SHELL}>
         <EmptyState onStart={(seed) => void startFromSeed(seed)} />
       </div>
     );
@@ -164,22 +195,29 @@ export function ConceptEditor(props: EditorProps) {
 
   if (data.building) {
     return (
-      <div
-        className={`flex h-full min-h-0 flex-col items-center justify-center gap-3 px-6 ${props.className || ''}`}
-      >
+      <div className={`${SHELL} items-center justify-center gap-3 px-6`}>
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <p className="text-sm font-medium">
           Building a map for {data.seed?.topic || 'your concept'}...
         </p>
         <p className="max-w-md text-center text-xs text-muted-foreground">
-          Uses the same AI backend as Chat. If runtime is offline, a local
-          fallback curriculum loads instead.
+          Uses the same AI backend as Chat, without note tools. Pi returns the
+          full reply when the model finishes (you may not see tokens until then).
         </p>
         {planStream ? (
           <pre className="mt-2 max-h-40 w-full max-w-lg overflow-auto rounded-md border border-border bg-muted/30 p-2 text-[11px] text-muted-foreground">
             {planStream.slice(-800)}
           </pre>
         ) : null}
+        <button
+          type="button"
+          className="mt-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted/50"
+          onClick={() => {
+            abortRef.current?.abort();
+          }}
+        >
+          Cancel
+        </button>
       </div>
     );
   }
@@ -187,8 +225,8 @@ export function ConceptEditor(props: EditorProps) {
   const node = activeNode(data);
 
   return (
-    <div className={`flex h-full min-h-0 flex-col ${props.className || ''}`}>
-      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+    <div className={SHELL}>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">
             {data.seed?.topic || note?.title || 'Concept'}
@@ -215,8 +253,8 @@ export function ConceptEditor(props: EditorProps) {
         </button>
       </div>
 
-      <div className="flex gap-1 border-b border-border px-2 py-1 md:hidden">
-        {(['map', 'explain', 'play', 'tutor'] as const).map((tab) => (
+      <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1 lg:hidden">
+        {(['map', 'learn', 'tutor'] as const).map((tab) => (
           <button
             key={tab}
             type="button"
@@ -234,8 +272,8 @@ export function ConceptEditor(props: EditorProps) {
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div
-          className={`h-full min-h-0 ${
-            mobileTab === 'map' ? 'flex' : 'hidden md:flex'
+          className={`h-full min-h-0 shrink-0 ${
+            mobileTab === 'map' ? 'flex' : 'hidden lg:flex'
           }`}
         >
           <MapRail
@@ -244,24 +282,18 @@ export function ConceptEditor(props: EditorProps) {
             onToggleCollapsed={() => setMapCollapsed((v) => !v)}
             onSelect={(id) => {
               commit({ ...data, activeNodeId: id });
-              if (mobileTab === 'map') setMobileTab('explain');
+              if (mobileTab === 'map') setMobileTab('learn');
             }}
           />
         </div>
 
         <div
-          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
-            mobileTab === 'explain' || mobileTab === 'play'
-              ? 'flex'
-              : 'hidden md:flex'
+          className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
+            mobileTab === 'learn' ? 'flex' : 'hidden lg:flex'
           }`}
         >
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
-            <section
-              className={`min-h-0 overflow-y-auto border-b border-border p-4 md:border-b-0 md:border-r ${
-                mobileTab === 'explain' ? 'block' : 'hidden md:block'
-              }`}
-            >
+          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+            <section className="min-h-0 overflow-y-auto border-b border-border p-4 lg:border-b-0 lg:border-r">
               <h2 className="text-sm font-semibold">
                 {node?.title || 'Explain'}
               </h2>
@@ -271,15 +303,11 @@ export function ConceptEditor(props: EditorProps) {
                   {data.seed.raw.length > 280 ? '…' : ''}
                 </blockquote>
               ) : null}
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
+              <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
                 {node?.explainMd || 'Select a node on the map.'}
               </div>
             </section>
-            <section
-              className={`min-h-0 overflow-y-auto p-4 ${
-                mobileTab === 'play' ? 'block' : 'hidden md:block'
-              }`}
-            >
+            <section className="min-h-0 overflow-y-auto p-4">
               <h2 className="mb-3 text-sm font-semibold">Playground</h2>
               {node ? (
                 <PlaygroundHost
@@ -297,8 +325,8 @@ export function ConceptEditor(props: EditorProps) {
         </div>
 
         <div
-          className={`h-full min-h-0 min-w-0 ${
-            mobileTab === 'tutor' ? 'flex flex-1' : 'hidden md:flex'
+          className={`h-full min-h-0 shrink-0 ${
+            mobileTab === 'tutor' ? 'flex w-full' : 'hidden lg:flex'
           }`}
         >
           <TutorDock
@@ -306,6 +334,7 @@ export function ConceptEditor(props: EditorProps) {
             streaming={streaming}
             busy={tutorBusy}
             error={tutorError}
+            fillWidth={mobileTab === 'tutor'}
             onSend={(t) => void onTutorSend(t)}
           />
         </div>
