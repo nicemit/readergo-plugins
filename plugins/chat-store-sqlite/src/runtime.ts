@@ -1,5 +1,5 @@
 /**
- * SQLite chat-store provider. Conversations live under ~/.readergo/agent.
+ * SQLite chat-store provider. Conversations live under ~/.readergo/<env>/agent.
  * The host does not own this schema.
  */
 import fs from 'node:fs';
@@ -18,10 +18,17 @@ import { CHAT_STORE_CAPABILITY_ID } from '@readergo/plugin-contracts';
 
 export const SQLITE_CHAT_STORE_ID = 'sqlite';
 
+function resolveReadergoEnv(): string {
+  const raw = process.env.READERGO_ENV?.trim().toLowerCase();
+  if (raw === 'production' || raw === 'prod') return 'production';
+  if (raw === 'local') return 'local';
+  return 'development';
+}
+
 function agentDataRoot(): string {
   const fromEnv = process.env.READERGO_AGENT_DATA_DIR?.trim();
   if (fromEnv) return path.resolve(fromEnv);
-  return path.join(os.homedir(), '.readergo', 'agent');
+  return path.join(os.homedir(), '.readergo', resolveReadergoEnv(), 'agent');
 }
 
 function openDb(): DatabaseSync {
@@ -178,7 +185,7 @@ const plugin: RuntimePlugin = {
     name: 'Chat Store (SQLite)',
     version: '0.1.0',
     sdkVersion: '0.1.0',
-    description: 'Stores agent conversations in SQLite under ~/.readergo/agent.',
+    description: 'Stores agent conversations in SQLite under ~/.readergo/<env>/agent.',
     category: 'ai',
     provides: ['chat-store.sqlite'],
     requires: [CHAT_STORE_CAPABILITY_ID],
