@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
 import {
@@ -29,9 +29,18 @@ function activeNode(data: ConceptData) {
   return data.map.nodes.find((n) => n.id === data.activeNodeId) || null;
 }
 
-/** Fill the DynamicEditor absolute pane without growing the outer scroll. */
+/** Fill the locked DynamicEditor pane; never grow past the viewport. */
 const SHELL =
-  'absolute inset-0 flex min-h-0 w-full flex-col overflow-hidden bg-background';
+  'flex h-full max-h-full min-h-0 w-full flex-col overflow-hidden bg-background';
+
+const SHELL_STYLE: CSSProperties = {
+  height: '100%',
+  maxHeight: '100%',
+  minHeight: 0,
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+};
 
 export function ConceptEditor(props: EditorProps) {
   const note = props.currentNote as
@@ -187,7 +196,7 @@ export function ConceptEditor(props: EditorProps) {
 
   if (!data.seed && !data.building) {
     return (
-      <div className={SHELL}>
+      <div className={SHELL} style={SHELL_STYLE}>
         <EmptyState onStart={(seed) => void startFromSeed(seed)} />
       </div>
     );
@@ -195,7 +204,10 @@ export function ConceptEditor(props: EditorProps) {
 
   if (data.building) {
     return (
-      <div className={`${SHELL} items-center justify-center gap-3 px-6`}>
+      <div
+        className={`${SHELL} items-center justify-center gap-3 px-6`}
+        style={SHELL_STYLE}
+      >
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
         <p className="text-sm font-medium">
           Building a map for {data.seed?.topic || 'your concept'}...
@@ -225,7 +237,7 @@ export function ConceptEditor(props: EditorProps) {
   const node = activeNode(data);
 
   return (
-    <div className={SHELL}>
+    <div className={SHELL} style={SHELL_STYLE}>
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">
@@ -270,7 +282,10 @@ export function ConceptEditor(props: EditorProps) {
         ))}
       </div>
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div
+        className="flex min-h-0 flex-1 overflow-hidden"
+        style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden' }}
+      >
         <div
           className={`h-full min-h-0 shrink-0 ${
             mobileTab === 'map' ? 'flex' : 'hidden lg:flex'

@@ -1,8 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Loader2, Send } from 'lucide-react';
 import type { TutorMessage } from './types';
 
 export const TUTOR_DOCK_WIDTH_CLASS = 'w-[22rem] max-w-[22rem]';
+
+const DOCK_STYLE: CSSProperties = {
+  height: '100%',
+  maxHeight: '100%',
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+};
 
 export function TutorDock({
   messages,
@@ -22,6 +31,7 @@ export function TutorDock({
 }) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const el = listRef.current;
@@ -41,6 +51,12 @@ export function TutorDock({
       className={`flex h-full min-h-0 shrink-0 flex-col border-l border-border bg-background ${
         fillWidth ? 'w-full max-w-none' : TUTOR_DOCK_WIDTH_CLASS
       }`}
+      style={{
+        ...DOCK_STYLE,
+        width: fillWidth ? '100%' : '22rem',
+        maxWidth: fillWidth ? 'none' : '22rem',
+        flexShrink: 0,
+      }}
     >
       <div className="shrink-0 border-b border-border px-3 py-2">
         <div className="text-sm font-medium">Tutor</div>
@@ -52,6 +68,7 @@ export function TutorDock({
       <div
         ref={listRef}
         className="min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto px-3 py-3"
+        style={{ flex: '1 1 0%', minHeight: 0, overflowY: 'auto' }}
       >
         {messages.length === 0 && !streaming ? (
           <p className="text-xs text-muted-foreground">
@@ -76,12 +93,18 @@ export function TutorDock({
             <Loader2 className="ml-1 inline h-3 w-3 animate-spin opacity-60" />
           </div>
         ) : null}
-        {error ? <p className="text-xs text-destructive break-words">{error}</p> : null}
+        {error ? (
+          <p className="break-words text-xs text-destructive">{error}</p>
+        ) : null}
       </div>
 
-      <div className="shrink-0 border-t border-border bg-background p-2">
+      <div
+        className="shrink-0 border-t border-border bg-background p-2"
+        style={{ flexShrink: 0 }}
+      >
         <div className="flex gap-2">
           <input
+            ref={inputRef}
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
             placeholder="Ask the tutor..."
             value={draft}
