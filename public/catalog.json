@@ -159,6 +159,20 @@
       "runtimeBundleHash": "756b860d6a987e93"
     },
     {
+      "id": "readergo.features.concept-learn",
+      "name": "Concept Learn",
+      "description": "Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.",
+      "category": "feature",
+      "version": "0.1.4",
+      "provides": [
+        "editor-provider",
+        "activity-bar-item"
+      ],
+      "bundleUrl": "concept-learn.bundle.json",
+      "bundleHash": "ccd2109463cb02af",
+      "hash": "ccd2109463cb02af"
+    },
+    {
       "id": "demo.external.plugin",
       "name": "Demo External Plugin",
       "description": "",
@@ -559,12 +573,12 @@
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
       "category": "ai",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "provides": [
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "5c54ef8d0a5c9a1a"
+      "runtimeBundleHash": "785f81abc6d9c9c8"
     },
     {
       "id": "readergo.features.pin-notes",

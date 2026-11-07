@@ -42,6 +42,29 @@ export function createPiTools(input: {
 }): AgentTool[] {
   const browserTools = input.req.tools ?? [];
   const browserNames = new Set(browserTools.map((tool) => tool.name));
+
+  const attachBrowserTools = (into: AgentTool[]) => {
+    for (const spec of browserTools) {
+      into.push(
+        tool(spec.name, spec.description, spec.inputSchema, async (args) => {
+          if (!browserNames.has(spec.name)) return { error: `Unknown tool ${spec.name}` };
+          return input.remote.call(AGENT_TOOLS_CAPABILITY_ID, 'execute', {
+            name: spec.name,
+            arguments: args,
+          });
+        }),
+      );
+    }
+  };
+
+  if (input.req.disableTools === true) {
+    // No built-in note/filesystem tools. Still attach caller-supplied browser tools
+    // (e.g. Concept Learn tutor read-only tools). Empty tools => pure text turn.
+    const onlyBrowser: AgentTool[] = [];
+    attachBrowserTools(onlyBrowser);
+    return onlyBrowser;
+  }
+
   const tools: AgentTool[] = [
     tool(
       SEARCH_NOTES_TOOL,
@@ -169,17 +192,7 @@ export function createPiTools(input: {
       ),
     );
   }
-  for (const spec of browserTools) {
-    tools.push(
-      tool(spec.name, spec.description, spec.inputSchema, async (args) => {
-        if (!browserNames.has(spec.name)) return { error: `Unknown tool ${spec.name}` };
-        return input.remote.call(AGENT_TOOLS_CAPABILITY_ID, 'execute', {
-          name: spec.name,
-          arguments: args,
-        });
-      }),
-    );
-  }
+  attachBrowserTools(tools);
   return tools;
 }
 
@@ -368,6 +381,21 @@ function capText(text: string): string {
 }
 
 export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[]): string {
+  if (req.disableTools === true) {
+    if (browserTools.length === 0) {
+      return [
+        'You are a helpful assistant inside ReaderGo.',
+        'Tools are disabled for this turn. Answer directly from the user message.',
+        'Follow the output format in the user message exactly. Do not call tools.',
+      ].join('\n\n');
+    }
+    return [
+      'You are a helpful assistant inside ReaderGo.',
+      'Built-in note and filesystem tools are disabled for this turn.',
+      `You may ONLY call these tools: ${browserTools.map((t) => t.name).join(', ')}.`,
+      'Do not invent other tools. Call a tool when you need current document state; otherwise answer briefly.',
+    ].join('\n\n');
+  }
   const lines = [
     'You are a helpful assistant inside ReaderGo.',
     'When the user refers to "this", "the article", or selected text, use the provided source context.',

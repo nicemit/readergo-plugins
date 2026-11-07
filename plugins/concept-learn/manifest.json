@@ -1,0 +1,24 @@
+{
+  "id": "readergo.features.concept-learn",
+  "name": "Concept Learn",
+  "version": "0.1.4",
+  "description": "Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.",
+  "category": "feature",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item"
+  ],
+  "requires": [],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}
