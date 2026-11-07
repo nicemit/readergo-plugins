@@ -2,12 +2,30 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Loader2, Send } from 'lucide-react';
 import type { TutorMessage } from './types';
 
-export const TUTOR_DOCK_WIDTH_CLASS = 'w-[22rem] max-w-[22rem]';
+/** Fixed desktop tutor column - never grows with message content. */
+export const TUTOR_WIDTH_PX = 352; // 22rem
 
-const DOCK_STYLE: CSSProperties = {
+const DOCK_FIXED: CSSProperties = {
   height: '100%',
   maxHeight: '100%',
   minHeight: 0,
+  minWidth: 0,
+  width: TUTOR_WIDTH_PX,
+  maxWidth: TUTOR_WIDTH_PX,
+  flex: `0 0 ${TUTOR_WIDTH_PX}px`,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+};
+
+const DOCK_FILL: CSSProperties = {
+  height: '100%',
+  maxHeight: '100%',
+  minHeight: 0,
+  minWidth: 0,
+  width: '100%',
+  maxWidth: '100%',
+  flex: '1 1 auto',
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
@@ -26,12 +44,11 @@ export function TutorDock({
   busy?: boolean;
   error?: string | null;
   onSend: (text: string) => void;
-  /** Mobile tutor tab: use full width. Desktop dock stays fixed. */
+  /** Only for the mobile tutor tab - never on desktop split layout. */
   fillWidth?: boolean;
 }) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const el = listRef.current;
@@ -48,15 +65,8 @@ export function TutorDock({
 
   return (
     <aside
-      className={`flex h-full min-h-0 shrink-0 flex-col border-l border-border bg-background ${
-        fillWidth ? 'w-full max-w-none' : TUTOR_DOCK_WIDTH_CLASS
-      }`}
-      style={{
-        ...DOCK_STYLE,
-        width: fillWidth ? '100%' : '22rem',
-        maxWidth: fillWidth ? 'none' : '22rem',
-        flexShrink: 0,
-      }}
+      className="flex h-full min-h-0 flex-col border-l border-border bg-background"
+      style={fillWidth ? DOCK_FILL : DOCK_FIXED}
     >
       <div className="shrink-0 border-b border-border px-3 py-2">
         <div className="text-sm font-medium">Tutor</div>
@@ -67,44 +77,53 @@ export function TutorDock({
 
       <div
         ref={listRef}
-        className="min-h-0 flex-1 space-y-3 overflow-x-hidden overflow-y-auto px-3 py-3"
-        style={{ flex: '1 1 0%', minHeight: 0, overflowY: 'auto' }}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-3"
+        style={{ flex: '1 1 0%', minHeight: 0, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}
       >
-        {messages.length === 0 && !streaming ? (
-          <p className="text-xs text-muted-foreground">
-            Ask what confuses you, or say &quot;quiz me on this node.&quot;
-          </p>
-        ) : null}
-        {messages.map((m, i) => (
-          <div
-            key={`${m.role}-${i}-${m.text.slice(0, 12)}`}
-            className={`max-w-full break-words rounded-md px-2.5 py-2 text-sm leading-relaxed ${
-              m.role === 'user'
-                ? 'ml-4 bg-primary/10'
-                : 'mr-2 border border-border bg-muted/30'
-            }`}
-          >
-            {m.text}
-          </div>
-        ))}
-        {streaming ? (
-          <div className="mr-2 max-w-full break-words rounded-md border border-border bg-muted/30 px-2.5 py-2 text-sm leading-relaxed">
-            {streaming}
-            <Loader2 className="ml-1 inline h-3 w-3 animate-spin opacity-60" />
-          </div>
-        ) : null}
-        {error ? (
-          <p className="break-words text-xs text-destructive">{error}</p>
-        ) : null}
+        {/* Pin thread to the composer so replies do not leave a tall empty gap. */}
+        <div className="flex min-h-full flex-col justify-end gap-3">
+          {messages.length === 0 && !streaming ? (
+            <p className="text-xs text-muted-foreground">
+              Ask what confuses you, or say &quot;quiz me on this node.&quot;
+            </p>
+          ) : null}
+          {messages.map((m, i) => (
+            <div
+              key={`${m.role}-${i}-${m.text.slice(0, 12)}`}
+              className="max-w-full break-words rounded-md px-2.5 py-2 text-sm leading-relaxed"
+              style={{
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                ...(m.role === 'user'
+                  ? { marginLeft: '1rem', background: 'hsl(var(--primary) / 0.1)' }
+                  : {
+                      marginRight: '0.5rem',
+                      border: '1px solid hsl(var(--border))',
+                      background: 'hsl(var(--muted) / 0.3)',
+                    }),
+              }}
+            >
+              {m.text}
+            </div>
+          ))}
+          {streaming ? (
+            <div
+              className="max-w-full break-words rounded-md border border-border bg-muted/30 px-2.5 py-2 text-sm leading-relaxed"
+              style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+            >
+              {streaming}
+              <Loader2 className="ml-1 inline h-3 w-3 animate-spin opacity-60" />
+            </div>
+          ) : null}
+          {error ? (
+            <p className="break-words text-xs text-destructive">{error}</p>
+          ) : null}
+        </div>
       </div>
 
-      <div
-        className="shrink-0 border-t border-border bg-background p-2"
-        style={{ flexShrink: 0 }}
-      >
+      <div className="shrink-0 border-t border-border bg-background p-2" style={{ flexShrink: 0 }}>
         <div className="flex gap-2">
           <input
-            ref={inputRef}
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
             placeholder="Ask the tutor..."
             value={draft}

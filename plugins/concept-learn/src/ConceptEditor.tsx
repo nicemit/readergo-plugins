@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
+import { ExtensionSlot } from '@/components/layout/ExtensionSlot';
 import {
   formatError,
   generateConceptPlan,
@@ -17,13 +18,29 @@ import {
   normalizeConceptData,
   updateNodePlayground,
 } from './schema';
-import { TutorDock } from './TutorDock';
+import { TutorDock, TUTOR_WIDTH_PX } from './TutorDock';
 import type {
   ConceptData,
   ConceptSeed,
   PlaygroundSpec,
   TutorMessage,
 } from './types';
+
+const LG_MQ = '(min-width: 1024px)';
+
+function useIsLg(): boolean {
+  const [isLg, setIsLg] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(LG_MQ).matches : true,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(LG_MQ);
+    const onChange = () => setIsLg(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return isLg;
+}
 
 function activeNode(data: ConceptData) {
   return data.map.nodes.find((n) => n.id === data.activeNodeId) || null;
@@ -60,6 +77,12 @@ export function ConceptEditor(props: EditorProps) {
     'map' | 'learn' | 'tutor'
   >('learn');
   const [mapCollapsed, setMapCollapsed] = useState(false);
+  const isLg = useIsLg();
+
+  // Desktop split layout must never keep a leftover mobile "tutor" fill state.
+  useEffect(() => {
+    if (isLg && mobileTab !== 'learn') setMobileTab('learn');
+  }, [isLg, mobileTab]);
 
   const dataRef = useRef(data);
   const onDataChangeRef = useRef(props.onDataChange);
@@ -236,10 +259,15 @@ export function ConceptEditor(props: EditorProps) {
 
   const node = activeNode(data);
 
+  const showMap = isLg || mobileTab === 'map';
+  const showLearn = isLg || mobileTab === 'learn';
+  const showTutor = isLg || mobileTab === 'tutor';
+  const tutorFill = !isLg && mobileTab === 'tutor';
+
   return (
     <div className={SHELL} style={SHELL_STYLE}>
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold">
             {data.seed?.topic || note?.title || 'Concept'}
           </div>
@@ -254,105 +282,125 @@ export function ConceptEditor(props: EditorProps) {
             </div>
           )}
         </div>
-        <button
-          type="button"
-          className="shrink-0 rounded-md border border-border px-2 py-1 text-xs hover:bg-muted/50"
-          onClick={() => {
-            if (data.seed) void startFromSeed(data.seed);
-          }}
-        >
-          Rebuild
-        </button>
+        <div className="relative z-10 flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted/50"
+            onClick={() => {
+              if (data.seed) void startFromSeed(data.seed);
+            }}
+          >
+            Rebuild
+          </button>
+          <ExtensionSlot
+            id="document-title-actions"
+            className="relative flex items-center gap-1"
+            currentNote={props.currentNote}
+            content={props.content}
+            data={(props.currentNote as { data?: unknown } | null | undefined)?.data}
+          />
+        </div>
       </div>
 
-      <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1 lg:hidden">
-        {(['map', 'learn', 'tutor'] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`rounded px-2 py-1 text-xs capitalize ${
-              mobileTab === tab
-                ? 'bg-primary/15 text-primary'
-                : 'text-muted-foreground'
-            }`}
-            onClick={() => setMobileTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      {!isLg ? (
+        <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1">
+          {(['map', 'learn', 'tutor'] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              className={`rounded px-2 py-1 text-xs capitalize ${
+                mobileTab === tab
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-muted-foreground'
+              }`}
+              onClick={() => setMobileTab(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div
         className="flex min-h-0 flex-1 overflow-hidden"
         style={{ flex: '1 1 0%', minHeight: 0, overflow: 'hidden' }}
       >
-        <div
-          className={`h-full min-h-0 shrink-0 ${
-            mobileTab === 'map' ? 'flex' : 'hidden lg:flex'
-          }`}
-        >
-          <MapRail
-            data={data}
-            collapsed={mapCollapsed}
-            onToggleCollapsed={() => setMapCollapsed((v) => !v)}
-            onSelect={(id) => {
-              commit({ ...data, activeNodeId: id });
-              if (mobileTab === 'map') setMobileTab('learn');
-            }}
-          />
-        </div>
-
-        <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
-            mobileTab === 'learn' ? 'flex' : 'hidden lg:flex'
-          }`}
-        >
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
-            <section className="min-h-0 overflow-y-auto border-b border-border p-4 lg:border-b-0 lg:border-r">
-              <h2 className="text-sm font-semibold">
-                {node?.title || 'Explain'}
-              </h2>
-              {data.seed?.mode === 'spark' && data.seed.raw ? (
-                <blockquote className="mt-3 border-l-2 border-primary/40 pl-3 text-xs italic text-muted-foreground">
-                  {data.seed.raw.slice(0, 280)}
-                  {data.seed.raw.length > 280 ? '…' : ''}
-                </blockquote>
-              ) : null}
-              <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
-                {node?.explainMd || 'Select a node on the map.'}
-              </div>
-            </section>
-            <section className="min-h-0 overflow-y-auto p-4">
-              <h2 className="mb-3 text-sm font-semibold">Playground</h2>
-              {node ? (
-                <PlaygroundHost
-                  playground={node.playground}
-                  onChange={(next: PlaygroundSpec) =>
-                    commit(updateNodePlayground(data, node.id, next))
-                  }
-                  onComplete={() => commit(markNodeDone(data, node.id))}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">No active node.</p>
-              )}
-            </section>
+        {showMap ? (
+          <div className="h-full min-h-0 shrink-0">
+            <MapRail
+              data={data}
+              collapsed={mapCollapsed}
+              onToggleCollapsed={() => setMapCollapsed((v) => !v)}
+              onSelect={(id) => {
+                commit({ ...data, activeNodeId: id });
+                if (!isLg) setMobileTab('learn');
+              }}
+            />
           </div>
-        </div>
+        ) : null}
 
-        <div
-          className={`h-full min-h-0 shrink-0 ${
-            mobileTab === 'tutor' ? 'flex w-full' : 'hidden lg:flex'
-          }`}
-        >
-          <TutorDock
-            messages={tutorMessages}
-            streaming={streaming}
-            busy={tutorBusy}
-            error={tutorError}
-            fillWidth={mobileTab === 'tutor'}
-            onSend={(t) => void onTutorSend(t)}
-          />
-        </div>
+        {showLearn ? (
+          <div
+            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+            style={{ flex: '1 1 0%', minWidth: 0 }}
+          >
+            <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-2">
+              <section className="min-h-0 overflow-y-auto border-b border-border p-4 lg:border-b-0 lg:border-r">
+                <h2 className="text-sm font-semibold">
+                  {node?.title || 'Explain'}
+                </h2>
+                {data.seed?.mode === 'spark' && data.seed.raw ? (
+                  <blockquote className="mt-3 border-l-2 border-primary/40 pl-3 text-xs italic text-muted-foreground">
+                    {data.seed.raw.slice(0, 280)}
+                    {data.seed.raw.length > 280 ? '…' : ''}
+                  </blockquote>
+                ) : null}
+                <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed">
+                  {node?.explainMd || 'Select a node on the map.'}
+                </div>
+              </section>
+              <section className="min-h-0 overflow-y-auto p-4">
+                <h2 className="mb-3 text-sm font-semibold">Playground</h2>
+                {node ? (
+                  <PlaygroundHost
+                    playground={node.playground}
+                    onChange={(next: PlaygroundSpec) =>
+                      commit(updateNodePlayground(data, node.id, next))
+                    }
+                    onComplete={() => commit(markNodeDone(data, node.id))}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">No active node.</p>
+                )}
+              </section>
+            </div>
+          </div>
+        ) : null}
+
+        {showTutor ? (
+          <div
+            className="h-full min-h-0"
+            style={
+              tutorFill
+                ? { flex: '1 1 auto', minWidth: 0, width: '100%' }
+                : {
+                    flex: `0 0 ${TUTOR_WIDTH_PX}px`,
+                    width: TUTOR_WIDTH_PX,
+                    maxWidth: TUTOR_WIDTH_PX,
+                    minWidth: 0,
+                  }
+            }
+          >
+            <TutorDock
+              messages={tutorMessages}
+              streaming={streaming}
+              busy={tutorBusy}
+              error={tutorError}
+              fillWidth={tutorFill}
+              onSend={(t) => void onTutorSend(t)}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
