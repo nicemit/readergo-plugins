@@ -45,6 +45,8 @@ export default definePlugin({
       type: CONCEPT_TYPE,
       component: ConceptEditor,
       capabilityId: editorProvider.id,
+      layout: 'fill',
+      ownsTitle: true,
     });
 
     context.registerCapability('activity-bar-item', {

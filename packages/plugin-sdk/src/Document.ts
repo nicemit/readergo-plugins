@@ -64,6 +64,17 @@ export interface EditorRegistration {
   component: React.FC<any>;
   capabilityId?: string;
   loadingComponent?: React.FC<any>;
+  /**
+   * Host editor shell scroll mode.
+   * - `scroll` (default): outer overflow-y-auto (notes, articles)
+   * - `fill`: editor fills the pane and owns its own scroll regions
+   */
+  layout?: 'scroll' | 'fill';
+  /**
+   * When true, the host skips the generic document title chrome because
+   * the editor renders its own title UI.
+   */
+  ownsTitle?: boolean;
 }
 
 export interface DocumentStorageProvider {
