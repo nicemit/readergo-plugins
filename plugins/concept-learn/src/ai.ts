@@ -16,6 +16,7 @@ import {
   localFallbackPlan,
   normalizeConceptData,
 } from './schema';
+import { CONCEPT_TUTOR_TOOL_SPECS } from './tools';
 import type { ConceptData, ConceptSeed, TutorMessage } from './types';
 
 const AGENT_SDK_KEY = 'readergo_agent_sdk';
@@ -81,6 +82,11 @@ async function runAgentTurn(input: {
   onChunk?: (text: string) => void;
   signal?: AbortSignal;
   disableTools?: boolean;
+  tools?: Array<{
+    name: string;
+    description: string;
+    inputSchema: Record<string, unknown>;
+  }>;
 }): Promise<string> {
   const provider = loadLlmProviderSelection();
   const memory = loadMemorySelection();
@@ -103,7 +109,7 @@ async function runAgentTurn(input: {
       conversationId: input.conversationId,
       message: input.message,
       history: input.history,
-      tools: [],
+      tools: input.tools ?? [],
       disableTools: input.disableTools === true,
       agent: { id: agentId },
       provider: {
@@ -275,9 +281,10 @@ export async function sendTutorMessage(input: {
     `You are a Socratic tutor inside ReaderGo Concept Learn for "${topic}".`,
     'Ask questions, give short hints, point at the playground. Do not dump long lectures.',
     'Prefer one question or one next move at a time.',
+    'You have read-only tools: concept_get_state and concept_get_node. Use them when you need map or node detail beyond the snapshot below. You cannot change the document.',
     active
-      ? `Active node: ${active.title}\nExplain:\n${active.explainMd}\nPlayground kind: ${active.playground.kind}\nPlayground JSON: ${JSON.stringify(active.playground)}`
-      : 'No active node yet.',
+      ? `Active node: ${active.title} (${active.id})\nExplain:\n${active.explainMd}\nPlayground kind: ${active.playground.kind}`
+      : 'No active node yet. Call concept_get_state if needed.',
     input.concept.seed?.raw
       ? `User spark:\n${input.concept.seed.raw.slice(0, 600)}`
       : '',
@@ -307,6 +314,7 @@ export async function sendTutorMessage(input: {
     onChunk: input.onChunk,
     signal: input.signal,
     disableTools: true,
+    tools: CONCEPT_TUTOR_TOOL_SPECS,
   });
 
   if (memory.chatStoreId && text.trim()) {

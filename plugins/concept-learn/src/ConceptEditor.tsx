@@ -18,6 +18,11 @@ import {
   normalizeConceptData,
   updateNodePlayground,
 } from './schema';
+import {
+  bindConceptSession,
+  touchConceptSession,
+  unbindConceptSession,
+} from './conceptSession';
 import { TutorDock, TUTOR_WIDTH_PX } from './TutorDock';
 import type {
   ConceptData,
@@ -97,9 +102,26 @@ export function ConceptEditor(props: EditorProps) {
   onChangeRef.current = props.onChange;
   onTitleChangeRef.current = props.onTitleChange;
 
+  // Live bind so tutor read-only tools see in-memory concept state.
+  useEffect(() => {
+    const documentId = typeof note?.id === 'string' ? note.id : '';
+    if (!documentId) return;
+    bindConceptSession({
+      documentId,
+      title: note?.title,
+      data: dataRef.current,
+    });
+    return () => unbindConceptSession(documentId);
+  }, [note?.id, note?.title]);
+
+  useEffect(() => {
+    touchConceptSession(data);
+  }, [data]);
+
   const commit = (next: ConceptData, title?: string) => {
     dataRef.current = next;
     setData(next);
+    touchConceptSession(next);
     onDataChangeRef.current?.(next);
     onChangeRef.current?.(conceptSummary(next));
     if (title) onTitleChangeRef.current?.(title);
