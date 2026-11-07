@@ -3,6 +3,7 @@ import {
   OPENROUTER_DEFAULT_MODEL,
 } from '@/lib/ai/config/llmProviderSelection';
 import {
+  DEFAULT_CHAT_STORE_ID,
   loadMemorySelection,
   OPENROUTER_EMBEDDINGS_ID,
 } from '@/lib/ai/config/memorySelection';
@@ -29,6 +30,53 @@ function loadAgentSdkId(): string {
   } catch {
     return '';
   }
+}
+
+/** Same default Chat uses after resolve - tutor must not skip persist when localStorage is empty. */
+function resolveTutorChatStoreId(): string {
+  const saved = loadMemorySelection().chatStoreId.trim();
+  return saved || DEFAULT_CHAT_STORE_ID;
+}
+
+async function ensureTutorConversation(input: {
+  providerId: string;
+  conversationId: string;
+  title: string;
+}): Promise<void> {
+  try {
+    const existing = await getChatConversation({
+      providerId: input.providerId,
+      conversationId: input.conversationId,
+    });
+    if (existing?.id) return;
+  } catch {
+    // create below
+  }
+  try {
+    await createChatConversation({
+      providerId: input.providerId,
+      id: input.conversationId,
+      title: input.title,
+    });
+  } catch {
+    // Duplicate create races are fine; append will still work if the row exists.
+  }
+}
+
+async function persistTutorMessage(input: {
+  providerId: string;
+  conversationId: string;
+  role: 'user' | 'assistant';
+  content: string;
+}): Promise<void> {
+  const content = input.content.trim();
+  if (!content) return;
+  await appendChatMessage({
+    providerId: input.providerId,
+    conversationId: input.conversationId,
+    role: input.role,
+    content,
+  });
 }
 
 function newId(prefix: string): string {
@@ -90,6 +138,7 @@ async function runAgentTurn(input: {
 }): Promise<string> {
   const provider = loadLlmProviderSelection();
   const memory = loadMemorySelection();
+  const chatStoreId = resolveTutorChatStoreId();
   const agentId = loadAgentSdkId();
 
   if (!provider.id || !provider.apiKey.trim()) {
@@ -118,7 +167,7 @@ async function runAgentTurn(input: {
         model: provider.model.trim() || OPENROUTER_DEFAULT_MODEL,
       },
       memory: {
-        chatStoreId: memory.chatStoreId || undefined,
+        chatStoreId,
         embeddingsId: memory.embeddingsId || undefined,
         vectorStoreId: memory.vectorStoreId || undefined,
         embeddingsApiKey:
@@ -232,11 +281,10 @@ export async function loadTutorHistory(
   tutorThreadId: string | undefined,
 ): Promise<TutorMessage[]> {
   if (!tutorThreadId) return [];
-  const memory = loadMemorySelection();
-  if (!memory.chatStoreId) return [];
+  const chatStoreId = resolveTutorChatStoreId();
   try {
     const conversation = await getChatConversation({
-      providerId: memory.chatStoreId,
+      providerId: chatStoreId,
       conversationId: tutorThreadId,
     });
     if (!conversation?.messages?.length) return [];
@@ -257,24 +305,23 @@ export async function sendTutorMessage(input: {
   history: Array<{ role: 'user' | 'assistant'; content: string }>;
   onChunk?: (text: string) => void;
   signal?: AbortSignal;
-}): Promise<{ text: string; tutorThreadId: string }> {
+}): Promise<{ text: string; tutorThreadId: string; persistError?: string }> {
   const active = input.concept.map.nodes.find(
     (n) => n.id === input.concept.activeNodeId,
   );
   const topic = input.concept.seed?.topic || 'this concept';
   const conversationId = input.concept.tutorThreadId || newId('concept_tutor');
-  const memory = loadMemorySelection();
+  const chatStoreId = resolveTutorChatStoreId();
+  let persistError: string | undefined;
 
-  if (!input.concept.tutorThreadId && memory.chatStoreId) {
-    try {
-      await createChatConversation({
-        providerId: memory.chatStoreId,
-        id: conversationId,
-        title: `Tutor: ${topic}`,
-      });
-    } catch {
-      // optional
-    }
+  try {
+    await ensureTutorConversation({
+      providerId: chatStoreId,
+      conversationId,
+      title: `Tutor: ${topic}`,
+    });
+  } catch (err) {
+    persistError = formatError(err);
   }
 
   const context = [
@@ -294,17 +341,15 @@ export async function sendTutorMessage(input: {
 
   const message = `${context}\n\n---\nLearner says: ${input.userText}`;
 
-  if (memory.chatStoreId) {
-    try {
-      await appendChatMessage({
-        providerId: memory.chatStoreId,
-        conversationId,
-        role: 'user',
-        content: input.userText,
-      });
-    } catch {
-      // optional
-    }
+  try {
+    await persistTutorMessage({
+      providerId: chatStoreId,
+      conversationId,
+      role: 'user',
+      content: input.userText,
+    });
+  } catch (err) {
+    persistError = formatError(err);
   }
 
   const text = await runAgentTurn({
@@ -317,18 +362,16 @@ export async function sendTutorMessage(input: {
     tools: CONCEPT_TUTOR_TOOL_SPECS,
   });
 
-  if (memory.chatStoreId && text.trim()) {
-    try {
-      await appendChatMessage({
-        providerId: memory.chatStoreId,
-        conversationId,
-        role: 'assistant',
-        content: text,
-      });
-    } catch {
-      // optional
-    }
+  try {
+    await persistTutorMessage({
+      providerId: chatStoreId,
+      conversationId,
+      role: 'assistant',
+      content: text,
+    });
+  } catch (err) {
+    persistError = formatError(err);
   }
 
-  return { text, tutorThreadId: conversationId };
+  return { text, tutorThreadId: conversationId, persistError };
 }

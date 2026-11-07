@@ -209,13 +209,25 @@ export function ConceptEditor(props: EditorProps) {
     }));
     setTutorMessages((prev) => [...prev, { role: 'user', text }]);
 
+    // Bind thread id on the concept doc before the round-trip so tab switches can reload it.
+    let conceptForSend = dataRef.current;
+    if (!conceptForSend.tutorThreadId) {
+      const tutorThreadId =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? `concept_tutor_${crypto.randomUUID()}`
+          : `concept_tutor_${Date.now()}`;
+      conceptForSend = { ...conceptForSend, tutorThreadId };
+      commit(conceptForSend);
+      loadedThreadRef.current = tutorThreadId;
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
     try {
       const result = await sendTutorMessage({
-        concept: dataRef.current,
+        concept: conceptForSend,
         userText: text,
         history,
         signal: controller.signal,
@@ -230,6 +242,11 @@ export function ConceptEditor(props: EditorProps) {
       if (result.tutorThreadId !== dataRef.current.tutorThreadId) {
         commit({ ...dataRef.current, tutorThreadId: result.tutorThreadId });
         loadedThreadRef.current = result.tutorThreadId;
+      }
+      if (result.persistError) {
+        setTutorError(
+          `Reply ok, but chat save failed (${result.persistError}). Check Local Runtime + SQLite chat store.`,
+        );
       }
     } catch (err) {
       setTutorError(formatError(err));

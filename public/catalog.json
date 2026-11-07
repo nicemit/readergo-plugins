@@ -163,14 +163,14 @@
       "name": "Concept Learn",
       "description": "Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.",
       "category": "feature",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "provides": [
         "editor-provider",
         "activity-bar-item"
       ],
       "bundleUrl": "concept-learn.bundle.json",
-      "bundleHash": "cdf71146c5587d8e",
-      "hash": "cdf71146c5587d8e"
+      "bundleHash": "21542b4d12e95db9",
+      "hash": "21542b4d12e95db9"
     },
     {
       "id": "demo.external.plugin",
