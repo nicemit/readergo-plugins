@@ -3,7 +3,7 @@
   "name": "Vector Store (Local)",
   "version": "0.1.0",
   "sdkVersion": "0.1.0",
-  "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
+  "description": "Local file vector store under ~/.readergo/<env>/agent/vectors (provider id lancedb).",
   "category": "ai",
   "provides": [
     "vector-store.lancedb"

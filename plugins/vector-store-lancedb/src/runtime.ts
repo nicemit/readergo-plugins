@@ -1,6 +1,6 @@
 /**
  * Local file vector store. Provider id is `lancedb` for UI defaults.
- * Stores JSON namespaces under ~/.readergo/agent/vectors.
+ * Stores JSON namespaces under ~/.readergo/<env>/agent/vectors.
  * A later revision can swap the engine for LanceDB without changing the contract.
  */
 import fs from 'node:fs';
@@ -17,11 +17,18 @@ import { VECTOR_STORE_CAPABILITY_ID } from '@readergo/plugin-contracts';
 
 export const LANCEDB_VECTOR_STORE_ID = 'lancedb';
 
+function resolveReadergoEnv(): string {
+  const raw = process.env.READERGO_ENV?.trim().toLowerCase();
+  if (raw === 'production' || raw === 'prod') return 'production';
+  if (raw === 'local') return 'local';
+  return 'development';
+}
+
 function agentVectorsRoot(): string {
   const fromEnv = process.env.READERGO_AGENT_DATA_DIR?.trim();
   const root = fromEnv
     ? path.resolve(fromEnv)
-    : path.join(os.homedir(), '.readergo', 'agent');
+    : path.join(os.homedir(), '.readergo', resolveReadergoEnv(), 'agent');
   const dir = path.join(root, 'vectors');
   fs.mkdirSync(dir, { recursive: true });
   return dir;
@@ -125,7 +132,7 @@ const plugin: RuntimePlugin = {
     version: '0.1.0',
     sdkVersion: '0.1.0',
     description:
-      'Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).',
+      'Local file vector store under ~/.readergo/<env>/agent/vectors (provider id lancedb).',
     category: 'ai',
     provides: ['vector-store.lancedb'],
     requires: [VECTOR_STORE_CAPABILITY_ID],
