@@ -216,14 +216,36 @@ export async function generateConceptPlan(input: {
       buildError: undefined,
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
     const fallback = localFallbackPlan(input.seed);
     return {
       ...fallback,
       building: false,
-      buildError: message,
+      buildError: formatError(err),
     };
   }
+}
+
+function formatError(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === 'string' && err.trim()) return err;
+  if (err && typeof err === 'object') {
+    const record = err as { message?: unknown; code?: unknown; error?: unknown };
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message;
+    }
+    if (typeof record.error === 'string' && record.error.trim()) {
+      return record.error;
+    }
+    if (typeof record.code === 'string' && record.code.trim()) {
+      return record.code;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch {
+      // fall through
+    }
+  }
+  return 'AI request failed';
 }
 
 export async function sendTutorMessage(input: {

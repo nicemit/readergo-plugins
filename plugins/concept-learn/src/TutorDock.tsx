@@ -16,10 +16,12 @@ export function TutorDock({
   onSend: (text: string) => void;
 }) {
   const [draft, setDraft] = useState('');
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [messages, streaming]);
 
   const submit = () => {
@@ -30,14 +32,15 @@ export function TutorDock({
   };
 
   return (
-    <aside className="flex h-full min-h-0 w-full flex-col border-l border-border bg-background md:w-[22rem]">
-      <div className="border-b border-border px-3 py-2">
+    <aside className="flex h-full min-h-0 w-full shrink-0 flex-col border-l border-border bg-background md:w-[22rem]">
+      <div className="shrink-0 border-b border-border px-3 py-2">
         <div className="text-sm font-medium">Tutor</div>
         <p className="text-[11px] text-muted-foreground">
           Socratic help on this concept. Model settings live in Chat.
         </p>
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
+
+      <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
         {messages.length === 0 && !streaming ? (
           <p className="text-xs text-muted-foreground">
             Ask what confuses you, or say &quot;quiz me on this node.&quot;
@@ -61,12 +64,10 @@ export function TutorDock({
             <Loader2 className="ml-1 inline h-3 w-3 animate-spin opacity-60" />
           </div>
         ) : null}
-        {error ? (
-          <p className="text-xs text-destructive">{error}</p>
-        ) : null}
-        <div ref={bottomRef} />
+        {error ? <p className="text-xs text-destructive">{error}</p> : null}
       </div>
-      <div className="border-t border-border p-2">
+
+      <div className="shrink-0 border-t border-border bg-background p-2">
         <div className="flex gap-2">
           <input
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-2.5 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
@@ -83,7 +84,7 @@ export function TutorDock({
           />
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-3 text-primary-foreground disabled:opacity-50"
+            className="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-3 text-primary-foreground disabled:opacity-50"
             disabled={busy || !draft.trim()}
             onClick={submit}
             aria-label="Send"

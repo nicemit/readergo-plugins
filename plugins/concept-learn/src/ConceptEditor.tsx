@@ -3,7 +3,7 @@ import type { EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
 import { generateConceptPlan, sendTutorMessage } from './ai';
 import { EmptyState } from './EmptyState';
-import { MapStrip } from './MapStrip';
+import { MapRail } from './MapStrip';
 import { PlaygroundHost } from './playgrounds/PlaygroundHost';
 import {
   conceptSummary,
@@ -38,9 +38,10 @@ export function ConceptEditor(props: EditorProps) {
   const [tutorBusy, setTutorBusy] = useState(false);
   const [tutorError, setTutorError] = useState<string | null>(null);
   const [planStream, setPlanStream] = useState('');
-  const [mobileTab, setMobileTab] = useState<'explain' | 'play' | 'tutor'>(
-    'explain',
-  );
+  const [mobileTab, setMobileTab] = useState<
+    'map' | 'explain' | 'play' | 'tutor'
+  >('explain');
+  const [mapCollapsed, setMapCollapsed] = useState(false);
 
   const dataRef = useRef(data);
   const onDataChangeRef = useRef(props.onDataChange);
@@ -140,8 +141,13 @@ export function ConceptEditor(props: EditorProps) {
         commit({ ...dataRef.current, tutorThreadId: result.tutorThreadId });
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setTutorError(message);
+      setTutorError(
+        err instanceof Error && err.message
+          ? err.message
+          : err && typeof err === 'object' && 'message' in err
+            ? String((err as { message: unknown }).message)
+            : 'Tutor request failed',
+      );
       setStreaming('');
     } finally {
       setTutorBusy(false);
@@ -209,18 +215,15 @@ export function ConceptEditor(props: EditorProps) {
         </button>
       </div>
 
-      <MapStrip
-        data={data}
-        onSelect={(id) => commit({ ...data, activeNodeId: id })}
-      />
-
       <div className="flex gap-1 border-b border-border px-2 py-1 md:hidden">
-        {(['explain', 'play', 'tutor'] as const).map((tab) => (
+        {(['map', 'explain', 'play', 'tutor'] as const).map((tab) => (
           <button
             key={tab}
             type="button"
             className={`rounded px-2 py-1 text-xs capitalize ${
-              mobileTab === tab ? 'bg-primary/15 text-primary' : 'text-muted-foreground'
+              mobileTab === tab
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground'
             }`}
             onClick={() => setMobileTab(tab)}
           >
@@ -229,13 +232,31 @@ export function ConceptEditor(props: EditorProps) {
         ))}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <div
-          className={`min-h-0 flex-1 flex-col overflow-hidden md:flex ${
-            mobileTab === 'explain' || mobileTab === 'play' ? 'flex' : 'hidden md:flex'
+          className={`h-full min-h-0 ${
+            mobileTab === 'map' ? 'flex' : 'hidden md:flex'
           }`}
         >
-          <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-2">
+          <MapRail
+            data={data}
+            collapsed={mapCollapsed}
+            onToggleCollapsed={() => setMapCollapsed((v) => !v)}
+            onSelect={(id) => {
+              commit({ ...data, activeNodeId: id });
+              if (mobileTab === 'map') setMobileTab('explain');
+            }}
+          />
+        </div>
+
+        <div
+          className={`min-h-0 min-w-0 flex-1 flex-col overflow-hidden ${
+            mobileTab === 'explain' || mobileTab === 'play'
+              ? 'flex'
+              : 'hidden md:flex'
+          }`}
+        >
+          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-2">
             <section
               className={`min-h-0 overflow-y-auto border-b border-border p-4 md:border-b-0 md:border-r ${
                 mobileTab === 'explain' ? 'block' : 'hidden md:block'
@@ -276,7 +297,7 @@ export function ConceptEditor(props: EditorProps) {
         </div>
 
         <div
-          className={`min-h-0 md:flex ${
+          className={`h-full min-h-0 min-w-0 ${
             mobileTab === 'tutor' ? 'flex flex-1' : 'hidden md:flex'
           }`}
         >
