@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Loader2, Send } from 'lucide-react';
+import { ChatMarkdown } from '@/plugins/agent-chat-ui/ChatMarkdown';
 import type { TutorMessage } from './types';
 
 /** Fixed desktop tutor column - never grows with message content. */
@@ -103,7 +104,11 @@ export function TutorDock({
                     }),
               }}
             >
-              {m.text}
+              {m.role === 'assistant' ? (
+                <ChatMarkdown text={m.text} />
+              ) : (
+                m.text
+              )}
             </div>
           ))}
           {streaming ? (
@@ -111,7 +116,7 @@ export function TutorDock({
               className="max-w-full break-words rounded-md border border-border bg-muted/30 px-2.5 py-2 text-sm leading-relaxed"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             >
-              {streaming}
+              <ChatMarkdown text={streaming} />
               <Loader2 className="ml-1 inline h-3 w-3 animate-spin opacity-60" />
             </div>
           ) : null}

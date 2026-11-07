@@ -13,7 +13,7 @@ import { CONCEPT_TYPE } from './types';
 const manifest = {
   id: 'readergo.features.concept-learn',
   name: 'Concept Learn',
-  version: '0.1.3',
+  version: '0.1.4',
   description:
     'Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.',
   category: 'feature' as const,
