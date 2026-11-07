@@ -159,6 +159,20 @@
       "runtimeBundleHash": "756b860d6a987e93"
     },
     {
+      "id": "readergo.features.concept-learn",
+      "name": "Concept Learn",
+      "description": "Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.",
+      "category": "feature",
+      "version": "0.1.0",
+      "provides": [
+        "editor-provider",
+        "activity-bar-item"
+      ],
+      "bundleUrl": "concept-learn.bundle.json",
+      "bundleHash": "fe88155eedcf3d77",
+      "hash": "fe88155eedcf3d77"
+    },
+    {
       "id": "demo.external.plugin",
       "name": "Demo External Plugin",
       "description": "",
