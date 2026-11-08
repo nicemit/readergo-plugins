@@ -86,6 +86,7 @@ const plugin: RuntimePlugin = {
             providerId: provider.id,
             apiKey: provider.apiKey,
             model: modelId,
+            maxSteps: req.maxToolSteps,
           }),
           toolExecution: 'sequential',
           initialState: {

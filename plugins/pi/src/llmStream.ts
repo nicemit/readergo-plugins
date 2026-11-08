@@ -1,8 +1,9 @@
-import type {
-  AgentToolSpec,
-  LlmChatCapability,
-  LlmChatMessage,
-  LlmToolCall,
+import {
+  clampAgentToolSteps,
+  type AgentToolSpec,
+  type LlmChatCapability,
+  type LlmChatMessage,
+  type LlmToolCall,
 } from '@readergo/plugin-contracts';
 import type { StreamFn } from '@earendil-works/pi-agent-core';
 import {
@@ -16,8 +17,6 @@ import {
   type ToolCall,
   type TranscriptContext,
 } from '@earendil-works/pi-ai';
-
-const STEP_LIMIT = 10;
 
 const EMPTY_USAGE: AssistantMessage['usage'] = {
   input: 0,
@@ -51,12 +50,14 @@ export function createLlmStreamFn(input: {
   providerId: string;
   apiKey: string;
   model?: string;
+  maxSteps?: number;
 }): StreamFn {
+  const limit = clampAgentToolSteps(input.maxSteps);
   let steps = 0;
   return (_model, context, options) => {
     const stream = createAssistantMessageEventStream();
     const signal = options?.signal ?? new AbortController().signal;
-    void answer(stream, context, signal, input, () => {
+    void answer(stream, context, signal, input, limit, () => {
       steps += 1;
       return steps;
     }).catch(() => {
@@ -75,15 +76,21 @@ async function answer(
     providerId: string;
     apiKey: string;
     model?: string;
+    maxSteps?: number;
   },
+  limit: number,
   nextStep: () => number,
 ): Promise<void> {
   const output = blankMessage(input.model || 'openrouter');
   try {
     if (signal.aborted) throw new Error('CANCELLED');
     const step = nextStep();
-    if (step > STEP_LIMIT) {
-      emitText(stream, output, 'Tool step limit reached before a final answer.');
+    if (step > limit) {
+      emitText(
+        stream,
+        output,
+        `Tool step limit (${limit}) reached before a final answer.`,
+      );
       return;
     }
     const tools = toolSpecs(getCurrentTools(context.messages));
