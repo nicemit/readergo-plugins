@@ -149,14 +149,14 @@
     {
       "id": "readergo.chat-store.sqlite",
       "name": "Chat Store (SQLite)",
-      "description": "Stores agent conversations in SQLite under ~/.readergo/agent.",
+      "description": "Stores agent conversations in SQLite under ~/.readergo/<env>/agent.",
       "category": "ai",
       "version": "0.1.0",
       "provides": [
         "chat-store.sqlite"
       ],
       "runtimeBundleUrl": "chat-store-sqlite.runtime.json",
-      "runtimeBundleHash": "756b860d6a987e93"
+      "runtimeBundleHash": "530ee02245726405"
     },
     {
       "id": "readergo.features.concept-learn",
@@ -258,14 +258,14 @@
       "name": "EPUB Reader",
       "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.2.4",
+      "version": "1.2.5",
       "provides": [
         "editor-provider",
         "activity-bar-item"
       ],
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "cd8b9cd4f9df7af4",
-      "hash": "cd8b9cd4f9df7af4"
+      "bundleHash": "768fe95f01fb4e5b",
+      "hash": "768fe95f01fb4e5b"
     },
     {
       "id": "readergo.features.explorer",
@@ -872,14 +872,14 @@
     {
       "id": "readergo.vector-store.lancedb",
       "name": "Vector Store (Local)",
-      "description": "Local file vector store under ~/.readergo/agent/vectors (provider id lancedb).",
+      "description": "Local file vector store under ~/.readergo/<env>/agent/vectors (provider id lancedb).",
       "category": "ai",
       "version": "0.1.0",
       "provides": [
         "vector-store.lancedb"
       ],
       "runtimeBundleUrl": "vector-store-lancedb.runtime.json",
-      "runtimeBundleHash": "057f1273623c5ecb"
+      "runtimeBundleHash": "5b23cae874e057f7"
     },
     {
       "id": "readergo.editor.whiteboard",
