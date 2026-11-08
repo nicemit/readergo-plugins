@@ -433,6 +433,16 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
     );
   }
 
+  if (browserTools.some((t) => t.name === 'list_folders' || t.name === 'create_folder' || t.name === 'move_note_to_folder')) {
+    lines.push(
+      'Folder tools follow the active space (cloud, local folder, or runtime). Switch space to organize a different one.\n' +
+        '- Call `list_folders` for id, name, parentId, and path. Match folders by name, then use ids.\n' +
+        '- Call `create_folder` with name. Pass parentId to nest under any existing folder, including a nested one.\n' +
+        '- Call `move_note_to_folder` with noteId and folderId to file a note in any folder at any depth. Omit folderId only to unfile.\n' +
+        '- `list_notes` and `search_notes` put the human folder path in the folder field.',
+    );
+  }
+
   if (browserTools.length > 0) {
     lines.push(`Extra tools: ${browserTools.map((item) => item.name).join(', ')}.`);
   }
