@@ -39,9 +39,6 @@ export const ExplorerPlugin: Plugin = {
           onCreateFolder={props.onCreateFolder}
           onRenameFolder={props.onRenameFolder}
           onDeleteFolder={props.onDeleteFolder}
-          onOpenSearch={() => {
-            void context.emit('readergo:open-search', {})
-          }}
         />
       ),
     }
