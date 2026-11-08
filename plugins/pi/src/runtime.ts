@@ -102,35 +102,68 @@ const plugin: RuntimePlugin = {
             messages: historyMessages(req, modelId),
           },
         });
+        const pending: string[] = [];
+        let wake: (() => void) | null = null;
+        const notify = () => {
+          const current = wake;
+          wake = null;
+          current?.();
+        };
         agent.subscribe((event) => {
           if (
             event.type === 'message_update' &&
             event.assistantMessageEvent.type === 'text_delta'
           ) {
             const delta = event.assistantMessageEvent.delta;
+            if (!delta) return;
             text += delta;
-            return;
+            pending.push(delta);
+            notify();
           }
         });
         const onAbort = () => agent.abort();
         if (signal.aborted) agent.abort();
         else signal.addEventListener('abort', onAbort, { once: true });
+        let promptDone = false;
+        const promptTask = agent.prompt(req.message).finally(() => {
+          promptDone = true;
+          notify();
+        });
         try {
-          await agent.prompt(req.message);
+          while (!promptDone || pending.length > 0) {
+            if (pending.length === 0) {
+              await new Promise<void>((resolve) => {
+                wake = resolve;
+                if (promptDone || pending.length > 0) notify();
+              });
+              continue;
+            }
+            const delta = pending.shift() ?? '';
+            if (!delta) continue;
+            const chunk: AgentChatChunk = {
+              conversationId: req.conversationId,
+              runId,
+              text: delta,
+              index,
+            };
+            index += 1;
+            yield chunk;
+          }
+          await promptTask;
         } finally {
           signal.removeEventListener('abort', onAbort);
         }
         if (signal.aborted) throw new Error('CANCELLED');
         const errorMessage = agent.state.errorMessage;
         if (errorMessage) throw new Error(errorMessage);
-        const chunk: AgentChatChunk = {
-          conversationId: req.conversationId,
-          runId,
-          text,
-          index,
-        };
-        index += 1;
-        yield chunk;
+        if (!text && index === 0) {
+          yield {
+            conversationId: req.conversationId,
+            runId,
+            text: '',
+            index,
+          };
+        }
       },
     });
     context.log.info('Pi agent SDK registered');
