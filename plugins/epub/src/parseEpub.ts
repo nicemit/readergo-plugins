@@ -17,11 +17,36 @@ function yieldToMain(): Promise<void> {
   return new Promise((resolve) => {
     const sched = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler
     if (sched?.yield) {
-      void sched.yield().then(resolve, () => setTimeout(resolve, 0))
+      void sched.yield().then(resolve, () => {
+        if (typeof MessageChannel !== 'undefined') {
+          const ch = new MessageChannel()
+          ch.port1.onmessage = () => resolve()
+          ch.port2.postMessage(null)
+          return
+        }
+        setTimeout(resolve, 0)
+      })
+      return
+    }
+    // MessageChannel yields sooner than setTimeout(0), so React can paint.
+    if (typeof MessageChannel !== 'undefined') {
+      const ch = new MessageChannel()
+      ch.port1.onmessage = () => resolve()
+      ch.port2.postMessage(null)
       return
     }
     setTimeout(resolve, 0)
   })
+}
+
+/** Yield, then wait one animation frame so the preparing spinner can clear. */
+async function paintFrame(): Promise<void> {
+  await yieldToMain()
+  if (typeof requestAnimationFrame === 'function') {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => resolve())
+    })
+  }
 }
 
 function throwIfAborted(signal?: AbortSignal) {
@@ -454,9 +479,29 @@ async function inlineImages(
     next = next.replaceAll(placeholder, dataUrl)
     processed += 1
     // Image inlining is the main freeze source on OceanofPDF-style books.
-    if (processed % 4 === 0) await yieldToMain()
+    await yieldToMain()
   }
   return next
+}
+
+/** Text-only chapter: sanitize and drop images so the reader can paint before base64 work. */
+function chapterHtmlWithoutImages(raw: string): string {
+  return sanitizeChapterHtml(raw, () => null).html
+}
+
+function emitProgress(
+  onProgress: ParseEpubOptions['onProgress'],
+  title: string,
+  creator: string | undefined,
+  chapters: EpubChapter[],
+  navToc: EpubTocItem[],
+) {
+  onProgress?.({
+    title,
+    creator,
+    chapters: chapters.slice(),
+    toc: navToc.length > 0 ? navToc : tocFromSections(chapters),
+  })
 }
 
 function sectionsForSpineHtml(
@@ -486,9 +531,11 @@ export async function parseEpub(
   const { onProgress, signal } = options
   throwIfAborted(signal)
 
+  // Let the preparing UI paint before unzipping (large books stall here).
+  await paintFrame()
   const zip = await JSZip.loadAsync(bytes)
   throwIfAborted(signal)
-  await yieldToMain()
+  await paintFrame()
 
   const containerXml = await readZipText(zip, 'META-INF/container.xml')
   const container = parseXml(containerXml)
@@ -535,6 +582,7 @@ export async function parseEpub(
 
   const chapters: EpubChapter[] = []
   let spineParsed = 0
+  let paintedOnce = false
   for (const ref of refs) {
     throwIfAborted(signal)
     const idref = ref.getAttribute('idref')
@@ -543,21 +591,32 @@ export async function parseEpub(
     if (!item || !/html|xml/i.test(item.mediaType)) continue
     const raw = await readZipText(zip, item.href)
     const chapterDir = dirname(item.href)
-    // inlineImages already sanitizes - do not DOM-parse the chapter a second time.
-    const html = await inlineImages(zip, chapterDir, raw, signal)
-    const sections = sectionsForSpineHtml(html, item.href, { idref, titlesByHref })
-    if (sections.length === 0) continue
-    chapters.push(...sections)
+    const sectionOpts = { idref, titlesByHref }
+
+    // Paint text first so "Preparing your book" can clear before image base64 work.
+    const fastHtml = chapterHtmlWithoutImages(raw)
+    const fastSections = sectionsForSpineHtml(fastHtml, item.href, sectionOpts)
+    if (fastSections.length === 0) continue
+    const replaceFrom = chapters.length
+    chapters.push(...fastSections)
     spineParsed += 1
-    onProgress?.({
-      title,
-      creator,
-      chapters: chapters.slice(),
-      toc: navToc.length > 0 ? navToc : tocFromSections(chapters),
-    })
+    emitProgress(onProgress, title, creator, chapters, navToc)
+    if (!paintedOnce) {
+      paintedOnce = true
+      await paintFrame()
+    } else {
+      await yieldToMain()
+    }
+
+    // Upgrade this spine item with inlined images, then notify again.
+    const richHtml = await inlineImages(zip, chapterDir, raw, signal)
+    const richSections = sectionsForSpineHtml(richHtml, item.href, sectionOpts)
+    if (richSections.length > 0) {
+      chapters.splice(replaceFrom, chapters.length - replaceFrom, ...richSections)
+      emitProgress(onProgress, title, creator, chapters, navToc)
+    }
     await yieldToMain()
-    // Extra breathe after heavy spine items so React can paint.
-    if (html.length > 80_000 || spineParsed % 3 === 0) await yieldToMain()
+    if (richHtml.length > 80_000 || spineParsed % 3 === 0) await yieldToMain()
   }
 
   if (chapters.length === 0) {

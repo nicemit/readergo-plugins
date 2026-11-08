@@ -1354,7 +1354,7 @@ export function EpubDocumentEditor(props: EditorProps) {
 
       {/* Main Reading Flow Container */}
       <div ref={setReadingViewport} className="relative flex min-h-0 w-full flex-1 flex-col">
-      {loading ? (
+      {loading && !book ? (
         <div className="flex-1 flex min-h-[300px] flex-col items-center justify-center text-center space-y-4">
           <div className="relative flex h-10 w-10">
             <span

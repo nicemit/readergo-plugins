@@ -258,14 +258,14 @@
       "name": "EPUB Reader",
       "description": "Paginated e-reader with two-page desktop spreads, custom typography, 6 atmospheres, search, bookmarks, and chapter progress",
       "category": "editor",
-      "version": "1.2.5",
+      "version": "1.2.6",
       "provides": [
         "editor-provider",
         "activity-bar-item"
       ],
       "bundleUrl": "epub.bundle.json",
-      "bundleHash": "768fe95f01fb4e5b",
-      "hash": "768fe95f01fb4e5b"
+      "bundleHash": "060b7cbc47cb340d",
+      "hash": "060b7cbc47cb340d"
     },
     {
       "id": "readergo.features.explorer",
