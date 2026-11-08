@@ -3,6 +3,44 @@ import type { EpubBook, EpubChapter, EpubTocItem } from './types'
 
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'])
 const MAX_INLINE_IMAGE_BYTES = 200_000
+/** Skip heading splits on huge spine files - splitting them freezes the tab. */
+const MAX_SPLIT_HTML_CHARS = 180_000
+const BASE64_CHUNK = 0x8000
+
+export type ParseEpubOptions = {
+  /** Called after each spine item so the UI can paint before the whole book is ready. */
+  onProgress?: (book: EpubBook) => void
+  signal?: AbortSignal
+}
+
+function yieldToMain(): Promise<void> {
+  return new Promise((resolve) => {
+    const sched = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler
+    if (sched?.yield) {
+      void sched.yield().then(resolve, () => setTimeout(resolve, 0))
+      return
+    }
+    setTimeout(resolve, 0)
+  })
+}
+
+function throwIfAborted(signal?: AbortSignal) {
+  if (signal?.aborted) {
+    const err = new Error('EPUB parse cancelled')
+    err.name = 'AbortError'
+    throw err
+  }
+}
+
+/** Chunked base64 - a per-byte `+= String.fromCharCode` loop freezes the tab on image-heavy books. */
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK) {
+    const slice = bytes.subarray(i, i + BASE64_CHUNK)
+    binary += String.fromCharCode.apply(null, slice as unknown as number[])
+  }
+  return btoa(binary)
+}
 
 function localName(name: string): string {
   const parts = name.split(':')
@@ -380,11 +418,14 @@ async function inlineImages(
   zip: JSZip,
   chapterDir: string,
   html: string,
+  signal?: AbortSignal,
 ): Promise<string> {
   const { html: sanitized } = sanitizeChapterHtml(html, (src) => `[[${src}]]`)
   const matches = [...sanitized.matchAll(/\[\[([^\]]+)\]\]/g)]
   let next = sanitized
+  let processed = 0
   for (const match of matches) {
+    throwIfAborted(signal)
     const src = match[1] || ''
     const path = resolveZipPath(chapterDir, src)
     const file = zipFile(zip, path)
@@ -409,16 +450,46 @@ async function inlineImages(
       next = next.replaceAll(placeholder, '')
       continue
     }
-    let binary = ''
-    for (const byte of bytes) binary += String.fromCharCode(byte)
-    const dataUrl = `data:${mime};base64,${btoa(binary)}`
+    const dataUrl = `data:${mime};base64,${bytesToBase64(bytes)}`
     next = next.replaceAll(placeholder, dataUrl)
+    processed += 1
+    // Image inlining is the main freeze source on OceanofPDF-style books.
+    if (processed % 4 === 0) await yieldToMain()
   }
   return next
 }
 
-export async function parseEpub(bytes: ArrayBuffer): Promise<EpubBook> {
+function sectionsForSpineHtml(
+  html: string,
+  fileHref: string,
+  options: { idref?: string; titlesByHref?: Map<string, string> },
+): EpubChapter[] {
+  if (html.length > MAX_SPLIT_HTML_CHARS) {
+    const title = options.titlesByHref?.get(fileHref) || 'Section'
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    return [{
+      id: options.idref || fileHref,
+      href: fileHref,
+      title,
+      html,
+      text,
+      level: 1,
+    }]
+  }
+  return splitHtmlIntoSections(html, fileHref, options)
+}
+
+export async function parseEpub(
+  bytes: ArrayBuffer,
+  options: ParseEpubOptions = {},
+): Promise<EpubBook> {
+  const { onProgress, signal } = options
+  throwIfAborted(signal)
+
   const zip = await JSZip.loadAsync(bytes)
+  throwIfAborted(signal)
+  await yieldToMain()
+
   const containerXml = await readZipText(zip, 'META-INF/container.xml')
   const container = parseXml(containerXml)
   const rootfile = firstByName(container, 'rootfile')
@@ -452,6 +523,7 @@ export async function parseEpub(bytes: ArrayBuffer): Promise<EpubBook> {
   } else if (ncxItem) {
     toc = tocFromNcx(await readZipText(zip, ncxItem.href), dirname(ncxItem.href))
   }
+  const navToc = toc
 
   const spine = firstByName(opf, 'spine')
   const refs = spine ? [...spine.getElementsByTagName('*')].filter((el) => localName(el.tagName) === 'itemref') : []
@@ -462,18 +534,30 @@ export async function parseEpub(bytes: ArrayBuffer): Promise<EpubBook> {
   }
 
   const chapters: EpubChapter[] = []
+  let spineParsed = 0
   for (const ref of refs) {
+    throwIfAborted(signal)
     const idref = ref.getAttribute('idref')
     if (!idref) continue
     const item = manifest.get(idref)
     if (!item || !/html|xml/i.test(item.mediaType)) continue
     const raw = await readZipText(zip, item.href)
     const chapterDir = dirname(item.href)
-    const withImages = await inlineImages(zip, chapterDir, raw)
-    const { html } = sanitizeChapterHtml(withImages, () => null)
-    const sections = splitHtmlIntoSections(html, item.href, { idref, titlesByHref })
+    // inlineImages already sanitizes - do not DOM-parse the chapter a second time.
+    const html = await inlineImages(zip, chapterDir, raw, signal)
+    const sections = sectionsForSpineHtml(html, item.href, { idref, titlesByHref })
     if (sections.length === 0) continue
     chapters.push(...sections)
+    spineParsed += 1
+    onProgress?.({
+      title,
+      creator,
+      chapters: chapters.slice(),
+      toc: navToc.length > 0 ? navToc : tocFromSections(chapters),
+    })
+    await yieldToMain()
+    // Extra breathe after heavy spine items so React can paint.
+    if (html.length > 80_000 || spineParsed % 3 === 0) await yieldToMain()
   }
 
   if (chapters.length === 0) {

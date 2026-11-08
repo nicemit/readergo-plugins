@@ -328,16 +328,52 @@ export function EpubDocumentEditor(props: EditorProps) {
   )
 
   const loadBytes = useCallback(
-    async (bytes: ArrayBuffer, location: EpubLocation) => {
+    async (bytes: ArrayBuffer, location: EpubLocation, signal?: AbortSignal) => {
       setLoading(true)
       setError(null)
+      let painted = false
       try {
         if (!hasZipSignature(bytes)) {
           throw new Error('This file is not a valid EPUB archive.')
         }
-        const parsed = await parseEpub(bytes)
+        const parsed = await parseEpub(bytes, {
+          signal,
+          onProgress: (partial) => {
+            if (signal?.aborted || partial.chapters.length === 0) return
+            const fromHref = location.href
+              ? findChapterIndex(partial.chapters, location.href)
+              : -1
+            const targetReady =
+              fromHref >= 0 ||
+              (!location.href && partial.chapters.length > location.chapterIndex)
+            setBook(partial)
+            if (targetReady) {
+              const next = Math.max(
+                0,
+                Math.min(
+                  partial.chapters.length - 1,
+                  fromHref >= 0 ? fromHref : location.chapterIndex,
+                ),
+              )
+              const hash = location.href ? splitEpubHref(location.href).hash : ''
+              pendingHashRef.current = hash || null
+              pendingTargetRef.current = 'start'
+              setChapterIndex(next)
+              setLoading(false)
+              painted = true
+            } else if (!painted) {
+              // Show the first chapter while catching up to a saved deeper location.
+              pendingTargetRef.current = 'start'
+              setChapterIndex(0)
+              setLoading(false)
+              painted = true
+            }
+          },
+        })
+        if (signal?.aborted) return
         await applyBook(parsed, location)
       } catch (err) {
+        if (signal?.aborted || (err instanceof Error && err.name === 'AbortError')) return
         const msg = err instanceof Error ? err.message : 'Could not read this EPUB'
         const cleanMsg =
           msg.includes('central directory') || msg.includes('zip file')
@@ -346,7 +382,7 @@ export function EpubDocumentEditor(props: EditorProps) {
         setError(cleanMsg)
         setBook(null)
       } finally {
-        setLoading(false)
+        if (!signal?.aborted) setLoading(false)
       }
     },
     [applyBook],
@@ -366,6 +402,7 @@ export function EpubDocumentEditor(props: EditorProps) {
     let cancelled = false
     let attempts = 0
     let contextTries = 0
+    const abort = new AbortController()
 
     if (native) setLoading(true)
 
@@ -408,7 +445,7 @@ export function EpubDocumentEditor(props: EditorProps) {
             return
           }
           loadedIdRef.current = loadKey
-          await loadBytes(bytes, saved)
+          await loadBytes(bytes, saved, abort.signal)
           return
         }
       } catch (err) {
@@ -445,6 +482,7 @@ export function EpubDocumentEditor(props: EditorProps) {
     })
     return () => {
       cancelled = true
+      abort.abort()
       stop()
     }
   }, [loadBytes, loadKey, native, noteId])
