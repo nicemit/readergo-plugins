@@ -85,7 +85,9 @@ function createSqliteProvider(): ChatStoreProvider {
     },
     async append(input) {
       const now = Date.now();
-      const id = `msg_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      const id =
+        (typeof input.id === 'string' && input.id.trim()) ||
+        `msg_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       const content = String(input.content ?? '').slice(0, 32_000);
       const role = input.role;
       db.prepare(
@@ -102,6 +104,33 @@ function createSqliteProvider(): ChatStoreProvider {
         createdAt: now,
       };
       return record;
+    },
+    async update(input) {
+      const now = Date.now();
+      const content = String(input.content ?? '').slice(0, 32_000);
+      const existing = db
+        .prepare(
+          `SELECT id, role, created_at FROM messages
+           WHERE id = ? AND conversation_id = ?`,
+        )
+        .get(input.messageId, input.conversationId) as
+        | { id: string; role: string; created_at: number }
+        | undefined;
+      if (!existing) {
+        throw new Error(`Chat message ${input.messageId} not found`);
+      }
+      db.prepare(
+        `UPDATE messages SET content = ? WHERE id = ? AND conversation_id = ?`,
+      ).run(content, input.messageId, input.conversationId);
+      db.prepare(
+        `UPDATE conversations SET updated_at = ? WHERE id = ?`,
+      ).run(now, input.conversationId);
+      return {
+        id: existing.id,
+        role: existing.role as ChatMessageRecord['role'],
+        content,
+        createdAt: Number(existing.created_at) || now,
+      };
     },
     async listConversations(input) {
       const limit = Math.min(Math.max(input.limit ?? 50, 1), 200);
@@ -183,7 +212,7 @@ const plugin: RuntimePlugin = {
   manifest: {
     id: 'readergo.chat-store.sqlite',
     name: 'Chat Store (SQLite)',
-    version: '0.1.0',
+    version: '0.1.1',
     sdkVersion: '0.1.0',
     description: 'Stores agent conversations in SQLite under ~/.readergo/<env>/agent.',
     category: 'ai',
