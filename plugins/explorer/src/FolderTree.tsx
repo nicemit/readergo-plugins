@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Edit2,
   Trash2,
+  Search,
   FolderPlus,
   Check,
   X,
@@ -116,6 +117,7 @@ interface FolderTreeProps {
   onCreateFolder?: (name: string, parentId?: string) => Promise<void>
   onRenameFolder?: (folderId: string, newName: string) => Promise<void>
   onDeleteFolder?: (folderId: string) => Promise<void>
+  onOpenSearch?: () => void
 }
 
 interface FolderNodeProps {
@@ -575,6 +577,7 @@ export function FolderTree({
   onCreateFolder: onCreateFolderProp,
   onRenameFolder: onRenameFolderProp,
   onDeleteFolder: onDeleteFolderProp,
+  onOpenSearch,
 }: FolderTreeProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(false) // No loading state needed since folders come from parent
@@ -787,11 +790,26 @@ export function FolderTree({
 
   return (
     <div className="p-1">
-      {/* View / sort controls (search + new folder live in the host h-10 header) */}
-      <div className="flex items-center justify-between text-xs mb-2 px-2 mt-1">
+      {/* Search + view/sort (create folder lives on the activity bar) */}
+      <div className="flex flex-col gap-2 mb-2 px-2 mt-1">
+        <button
+          type="button"
+          className="flex w-full items-center gap-2 h-8 px-2.5 bg-background/80 hover:bg-muted/50 border border-border/60 hover:border-border/80 rounded-md text-xs text-muted-foreground transition-all group shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          onClick={() => onOpenSearch?.()}
+          title="Search notes (Cmd/Ctrl+K)"
+        >
+          <Search className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+          <span className="font-medium truncate">Search documents...</span>
+          <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/60 bg-muted/40 px-1.5 font-mono text-[10px] text-muted-foreground">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </button>
+
+        <div className="flex items-center justify-between text-xs">
           {/* View Toggles */}
           <div className="flex items-center bg-background/80 p-0.5 rounded-lg border border-border/60 shadow-sm">
             <button
+              type="button"
               onClick={() => setViewMode('folder')}
               className={`p-1 rounded-md flex items-center justify-center transition-all ${viewMode === 'folder'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
@@ -801,6 +819,7 @@ export function FolderTree({
               <FolderIcon className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('timeline')}
               className={`p-1 rounded-md flex items-center justify-center transition-all ${viewMode === 'timeline'
                 ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
@@ -814,6 +833,7 @@ export function FolderTree({
           {/* Sort Control */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors border border-transparent hover:border-border/40"
               title="Sort notes"
@@ -856,6 +876,7 @@ export function FolderTree({
               </>
             )}
           </div>
+        </div>
       </div>
 
       {/* Create Folder Input */}
