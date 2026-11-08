@@ -129,4 +129,58 @@ describe('parseEpub', () => {
     ]
     expect(findChapterIndex(chapters, 'split.xhtml#beta', 'OEBPS/split.xhtml')).toBe(2)
   })
+
+  it('emits progress before finishing image-heavy chapters', async () => {
+    const zip = new JSZip()
+    zip.file('mimetype', 'application/epub+zip')
+    zip.file(
+      'META-INF/container.xml',
+      `<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`,
+    )
+    zip.file(
+      'OEBPS/content.opf',
+      `<?xml version="1.0"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:title>Img Book</dc:title>
+  </metadata>
+  <manifest>
+    <item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>
+    <item id="img1" href="cover.png" media-type="image/png"/>
+  </manifest>
+  <spine>
+    <itemref idref="ch1"/>
+  </spine>
+</package>`,
+    )
+    // 1x1 PNG
+    const png = Uint8Array.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+      0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+      0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0xfe, 0xd4, 0xef, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45,
+      0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+    ])
+    zip.file('OEBPS/cover.png', png)
+    zip.file(
+      'OEBPS/ch1.xhtml',
+      `<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>Cover</h1><img src="cover.png"/><p>Hello</p></body></html>`,
+    )
+    const bytes = await zip.generateAsync({ type: 'arraybuffer' })
+    const snapshots: string[] = []
+    const book = await parseEpub(bytes, {
+      onProgress: (partial) => {
+        snapshots.push(partial.chapters[0]?.html || '')
+      },
+    })
+    expect(snapshots.length).toBeGreaterThanOrEqual(2)
+    expect(snapshots[0]).toContain('Hello')
+    expect(snapshots[0]).not.toContain('data:image')
+    expect(book.chapters[0]?.html).toContain('data:image/png;base64,')
+  })
 })
