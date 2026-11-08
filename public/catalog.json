@@ -277,8 +277,8 @@
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "371d495e2c413bc9",
-      "hash": "371d495e2c413bc9"
+      "bundleHash": "61b4adab2222adf0",
+      "hash": "61b4adab2222adf0"
     },
     {
       "id": "readergo.filesystem",
