@@ -151,12 +151,12 @@
       "name": "Chat Store (SQLite)",
       "description": "Stores agent conversations in SQLite under ~/.readergo/<env>/agent.",
       "category": "ai",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "provides": [
         "chat-store.sqlite"
       ],
       "runtimeBundleUrl": "chat-store-sqlite.runtime.json",
-      "runtimeBundleHash": "530ee02245726405"
+      "runtimeBundleHash": "adee7e1b2090928f"
     },
     {
       "id": "readergo.features.concept-learn",
@@ -573,12 +573,12 @@
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
       "category": "ai",
-      "version": "0.2.1",
+      "version": "0.2.3",
       "provides": [
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "785f81abc6d9c9c8"
+      "runtimeBundleHash": "bfce5bb47ec57662"
     },
     {
       "id": "readergo.features.pin-notes",
