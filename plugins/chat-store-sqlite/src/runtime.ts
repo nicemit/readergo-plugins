@@ -36,6 +36,8 @@ function openDb(): DatabaseSync {
   fs.mkdirSync(dir, { recursive: true });
   const dbPath = path.join(dir, 'chat.db');
   const db = new DatabaseSync(dbPath);
+  db.exec('PRAGMA busy_timeout = 5000');
+  db.exec('PRAGMA journal_mode = WAL');
   db.exec(`
     CREATE TABLE IF NOT EXISTS conversations (
       id TEXT PRIMARY KEY,
@@ -55,6 +57,18 @@ function openDb(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_messages_conversation
       ON messages(conversation_id, created_at);
   `);
+  const alters = [
+    'ALTER TABLE conversations ADD COLUMN agent_sdk_id TEXT',
+    'ALTER TABLE conversations ADD COLUMN agent_label TEXT',
+    'ALTER TABLE messages ADD COLUMN metadata TEXT',
+  ];
+  for (const sql of alters) {
+    try {
+      db.exec(sql);
+    } catch {
+      // Column already exists.
+    }
+  }
   return db;
 }
 
@@ -69,14 +83,18 @@ function createSqliteProvider(): ChatStoreProvider {
       const id = input.id?.trim() || `conv_${now.toString(36)}`;
       const title = input.title?.trim() || 'New chat';
       const spaceId = input.spaceId?.trim() || null;
+      const agentSdkId = input.agentSdkId?.trim() || null;
+      const agentLabel = input.agentLabel?.trim() || null;
       db.prepare(
-        `INSERT INTO conversations (id, title, space_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?)`,
-      ).run(id, title, spaceId, now, now);
+        `INSERT INTO conversations (id, title, space_id, agent_sdk_id, agent_label, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ).run(id, title, spaceId, agentSdkId, agentLabel, now, now);
       return {
         id,
         title,
         spaceId: spaceId || undefined,
+        agentSdkId: agentSdkId || undefined,
+        agentLabel: agentLabel || undefined,
         createdAt: now,
         updatedAt: now,
         messageCount: 0,
@@ -90,10 +108,14 @@ function createSqliteProvider(): ChatStoreProvider {
         `msg_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       const content = String(input.content ?? '').slice(0, 32_000);
       const role = input.role;
+      const metadata =
+        input.metadata && typeof input.metadata === 'object'
+          ? JSON.stringify(input.metadata)
+          : null;
       db.prepare(
-        `INSERT INTO messages (id, conversation_id, role, content, created_at)
-         VALUES (?, ?, ?, ?, ?)`,
-      ).run(id, input.conversationId, role, content, now);
+        `INSERT INTO messages (id, conversation_id, role, content, created_at, metadata)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      ).run(id, input.conversationId, role, content, now, metadata);
       db.prepare(
         `UPDATE conversations SET updated_at = ? WHERE id = ?`,
       ).run(now, input.conversationId);
@@ -102,6 +124,7 @@ function createSqliteProvider(): ChatStoreProvider {
         role,
         content,
         createdAt: now,
+        metadata: input.metadata,
       };
       return record;
     },
@@ -134,40 +157,69 @@ function createSqliteProvider(): ChatStoreProvider {
     },
     async listConversations(input) {
       const limit = Math.min(Math.max(input.limit ?? 50, 1), 200);
-      const spaceId = input.spaceId?.trim();
-      const rows = spaceId
-        ? (db
-            .prepare(
-              `SELECT c.id, c.title, c.space_id, c.created_at, c.updated_at,
-                      (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
-               FROM conversations c
-               WHERE c.space_id = ?
-               ORDER BY c.updated_at DESC
-               LIMIT ?`,
-            )
-            .all(spaceId, limit) as Array<Record<string, unknown>>)
-        : (db
-            .prepare(
-              `SELECT c.id, c.title, c.space_id, c.created_at, c.updated_at,
-                      (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
-               FROM conversations c
-               ORDER BY c.updated_at DESC
-               LIMIT ?`,
-            )
-            .all(limit) as Array<Record<string, unknown>>);
+      const spaceId = input.spaceId?.trim() || null;
+      const agentSdkId = input.agentSdkId?.trim() || null;
+      const query = input.query?.trim() ? `%${input.query.trim()}%` : null;
+      const rows = db
+        .prepare(
+          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.created_at, c.updated_at,
+                  (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
+           FROM conversations c
+           WHERE (? IS NULL OR c.space_id = ?)
+             AND (? IS NULL OR c.agent_sdk_id = ?)
+             AND (? IS NULL OR c.title LIKE ?)
+           ORDER BY c.updated_at DESC
+           LIMIT ?`,
+        )
+        .all(spaceId, spaceId, agentSdkId, agentSdkId, query, query, limit) as Array<
+        Record<string, unknown>
+      >;
+      return rows.map(toSummary);
+    },
+    async search(input) {
+      const limit = Math.min(Math.max(input.limit ?? 20, 1), 50);
+      const q = `%${input.query.trim()}%`;
+      const spaceId = input.spaceId?.trim() || null;
+      const agentSdkId = input.agentSdkId?.trim() || null;
+      const rows = db
+        .prepare(
+          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.created_at, c.updated_at,
+                  (SELECT COUNT(*) FROM messages m2 WHERE m2.conversation_id = c.id) AS message_count
+           FROM conversations c
+           WHERE (? IS NULL OR c.space_id = ?)
+             AND (? IS NULL OR c.agent_sdk_id = ?)
+             AND (
+               c.title LIKE ?
+               OR EXISTS (
+                 SELECT 1 FROM messages m
+                 WHERE m.conversation_id = c.id AND m.content LIKE ?
+               )
+             )
+           ORDER BY c.updated_at DESC
+           LIMIT ?`,
+        )
+        .all(
+          spaceId,
+          spaceId,
+          agentSdkId,
+          agentSdkId,
+          q,
+          q,
+          limit,
+        ) as Array<Record<string, unknown>>;
       return rows.map(toSummary);
     },
     async get(input) {
       const row = db
         .prepare(
-          `SELECT id, title, space_id, created_at, updated_at
+          `SELECT id, title, space_id, agent_sdk_id, agent_label, created_at, updated_at
            FROM conversations WHERE id = ?`,
         )
         .get(input.conversationId) as Record<string, unknown> | undefined;
       if (!row) return null;
       const messages = db
         .prepare(
-          `SELECT id, role, content, created_at
+          `SELECT id, role, content, created_at, metadata
            FROM messages WHERE conversation_id = ?
            ORDER BY created_at ASC`,
         )
@@ -183,6 +235,7 @@ function createSqliteProvider(): ChatStoreProvider {
           role: item.role as ChatMessageRecord['role'],
           content: String(item.content ?? ''),
           createdAt: Number(item.created_at) || 0,
+          metadata: parseMetadata(item.metadata),
         })),
       };
       return conversation;
@@ -196,12 +249,27 @@ function createSqliteProvider(): ChatStoreProvider {
   };
 }
 
+function parseMetadata(raw: unknown): Record<string, unknown> | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (parsed && typeof parsed === 'object') return parsed as Record<string, unknown>;
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
 function toSummary(row: Record<string, unknown>): ChatConversationSummary {
   const spaceId = row.space_id == null ? undefined : String(row.space_id);
+  const agentSdkId = row.agent_sdk_id == null ? undefined : String(row.agent_sdk_id);
+  const agentLabel = row.agent_label == null ? undefined : String(row.agent_label);
   return {
     id: String(row.id),
     title: String(row.title ?? 'Chat'),
     spaceId: spaceId || undefined,
+    agentSdkId: agentSdkId || undefined,
+    agentLabel: agentLabel || undefined,
     createdAt: Number(row.created_at) || 0,
     updatedAt: Number(row.updated_at) || 0,
     messageCount: Number(row.message_count) || 0,
