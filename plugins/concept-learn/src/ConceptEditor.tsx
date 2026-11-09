@@ -2,12 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
 import { ExtensionSlot } from '@/components/layout/ExtensionSlot';
-import {
-  formatError,
-  generateConceptPlan,
-  loadTutorHistory,
-  sendTutorMessage,
-} from './ai';
+import { executeCommand } from '@/lib/platform/actions';
+import { generateConceptPlan } from './ai';
 import { EmptyState } from './EmptyState';
 import { MapRail } from './MapStrip';
 import { PlaygroundHost } from './playgrounds/PlaygroundHost';
@@ -23,13 +19,7 @@ import {
   touchConceptSession,
   unbindConceptSession,
 } from './conceptSession';
-import { TutorDock, TUTOR_WIDTH_PX } from './TutorDock';
-import type {
-  ConceptData,
-  ConceptSeed,
-  PlaygroundSpec,
-  TutorMessage,
-} from './types';
+import type { ConceptData, ConceptSeed, PlaygroundSpec } from './types';
 
 const LG_MQ = '(min-width: 1024px)';
 
@@ -73,14 +63,8 @@ export function ConceptEditor(props: EditorProps) {
   const [data, setData] = useState<ConceptData>(() =>
     normalizeConceptData(note?.data),
   );
-  const [tutorMessages, setTutorMessages] = useState<TutorMessage[]>([]);
-  const [streaming, setStreaming] = useState('');
-  const [tutorBusy, setTutorBusy] = useState(false);
-  const [tutorError, setTutorError] = useState<string | null>(null);
   const [planStream, setPlanStream] = useState('');
-  const [mobileTab, setMobileTab] = useState<
-    'map' | 'learn' | 'tutor'
-  >('learn');
+  const [mobileTab, setMobileTab] = useState<'map' | 'learn'>('learn');
   const [mapCollapsed, setMapCollapsed] = useState(false);
   const isLg = useIsLg();
 
@@ -95,8 +79,6 @@ export function ConceptEditor(props: EditorProps) {
   const onTitleChangeRef = useRef(props.onTitleChange);
   const abortRef = useRef<AbortController | null>(null);
   const autoBuildKeyRef = useRef<string | null>(null);
-  const loadedThreadRef = useRef<string | null>(null);
-
   dataRef.current = data;
   onDataChangeRef.current = props.onDataChange;
   onChangeRef.current = props.onChange;
@@ -110,9 +92,22 @@ export function ConceptEditor(props: EditorProps) {
       documentId,
       title: note?.title,
       data: dataRef.current,
+      persist: (next) => {
+        dataRef.current = next;
+        setData(next);
+        onDataChangeRef.current?.(next);
+        onChangeRef.current?.(conceptSummary(next));
+      },
     });
     return () => unbindConceptSession(documentId);
   }, [note?.id, note?.title]);
+
+  useEffect(() => {
+    if (!note?.id) return;
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia(LG_MQ).matches) return;
+    void executeCommand('readergo.agent-chat-ui.open');
+  }, [note?.id]);
 
   useEffect(() => {
     touchConceptSession(data);
@@ -178,84 +173,6 @@ export function ConceptEditor(props: EditorProps) {
     void startFromSeed(data.seed);
   }, [note?.id, data.seed, data.building, data.map.nodes.length]);
 
-  useEffect(() => {
-    setTutorMessages([]);
-    loadedThreadRef.current = null;
-  }, [note?.id]);
-
-  // Reload tutor transcript from runtime chat-store when opening a concept.
-  useEffect(() => {
-    const threadId = data.tutorThreadId;
-    if (!threadId || data.building) return;
-    if (loadedThreadRef.current === threadId) return;
-    loadedThreadRef.current = threadId;
-    let cancelled = false;
-    void loadTutorHistory(threadId).then((messages) => {
-      if (cancelled) return;
-      setTutorMessages(messages);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [data.tutorThreadId, data.building, note?.id]);
-
-  const onTutorSend = async (text: string) => {
-    setTutorError(null);
-    setTutorBusy(true);
-    setStreaming('');
-    const history = tutorMessages.map((m) => ({
-      role: m.role,
-      content: m.text,
-    }));
-    setTutorMessages((prev) => [...prev, { role: 'user', text }]);
-
-    // Bind thread id on the concept doc before the round-trip so tab switches can reload it.
-    let conceptForSend = dataRef.current;
-    if (!conceptForSend.tutorThreadId) {
-      const tutorThreadId =
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? `concept_tutor_${crypto.randomUUID()}`
-          : `concept_tutor_${Date.now()}`;
-      conceptForSend = { ...conceptForSend, tutorThreadId };
-      commit(conceptForSend);
-      loadedThreadRef.current = tutorThreadId;
-    }
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      const result = await sendTutorMessage({
-        concept: conceptForSend,
-        userText: text,
-        history,
-        signal: controller.signal,
-        onChunk: setStreaming,
-      });
-      if (controller.signal.aborted) return;
-      setStreaming('');
-      setTutorMessages((prev) => [
-        ...prev,
-        { role: 'assistant', text: result.text || '(empty reply)' },
-      ]);
-      if (result.tutorThreadId !== dataRef.current.tutorThreadId) {
-        commit({ ...dataRef.current, tutorThreadId: result.tutorThreadId });
-        loadedThreadRef.current = result.tutorThreadId;
-      }
-      if (result.persistError) {
-        setTutorError(
-          `Reply ok, but chat save failed (${result.persistError}). Check Local Runtime + SQLite chat store.`,
-        );
-      }
-    } catch (err) {
-      setTutorError(formatError(err));
-      setStreaming('');
-    } finally {
-      setTutorBusy(false);
-    }
-  };
-
   if (!data.seed && !data.building) {
     return (
       <div className={SHELL} style={SHELL_STYLE}>
@@ -300,8 +217,6 @@ export function ConceptEditor(props: EditorProps) {
 
   const showMap = isLg || mobileTab === 'map';
   const showLearn = isLg || mobileTab === 'learn';
-  const showTutor = isLg || mobileTab === 'tutor';
-  const tutorFill = !isLg && mobileTab === 'tutor';
 
   return (
     <div className={SHELL} style={SHELL_STYLE}>
@@ -343,7 +258,7 @@ export function ConceptEditor(props: EditorProps) {
 
       {!isLg ? (
         <div className="flex shrink-0 gap-1 border-b border-border px-2 py-1">
-          {(['map', 'learn', 'tutor'] as const).map((tab) => (
+          {(['map', 'learn'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -413,31 +328,6 @@ export function ConceptEditor(props: EditorProps) {
                 )}
               </section>
             </div>
-          </div>
-        ) : null}
-
-        {showTutor ? (
-          <div
-            className="h-full min-h-0"
-            style={
-              tutorFill
-                ? { flex: '1 1 auto', minWidth: 0, width: '100%' }
-                : {
-                    flex: `0 0 ${TUTOR_WIDTH_PX}px`,
-                    width: TUTOR_WIDTH_PX,
-                    maxWidth: TUTOR_WIDTH_PX,
-                    minWidth: 0,
-                  }
-            }
-          >
-            <TutorDock
-              messages={tutorMessages}
-              streaming={streaming}
-              busy={tutorBusy}
-              error={tutorError}
-              fillWidth={tutorFill}
-              onSend={(t) => void onTutorSend(t)}
-            />
           </div>
         ) : null}
       </div>

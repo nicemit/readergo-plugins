@@ -39,14 +39,19 @@ export function TutorDock({
   onSend,
   error,
   fillWidth,
+  embedded,
+  onClose,
 }: {
   messages: TutorMessage[];
   streaming?: string;
   busy?: boolean;
   error?: string | null;
   onSend: (text: string) => void;
-  /** Only for the mobile tutor tab - never on desktop split layout. */
+  /** Fill the parent instead of the fixed concept-column width. */
   fillWidth?: boolean;
+  /** Hosted in the agent-chat dock. */
+  embedded?: boolean;
+  onClose?: () => void;
 }) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -66,14 +71,25 @@ export function TutorDock({
 
   return (
     <aside
-      className="flex h-full min-h-0 flex-col border-l border-border bg-background"
-      style={fillWidth ? DOCK_FILL : DOCK_FIXED}
+      className={`flex h-full min-h-0 flex-col bg-background ${embedded ? '' : 'border-l border-border'}`}
+      style={fillWidth || embedded ? DOCK_FILL : DOCK_FIXED}
     >
-      <div className="shrink-0 border-b border-border px-3 py-2">
-        <div className="text-sm font-medium">Tutor</div>
-        <p className="text-[11px] text-muted-foreground">
-          Socratic help on this concept. Model settings live in Chat.
-        </p>
+      <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border px-3 py-2">
+        <div>
+          <div className="text-sm font-medium">Tutor</div>
+          <p className="text-[11px] text-muted-foreground">
+            Socratic help on this concept. Uses the model selected for chat.
+          </p>
+        </div>
+        {onClose ? (
+          <button
+            type="button"
+            className="shrink-0 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted/50"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        ) : null}
       </div>
 
       <div

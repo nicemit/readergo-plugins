@@ -31,3 +31,26 @@ export interface AgentChatUiCapability {
   /** Subscribe to open/close. Returns unsubscribe. */
   subscribe(listener: (open: boolean) => void): () => void;
 }
+
+/**
+ * Extra panels for the same dock. A plugin matches the open document and
+ * supplies its own panel. The default agent chat stays when nothing matches.
+ */
+export const AGENT_CHAT_PANEL_CAPABILITY_ID = 'agent-chat-panel';
+
+export interface AgentChatPanelMatch {
+  documentType?: string;
+  documentId?: string;
+}
+
+export interface AgentChatPanelRegistration {
+  id: string;
+  order?: number;
+  match(input: AgentChatPanelMatch): boolean;
+  Panel: ComponentType<AgentChatUiPanelProps>;
+}
+
+export interface AgentChatPanelCapability {
+  register(panel: AgentChatPanelRegistration): () => void;
+  resolve(input: AgentChatPanelMatch): ComponentType<AgentChatUiPanelProps> | null;
+}

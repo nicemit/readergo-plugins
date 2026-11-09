@@ -1,11 +1,14 @@
 import {
+  AGENT_CHAT_PANEL_CAPABILITY_ID,
   definePlugin,
   WellKnownPlaces,
+  type AgentChatPanelCapability,
   type EditorProvider,
   type PluginContext,
 } from '@readergo/plugin-sdk';
 import { GraduationCap } from 'lucide-react';
 import { ConceptEditor } from './ConceptEditor';
+import { ConceptTutorPanel } from './ConceptTutorPanel';
 import { conceptSummary, createConceptDocument, emptyConceptData } from './schema';
 import { registerConceptTools } from './tools';
 import { CONCEPT_TYPE } from './types';
@@ -13,7 +16,7 @@ import { CONCEPT_TYPE } from './types';
 const manifest = {
   id: 'readergo.features.concept-learn',
   name: 'Concept Learn',
-  version: '0.1.4',
+  version: '0.1.5',
   description:
     'Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.',
   category: 'feature' as const,
@@ -113,7 +116,21 @@ export default definePlugin({
 
     await registerConceptTools(context);
 
+    const panels = await context.getCapability<AgentChatPanelCapability>(
+      AGENT_CHAT_PANEL_CAPABILITY_ID,
+    );
+    const unregisterTutor = panels?.register({
+      id: 'readergo.concept-learn.tutor',
+      order: 10,
+      match: (input) => input.documentType === CONCEPT_TYPE,
+      Panel: ConceptTutorPanel,
+    });
+    if (!panels) {
+      context.log.warn('agent-chat-panel is missing. The tutor stays out of the chat dock.');
+    }
+
     return async () => {
+      unregisterTutor?.();
       context.log.info('Concept Learn plugin deactivated');
     };
   },

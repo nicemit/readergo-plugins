@@ -19,6 +19,8 @@ export interface ChatSourceDocument {
   documentId: string;
   title?: string;
   content?: string;
+  /** Note type, such as `note` or `concept`. Panels match on this. */
+  documentType?: string;
 }
 
 export interface ChatSourceSelection {
