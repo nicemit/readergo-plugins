@@ -7,7 +7,9 @@ import type { AssistantMessage, TextContent, UserMessage } from '@earendil-works
 import type {
   AgentChatChunk,
   AgentChatRequest,
+  AgentActivityCapability,
   AgentSdkCapability,
+  TagsCapability,
   ChatStoreCapability,
   EmbeddingsCapability,
   FilesystemCapability,
@@ -17,8 +19,10 @@ import type {
   VectorStoreCapability,
 } from '@readergo/plugin-contracts';
 import {
+  AGENT_ACTIVITY_CAPABILITY_ID,
   AGENT_SDK_CAPABILITY_ID,
   CHAT_STORE_CAPABILITY_ID,
+  TAGS_CAPABILITY_ID,
   EMBEDDINGS_CAPABILITY_ID,
   FILESYSTEM_CAPABILITY_ID,
   LLM_CHAT_CAPABILITY_ID,
@@ -76,6 +80,10 @@ const plugin: RuntimePlugin = {
         const vectorStore = await context.getCapability<VectorStoreCapability>(
           VECTOR_STORE_CAPABILITY_ID,
         );
+        const activity = await context.getCapability<AgentActivityCapability>(
+          AGENT_ACTIVITY_CAPABILITY_ID,
+        );
+        const tags = await context.getCapability<TagsCapability>(TAGS_CAPABILITY_ID);
         const modelId = provider.model?.trim() || 'openai/gpt-4o-mini';
         const runId = `pi_${Date.now().toString(36)}`;
         let index = 0;
@@ -99,6 +107,8 @@ const plugin: RuntimePlugin = {
               chatStore,
               embeddings,
               vectorStore,
+              activity,
+              tags,
             }),
             messages: historyMessages(req, modelId),
           },
