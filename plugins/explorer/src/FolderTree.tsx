@@ -613,6 +613,24 @@ export function FolderTree({
       .catch(() => {})
   })
 
+  // The move command emits this for both the dialog and the agent tool.
+  // Open the destination so the note is visible without a refresh.
+  usePluginEvent('note:moved', (payload: { folderId?: string | null }) => {
+    const folderId = typeof payload?.folderId === 'string' ? payload.folderId : ''
+    if (!folderId) return
+    setExpandedFolders((prev) => {
+      const next = new Set(prev)
+      const byId = new Map(folders.map((folder) => [folder.id, folder]))
+      let current: string | null = folderId
+      while (current) {
+        next.add(current)
+        const parentId = byId.get(current)?.parentId
+        current = typeof parentId === 'string' && parentId ? parentId : null
+      }
+      return next
+    })
+  })
+
   const handleTogglePin = (noteId: string) => {
     if (pinnedNoteIds.includes(noteId)) {
       executeCommand('readergo.pin-notes.unpin', { noteId })

@@ -272,13 +272,13 @@
       "name": "Explorer",
       "description": "Folder tree for the documents workspace. Other plugins can register a replacement left explorer.",
       "category": "feature",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "provides": [
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "61b4adab2222adf0",
-      "hash": "61b4adab2222adf0"
+      "bundleHash": "d9c2e0b132625c2c",
+      "hash": "d9c2e0b132625c2c"
     },
     {
       "id": "readergo.filesystem",
