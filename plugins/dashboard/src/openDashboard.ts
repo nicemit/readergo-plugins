@@ -14,6 +14,10 @@ type ListedDoc = {
  * Creates one only when none exists. Never mints a second.
  */
 export async function openDashboard(context: PluginContext): Promise<string | null> {
+  // Sync signal so the host can stamp navigation intent before this async
+  // list/open finishes - otherwise a later document.open steals focus.
+  context.emit('navigation:intent-home', {})
+
   const storage = await context.getCapability<NoteStorageCapability>('document-storage')
   const listed = ((await storage?.list()) || []) as ListedDoc[]
   const matches = listed.filter(
