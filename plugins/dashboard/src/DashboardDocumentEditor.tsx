@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Clock, Home, Layers, Plus } from 'lucide-react'
+import { Clock, FolderOpen, Home, Layers, Plus, Sparkles } from 'lucide-react'
 import type { EditorProps } from '@readergo/plugin-sdk'
 // audit-ignore: sdk-boundary - host contribution slot for pin-notes / architecture cards
 import { ExtensionSlot } from '@/components/layout/ExtensionSlot'
@@ -9,12 +9,19 @@ import { ExtensionSlot } from '@/components/layout/ExtensionSlot'
 import { executeCommand, usePluginEvent } from '@/lib/platform/actions'
 // audit-ignore: sdk-boundary - registered host helpers for type icons / labels
 import { getDocumentTypeIcon } from '@/lib/notes/noteListDisplay'
-import type { DashboardNote } from './types'
+import { DASHBOARD_KIND, DASHBOARD_KIND_BLURB, type DashboardNote } from './types'
 
 type AvailableNoteType = {
   type: string
   providerName?: string
   label?: string
+}
+
+type ActiveSpace = {
+  id?: string
+  name?: string
+  backendId?: string
+  type?: string
 }
 
 function firstNameOf(name?: string): string {
@@ -48,6 +55,24 @@ function labelForType(type: string, types: AvailableNoteType[]): string {
   return match?.providerName || match?.label || type
 }
 
+function previewFromContent(content?: string): string | null {
+  if (!content || typeof content !== 'string') return null
+  const plain = content
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/^#+\s*/gm, '')
+    .replace(/[*_`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!plain) return null
+  return plain.length > 110 ? `${plain.slice(0, 109)}…` : plain
+}
+
+function startOfTodayMs(): number {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d.getTime()
+}
+
 function asNotes(input: EditorProps['notes']): DashboardNote[] {
   if (!Array.isArray(input)) return []
   return input.map((note) => ({
@@ -71,11 +96,13 @@ function asNotes(input: EditorProps['notes']): DashboardNote[] {
 }
 
 /**
- * Dashboard is a normal document type. The host opens it in a tab like any note.
+ * Workspace overview dashboard - a normal document type opened in a tab.
+ * Library rows come from the host via props.notes (no second list fetch).
  */
 export function DashboardDocumentEditor(props: EditorProps) {
   const notes = useMemo(() => asNotes(props.notes), [props.notes])
   const [noteTypes, setNoteTypes] = useState<AvailableNoteType[]>([])
+  const [space, setSpace] = useState<ActiveSpace | null>(null)
   const [stamp, setStamp] = useState(0)
   const userName =
     typeof props.userName === 'string'
@@ -87,6 +114,7 @@ export function DashboardDocumentEditor(props: EditorProps) {
   usePluginEvent('plugin:activated', () => setStamp((v) => v + 1))
   usePluginEvent('plugin:deactivated', () => setStamp((v) => v + 1))
   usePluginEvent('editor:registered', () => setStamp((v) => v + 1))
+  usePluginEvent('space:active-changed', () => setStamp((v) => v + 1))
 
   useEffect(() => {
     let cancelled = false
@@ -94,27 +122,34 @@ export function DashboardDocumentEditor(props: EditorProps) {
       if (cancelled) return
       setNoteTypes(Array.isArray(result) ? result : [])
     })
+    void executeCommand<ActiveSpace>('readergo.spaces.getActive').then((result) => {
+      if (cancelled) return
+      setSpace(result && typeof result === 'object' ? result : null)
+    })
     return () => {
       cancelled = true
     }
   }, [stamp])
 
+  const libraryNotes = useMemo(
+    () => notes.filter((note) => note.type !== 'dashboard'),
+    [notes],
+  )
+
   const recentNotes = useMemo(
     () =>
-      [...notes]
-        .filter((note) => note.type !== 'dashboard')
+      [...libraryNotes]
         .sort(
           (a, b) =>
             new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime(),
         )
         .slice(0, 8),
-    [notes],
+    [libraryNotes],
   )
 
   const byType = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const note of notes) {
-      if (note.type === 'dashboard') continue
+    for (const note of libraryNotes) {
       const type = note.type || 'note'
       counts[type] = (counts[type] || 0) + 1
     }
@@ -125,7 +160,23 @@ export function DashboardDocumentEditor(props: EditorProps) {
         label: labelForType(type, noteTypes),
       }))
       .sort((a, b) => b.count - a.count)
-  }, [notes, noteTypes])
+  }, [libraryNotes, noteTypes])
+
+  const stats = useMemo(() => {
+    const today = startOfTodayMs()
+    let updatedToday = 0
+    let inFolders = 0
+    for (const note of libraryNotes) {
+      if (new Date(note.updatedAt || 0).getTime() >= today) updatedToday += 1
+      if (note.folders && note.folders.length > 0) inFolders += 1
+    }
+    return {
+      total: libraryNotes.length,
+      types: byType.length,
+      updatedToday,
+      inFolders,
+    }
+  }, [libraryNotes, byType.length])
 
   const openNote = (noteId: string) => {
     if (props.onNavigateToNote) {
@@ -144,25 +195,61 @@ export function DashboardDocumentEditor(props: EditorProps) {
   }
 
   const creatableTypes = noteTypes.filter((def) => def.type !== 'dashboard')
+  const spaceLabel = space?.name?.trim() || 'This space'
+  const backendHint = space?.backendId ? String(space.backendId) : null
 
   return (
     <div className="h-full min-h-0 w-full overflow-y-auto bg-background text-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              <Home className="h-3.5 w-3.5" />
-              Dashboard
+        <header className="flex flex-col gap-4">
+          <div className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Home className="h-3.5 w-3.5" />
+            {DASHBOARD_KIND}
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <h1
+                className="text-2xl font-bold tracking-tight text-foreground"
+                style={{ fontFamily: 'var(--font-space-grotesk)' }}
+              >
+                Hello, {firstNameOf(userName)}
+              </h1>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                {DASHBOARD_KIND_BLURB}
+              </p>
+              <p className="mt-2 font-mono text-xs text-muted-foreground">
+                {formatDate()}
+                {' · '}
+                <span className="text-foreground/80">{spaceLabel}</span>
+                {backendHint ? ` · ${backendHint}` : ''}
+                {' · '}
+                {stats.total} docs
+              </p>
             </div>
-            <h1
-              className="text-2xl font-bold tracking-tight text-foreground"
-              style={{ fontFamily: 'var(--font-space-grotesk)' }}
-            >
-              Hello, {firstNameOf(userName)}
-            </h1>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
-              {formatDate()} · {notes.filter((n) => n.type !== 'dashboard').length} docs
-            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Documents', value: stats.total },
+              { label: 'Types', value: stats.types },
+              { label: 'Updated today', value: stats.updatedToday },
+              { label: 'In folders', value: stats.inFolders },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="border-b border-border/50 px-1 py-2"
+              >
+                <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {item.label}
+                </div>
+                <div
+                  className="mt-1 text-xl font-semibold tabular-nums text-foreground"
+                  style={{ fontFamily: 'var(--font-space-grotesk)' }}
+                >
+                  {item.value}
+                </div>
+              </div>
+            ))}
           </div>
         </header>
 
@@ -180,6 +267,9 @@ export function DashboardDocumentEditor(props: EditorProps) {
                 Create
               </h2>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Start a new document in {spaceLabel}. Types come from installed editor plugins.
+            </p>
             <div className="flex flex-wrap gap-2">
               {creatableTypes.map((def) => {
                 const TypeIcon = getDocumentTypeIcon(def.type)
@@ -207,9 +297,14 @@ export function DashboardDocumentEditor(props: EditorProps) {
                 Recent
               </h2>
             </div>
+            <p className="text-xs text-muted-foreground">
+              From the open space library (same list the sidebar already loaded).
+            </p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {recentNotes.map((note) => {
                 const TypeIcon = getDocumentTypeIcon(note.type || 'note')
+                const preview = previewFromContent(note.content)
+                const inFolder = Boolean(note.folders && note.folders.length > 0)
                 return (
                   <button
                     key={note.id}
@@ -225,6 +320,11 @@ export function DashboardDocumentEditor(props: EditorProps) {
                       >
                         {note.title || 'Untitled'}
                       </div>
+                      {preview ? (
+                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                          {preview}
+                        </p>
+                      ) : null}
                       <div className="mt-1.5 flex flex-wrap items-center gap-2">
                         <span className="font-mono text-[10px] text-muted-foreground">
                           {formatRelativeTime(note.updatedAt || '')}
@@ -232,6 +332,12 @@ export function DashboardDocumentEditor(props: EditorProps) {
                         <span className="rounded border border-border/40 bg-muted/40 px-1.5 font-mono text-[9px] uppercase text-muted-foreground">
                           [{labelForType(note.type || 'note', noteTypes)}]
                         </span>
+                        {inFolder ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+                            <FolderOpen className="h-3 w-3" />
+                            filed
+                          </span>
+                        ) : null}
                       </div>
                     </div>
                   </button>
@@ -273,9 +379,10 @@ export function DashboardDocumentEditor(props: EditorProps) {
 
         {recentNotes.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border/70 bg-card/30 px-6 py-10 text-center">
-            <p className="text-sm font-medium text-foreground">No documents yet</p>
+            <Sparkles className="mx-auto h-5 w-5 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium text-foreground">No documents in this space yet</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Create one above. This dashboard is a normal tab - close it, reopen it, or make another.
+              Create one above. This overview is a normal tab - close it, reopen Home anytime.
             </p>
           </div>
         )}

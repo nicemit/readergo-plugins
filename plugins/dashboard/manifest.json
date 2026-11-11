@@ -1,8 +1,8 @@
 {
   "id": "readergo.features.dashboard",
   "name": "Dashboard",
-  "version": "1.0.0",
-  "description": "Workspace dashboard documents - overview, recent work, and create actions as a normal tab.",
+  "version": "1.1.0",
+  "description": "Workspace overview dashboard - recent work, document mix, and create actions as a normal tab.",
   "category": "feature",
   "provides": [
     "editor-provider",

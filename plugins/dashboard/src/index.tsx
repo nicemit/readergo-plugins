@@ -11,9 +11,9 @@ import { DASHBOARD_TITLE, DASHBOARD_TYPE } from './types'
 const manifest = {
   id: 'readergo.features.dashboard',
   name: 'Dashboard',
-  version: '1.0.0',
+  version: '1.1.0',
   description:
-    'Workspace dashboard documents - overview, recent work, and create actions as a normal tab.',
+    'Workspace overview dashboard - recent work, document mix, and create actions as a normal tab.',
   category: 'feature' as const,
   provides: ['editor-provider', 'activity-bar-item'],
   permissions: ['note:read', 'note:write'],
