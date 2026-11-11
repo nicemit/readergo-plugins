@@ -1,0 +1,26 @@
+{
+  "id": "readergo.features.dashboard",
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "description": "Workspace dashboard documents - overview, recent work, and create actions as a normal tab.",
+  "category": "feature",
+  "provides": [
+    "editor-provider",
+    "activity-bar-item"
+  ],
+  "requires": [
+    "document-storage"
+  ],
+  "permissions": [
+    "note:read",
+    "note:write"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "main": "dist/ui.js",
+  "runtime": "local",
+  "autoActivate": true,
+  "compile": {
+    "ui": "./src/index.tsx"
+  }
+}

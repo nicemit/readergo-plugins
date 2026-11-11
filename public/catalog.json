@@ -173,6 +173,20 @@
       "hash": "ed0ad7141f29c5f0"
     },
     {
+      "id": "readergo.features.dashboard",
+      "name": "Dashboard",
+      "description": "Workspace dashboard documents - overview, recent work, and create actions as a normal tab.",
+      "category": "feature",
+      "version": "1.0.0",
+      "provides": [
+        "editor-provider",
+        "activity-bar-item"
+      ],
+      "bundleUrl": "dashboard.bundle.json",
+      "bundleHash": "7e8856a8a8d0bfca",
+      "hash": "7e8856a8a8d0bfca"
+    },
+    {
       "id": "demo.external.plugin",
       "name": "Demo External Plugin",
       "description": "",
