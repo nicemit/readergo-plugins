@@ -5,9 +5,17 @@ import { Clock, Home, Layers, Plus } from 'lucide-react'
 import type { EditorProps } from '@readergo/plugin-sdk'
 // audit-ignore: sdk-boundary - host contribution slot for pin-notes / architecture cards
 import { ExtensionSlot } from '@/components/layout/ExtensionSlot'
-// audit-ignore: sdk-boundary - shared document type registry for create buttons
-import { DocumentTypeRegistry } from '@/plugins/core/DocumentTypeRegistry'
+// audit-ignore: sdk-boundary - host command bus (DocumentTypeRegistry is not a plugin host module)
+import { executeCommand, usePluginEvent } from '@/lib/platform/actions'
+// audit-ignore: sdk-boundary - registered host helpers for type icons / labels
+import { getDocumentTypeIcon } from '@/lib/notes/noteListDisplay'
 import type { DashboardNote } from './types'
+
+type AvailableNoteType = {
+  type: string
+  providerName?: string
+  label?: string
+}
 
 function firstNameOf(name?: string): string {
   if (!name) return 'there'
@@ -33,6 +41,11 @@ function formatRelativeTime(dateStr: string): string {
   const days = Math.floor(hrs / 24)
   if (days < 7) return `${days}d ago`
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function labelForType(type: string, types: AvailableNoteType[]): string {
+  const match = types.find((item) => item.type === type)
+  return match?.providerName || match?.label || type
 }
 
 function asNotes(input: EditorProps['notes']): DashboardNote[] {
@@ -62,7 +75,8 @@ function asNotes(input: EditorProps['notes']): DashboardNote[] {
  */
 export function DashboardDocumentEditor(props: EditorProps) {
   const notes = useMemo(() => asNotes(props.notes), [props.notes])
-  const [noteTypes, setNoteTypes] = useState(() => DocumentTypeRegistry.getInstance().getAll())
+  const [noteTypes, setNoteTypes] = useState<AvailableNoteType[]>([])
+  const [stamp, setStamp] = useState(0)
   const userName =
     typeof props.userName === 'string'
       ? props.userName
@@ -70,14 +84,20 @@ export function DashboardDocumentEditor(props: EditorProps) {
         ? (props as { sessionUserName?: string }).sessionUserName
         : undefined
 
+  usePluginEvent('plugin:activated', () => setStamp((v) => v + 1))
+  usePluginEvent('plugin:deactivated', () => setStamp((v) => v + 1))
+  usePluginEvent('editor:registered', () => setStamp((v) => v + 1))
+
   useEffect(() => {
-    const handler = () => setNoteTypes(DocumentTypeRegistry.getInstance().getAll())
-    const registry = DocumentTypeRegistry.getInstance()
-    registry.on('change', handler)
+    let cancelled = false
+    void executeCommand<AvailableNoteType[]>('readergo.core.getAvailableNoteTypes').then((result) => {
+      if (cancelled) return
+      setNoteTypes(Array.isArray(result) ? result : [])
+    })
     return () => {
-      registry.off('change', handler)
+      cancelled = true
     }
-  }, [])
+  }, [stamp])
 
   const recentNotes = useMemo(
     () =>
@@ -98,15 +118,14 @@ export function DashboardDocumentEditor(props: EditorProps) {
       const type = note.type || 'note'
       counts[type] = (counts[type] || 0) + 1
     }
-    const registry = DocumentTypeRegistry.getInstance()
     return Object.entries(counts)
       .map(([type, count]) => ({
         type,
         count,
-        label: registry.get(type)?.label || type,
+        label: labelForType(type, noteTypes),
       }))
       .sort((a, b) => b.count - a.count)
-  }, [notes])
+  }, [notes, noteTypes])
 
   const openNote = (noteId: string) => {
     if (props.onNavigateToNote) {
@@ -162,17 +181,20 @@ export function DashboardDocumentEditor(props: EditorProps) {
               </h2>
             </div>
             <div className="flex flex-wrap gap-2">
-              {creatableTypes.map((def) => (
-                <button
-                  key={def.type}
-                  type="button"
-                  onClick={() => createOfType(def.type)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 text-xs font-semibold text-foreground transition-all hover:bg-card active:scale-[0.98]"
-                >
-                  <Plus className="h-3.5 w-3.5 text-muted-foreground" />
-                  {def.label || def.type}
-                </button>
-              ))}
+              {creatableTypes.map((def) => {
+                const TypeIcon = getDocumentTypeIcon(def.type)
+                return (
+                  <button
+                    key={def.type}
+                    type="button"
+                    onClick={() => createOfType(def.type)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-3 py-2 text-xs font-semibold text-foreground transition-all hover:bg-card active:scale-[0.98]"
+                  >
+                    <TypeIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                    {def.providerName || def.label || def.type}
+                  </button>
+                )
+              })}
             </div>
           </section>
         )}
@@ -187,7 +209,7 @@ export function DashboardDocumentEditor(props: EditorProps) {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {recentNotes.map((note) => {
-                const typeDef = DocumentTypeRegistry.getInstance().get(note.type || 'note')
+                const TypeIcon = getDocumentTypeIcon(note.type || 'note')
                 return (
                   <button
                     key={note.id}
@@ -195,7 +217,7 @@ export function DashboardDocumentEditor(props: EditorProps) {
                     onClick={() => openNote(note.id)}
                     className="group flex items-start gap-3.5 rounded-xl border border-border/50 bg-card/50 p-4 text-left shadow-sm transition-all hover:border-border/80 hover:bg-card/80 active:scale-[0.99]"
                   >
-                    <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-500" />
+                    <TypeIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
                       <div
                         className="truncate text-sm font-bold tracking-tight text-foreground transition-colors group-hover:text-primary"
@@ -208,7 +230,7 @@ export function DashboardDocumentEditor(props: EditorProps) {
                           {formatRelativeTime(note.updatedAt || '')}
                         </span>
                         <span className="rounded border border-border/40 bg-muted/40 px-1.5 font-mono text-[9px] uppercase text-muted-foreground">
-                          [{typeDef?.label || note.type || 'note'}]
+                          [{labelForType(note.type || 'note', noteTypes)}]
                         </span>
                       </div>
                     </div>
