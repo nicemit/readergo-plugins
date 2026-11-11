@@ -37,13 +37,15 @@ export default definePlugin({
 
     context.registerDocumentType({
       type: DASHBOARD_TYPE,
-      label: 'Dashboard',
+      label: 'Home',
       icon: LayoutDashboard,
+      singleton: true,
+      editable: true,
       create: () => ({
         type: DASHBOARD_TYPE,
         content: '',
         data: { version: 1 },
-        metadata: {},
+        metadata: { singleton: DASHBOARD_TYPE },
       }),
     })
 

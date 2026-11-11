@@ -21,6 +21,13 @@ export interface DocumentTypeDefinition {
     extensions?: string[];
     /** MIME types this type claims on drop or file pick (e.g. `['text/markdown']`). */
     mimeTypes?: string[];
+    /**
+     * Plugin opt-in: at most one document of this `type` per space.
+     * Host enforces on document.create - returns the existing doc instead of minting another.
+     */
+    singleton?: boolean;
+    /** When false, the host opens this type read-only. Default true. */
+    editable?: boolean;
 }
 
 export interface PluginContext {
