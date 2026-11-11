@@ -183,8 +183,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "dashboard.bundle.json",
-      "bundleHash": "2291c706d94be7ea",
-      "hash": "2291c706d94be7ea"
+      "bundleHash": "e0d8f0fd3add261a",
+      "hash": "e0d8f0fd3add261a"
     },
     {
       "id": "demo.external.plugin",
