@@ -17,6 +17,7 @@ import type {
   RemoteCallCapability,
   RuntimePlugin,
   VectorStoreCapability,
+  WebSearchCapability,
 } from '@readergo/plugin-contracts';
 import {
   AGENT_ACTIVITY_CAPABILITY_ID,
@@ -28,6 +29,7 @@ import {
   LLM_CHAT_CAPABILITY_ID,
   REMOTE_CALL_CAPABILITY_ID,
   VECTOR_STORE_CAPABILITY_ID,
+  WEB_SEARCH_CAPABILITY_ID,
 } from '@readergo/plugin-contracts';
 import { createLlmStreamFn, placeholderModel } from './llmStream';
 import { createPiTools, systemPrompt } from './tools';
@@ -50,6 +52,7 @@ const plugin: RuntimePlugin = {
       CHAT_STORE_CAPABILITY_ID,
       EMBEDDINGS_CAPABILITY_ID,
       VECTOR_STORE_CAPABILITY_ID,
+      WEB_SEARCH_CAPABILITY_ID,
     ],
     permissions: ['ai:use'],
     trust: 'trusted',
@@ -84,6 +87,9 @@ const plugin: RuntimePlugin = {
           AGENT_ACTIVITY_CAPABILITY_ID,
         );
         const tags = await context.getCapability<TagsCapability>(TAGS_CAPABILITY_ID);
+        const webSearch = await context.getCapability<WebSearchCapability>(
+          WEB_SEARCH_CAPABILITY_ID,
+        );
         const modelId = provider.model?.trim() || 'openai/gpt-4o-mini';
         const runId = `pi_${Date.now().toString(36)}`;
         let index = 0;
@@ -109,6 +115,7 @@ const plugin: RuntimePlugin = {
               vectorStore,
               activity,
               tags,
+              webSearch,
             }),
             messages: historyMessages(req, modelId),
           },

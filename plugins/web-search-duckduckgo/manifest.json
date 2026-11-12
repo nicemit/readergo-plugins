@@ -1,0 +1,27 @@
+{
+  "id": "readergo.web-search.duckduckgo",
+  "name": "Web Search (DuckDuckGo)",
+  "version": "0.1.0",
+  "sdkVersion": "0.1.0",
+  "description": "Free DuckDuckGo web search for agents. No API key.",
+  "category": "ai",
+  "provides": [
+    "web-search.duckduckgo"
+  ],
+  "requires": [
+    "web-search"
+  ],
+  "permissions": [
+    "ai:use",
+    "network:request"
+  ],
+  "trust": "trusted",
+  "source": "external",
+  "runtime": "local",
+  "compile": {
+    "runtime": "./src/runtime.ts"
+  },
+  "components": {
+    "runtime": "./dist/runtime.mjs"
+  }
+}

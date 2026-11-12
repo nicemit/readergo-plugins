@@ -8,6 +8,7 @@ import type {
   RemoteCallCapability,
   TagsCapability,
   VectorStoreCapability,
+  WebSearchCapability,
 } from '@readergo/plugin-contracts';
 import { createSharedAgentTools } from '@readergo/plugin-contracts';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
@@ -28,6 +29,7 @@ export function createPiTools(input: {
   vectorStore: VectorStoreCapability | null;
   activity?: AgentActivityCapability | null;
   tags?: TagsCapability | null;
+  webSearch?: WebSearchCapability | null;
 }): AgentTool[] {
   const shared = createSharedAgentTools({
     req: input.req,
@@ -38,6 +40,7 @@ export function createPiTools(input: {
     vectorStore: input.vectorStore,
     activity: input.activity ?? null,
     tags: input.tags ?? null,
+    webSearch: input.webSearch ?? null,
   });
   return shared.map((spec) =>
     tool(spec.name, spec.description, spec.inputSchema, spec.execute),
@@ -125,6 +128,11 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
   }
   if (req.memory?.embeddingsId && req.memory?.vectorStoreId) {
     lines.push('You can search indexed chat memory with memory_search.');
+  }
+  if (req.webSearch?.providerId) {
+    lines.push(
+      'You can search the public web with web_search for current facts outside the user library. Cite result URLs when you use them.',
+    );
   }
   lines.push('You can list agent activity with agent_list and agent_status when those tools are present.');
   lines.push('You can query and create tags and relations with tags_list, tags_search, tags_annotate, links_search, and links_relate.');

@@ -14,7 +14,8 @@
     "remote-call",
     "chat-store",
     "embeddings",
-    "vector-store"
+    "vector-store",
+    "web-search"
   ],
   "permissions": [
     "ai:use"
