@@ -587,12 +587,12 @@
       "name": "Pi",
       "description": "Pi agent SDK. Runs chat tools and calls the selected LLM provider.",
       "category": "ai",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "provides": [
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "54bacd9a89b3ddba"
+      "runtimeBundleHash": "9a88a230e360e071"
     },
     {
       "id": "readergo.features.pin-notes",
