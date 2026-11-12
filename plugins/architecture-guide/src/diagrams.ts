@@ -90,6 +90,67 @@ export const DIAGRAMS: Diagram[] = [
     play: ['ss-click', 'ss-cmd', 'ss-store', 'ss-reg', 'ss-grid'],
   },
   {
+    id: 'home',
+    title: 'Open Home',
+    story:
+      'Home is a catalog plugin. It registers a singleton document type. The host only runs the command.',
+    paceMs: 1600,
+    nodes: [
+      {
+        id: 'home-click',
+        step: 1,
+        label: 'You click Home',
+        sub: 'Activity bar item from the dashboard plugin.',
+        detail:
+          'The host has no page=home special case. The icon is an activity-bar-item from readergo.features.dashboard.',
+        tone: 'ui',
+      },
+      {
+        id: 'home-cmd',
+        step: 2,
+        label: 'readergo.dashboard.open',
+        sub: 'A named command. Host only executes it.',
+        detail:
+          "executeCommand('readergo.dashboard.open'). The documents page does not render a virtual Home tab.",
+        tone: 'kernel',
+      },
+      {
+        id: 'home-create',
+        step: 3,
+        label: 'document.create (singleton)',
+        sub: 'type: dashboard. One per space.',
+        detail:
+          'If a dashboard document already exists, create returns it. metadata.singleton marks the type.',
+        tone: 'kernel',
+      },
+      {
+        id: 'home-tab',
+        step: 4,
+        label: 'Workspace tab',
+        sub: 'Same tab model as any note.',
+        detail:
+          'activeTab is the source of truth. Refresh restores Home with every other open document.',
+        tone: 'ui',
+      },
+      {
+        id: 'home-editor',
+        step: 5,
+        label: 'Dashboard editor mounts',
+        sub: 'Center pane. Overview UI from the plugin.',
+        detail:
+          'Recent work and create actions live in the catalog plugin, not in host dashboard code.',
+        tone: 'plugin',
+      },
+    ],
+    edges: [
+      { from: 'home-click', to: 'home-cmd', label: 'dispatch' },
+      { from: 'home-cmd', to: 'home-create', label: 'open or create' },
+      { from: 'home-create', to: 'home-tab', label: 'focus tab' },
+      { from: 'home-tab', to: 'home-editor', label: 'mount' },
+    ],
+    play: ['home-click', 'home-cmd', 'home-create', 'home-tab', 'home-editor'],
+  },
+  {
     id: 'system',
     title: 'The map',
     story:
@@ -153,7 +214,7 @@ export const DIAGRAMS: Diagram[] = [
         label: 'Host (this tab)',
         sub: 'Next.js. Shell, routing, Space providers. Does not run Pi or OpenRouter.',
         detail:
-          'Platform plugins that notes cannot boot without live here: spaces, notes, folders, chat-source, agent-chat-ui. Everything else installs from the catalog.',
+          'Platform plugins that notes cannot boot without live here: spaces, notes, folders, chat-source, agent-chat-ui, user-state. Catalog plugins add TipTap, Home dashboard, explorer, themes, and AI. Everything else installs from the catalog.',
         tone: 'kernel',
         lane: 'Process',
       },
