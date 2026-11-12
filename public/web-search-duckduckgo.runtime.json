@@ -1,0 +1,32 @@
+{
+  "manifest": {
+    "id": "readergo.web-search.duckduckgo",
+    "name": "Web Search (DuckDuckGo)",
+    "version": "0.1.0",
+    "sdkVersion": "0.1.0",
+    "description": "Free DuckDuckGo web search for agents. No API key.",
+    "category": "ai",
+    "provides": [
+      "web-search.duckduckgo"
+    ],
+    "requires": [
+      "web-search"
+    ],
+    "permissions": [
+      "ai:use",
+      "network:request"
+    ],
+    "trust": "trusted",
+    "source": "external",
+    "runtime": "local",
+    "compile": {
+      "runtime": "./src/runtime.ts"
+    },
+    "components": {
+      "runtime": "./runtime.mjs"
+    }
+  },
+  "files": {
+    "runtime.mjs": "// plugins/web-search-duckduckgo/src/runtime.ts\nimport { WEB_SEARCH_CAPABILITY_ID } from \"@readergo/plugin-contracts\";\nvar DUCKDUCKGO_WEB_SEARCH_ID = \"duckduckgo\";\nvar SEARCH_URL = \"https://html.duckduckgo.com/html/\";\nvar DEFAULT_LIMIT = 8;\nvar MAX_LIMIT = 12;\nvar USER_AGENT = \"Mozilla/5.0 (compatible; ReaderGo/0.1; +https://github.com/readergo)\";\nfunction decodeHtml(text) {\n  return text.replace(/&amp;/g, \"&\").replace(/&lt;/g, \"<\").replace(/&gt;/g, \">\").replace(/&quot;/g, '\"').replace(/&#39;/g, \"'\").replace(/&#x27;/g, \"'\").replace(/&#x2F;/g, \"/\").replace(/&#(\\d+);/g, (_, n) => String.fromCharCode(Number(n))).replace(/\\s+/g, \" \").trim();\n}\nfunction stripTags(html) {\n  return decodeHtml(html.replace(/<[^>]+>/g, \" \"));\n}\nfunction unwrapDuckRedirect(href) {\n  try {\n    const url = new URL(href, SEARCH_URL);\n    if (url.hostname.endsWith(\"duckduckgo.com\") && url.pathname === \"/l/\") {\n      const uddg = url.searchParams.get(\"uddg\");\n      if (uddg) return decodeURIComponent(uddg);\n    }\n    return url.toString();\n  } catch {\n    return href;\n  }\n}\nfunction parseResults(html, limit) {\n  const results = [];\n  const blockRe = /<div[^>]*class=\"[^\"]*result[^\"]*\"[^>]*>([\\s\\S]*?)<\\/div>\\s*(?=<div[^>]*class=\"[^\"]*result|<\\/div>\\s*<\\/div>\\s*<\\/form>|$)/gi;\n  const linkRe = /<a[^>]*class=\"[^\"]*result__a[^\"]*\"[^>]*href=\"([^\"]+)\"[^>]*>([\\s\\S]*?)<\\/a>/i;\n  const snippetRe = /<(?:a|td)[^>]*class=\"[^\"]*result__snippet[^\"]*\"[^>]*>([\\s\\S]*?)<\\/(?:a|td)>/i;\n  let match;\n  while ((match = blockRe.exec(html)) !== null && results.length < limit) {\n    const block = match[1] ?? \"\";\n    const link = linkRe.exec(block);\n    if (!link) continue;\n    const href = unwrapDuckRedirect(decodeHtml(link[1] ?? \"\"));\n    const title = stripTags(link[2] ?? \"\");\n    if (!href || !title || !/^https?:\\/\\//i.test(href)) continue;\n    if (href.includes(\"duckduckgo.com\")) continue;\n    const snippetMatch = snippetRe.exec(block);\n    const snippet = snippetMatch ? stripTags(snippetMatch[1] ?? \"\") : \"\";\n    results.push({ title, url: href, snippet });\n  }\n  if (results.length > 0) return results;\n  const anchorRe = /<a[^>]*class=\"[^\"]*result__a[^\"]*\"[^>]*href=\"([^\"]+)\"[^>]*>([\\s\\S]*?)<\\/a>/gi;\n  while ((match = anchorRe.exec(html)) !== null && results.length < limit) {\n    const href = unwrapDuckRedirect(decodeHtml(match[1] ?? \"\"));\n    const title = stripTags(match[2] ?? \"\");\n    if (!href || !title || !/^https?:\\/\\//i.test(href)) continue;\n    if (href.includes(\"duckduckgo.com\")) continue;\n    results.push({ title, url: href, snippet: \"\" });\n  }\n  return results;\n}\nfunction createDuckDuckGoSearch() {\n  return {\n    id: DUCKDUCKGO_WEB_SEARCH_ID,\n    name: \"DuckDuckGo\",\n    async search(req, signal) {\n      const query = String(req.query ?? \"\").trim();\n      if (!query) {\n        return { providerId: DUCKDUCKGO_WEB_SEARCH_ID, results: [] };\n      }\n      const limit = Math.min(\n        Math.max(1, typeof req.limit === \"number\" ? req.limit : DEFAULT_LIMIT),\n        MAX_LIMIT\n      );\n      const body = new URLSearchParams({ q: query });\n      const response = await fetch(SEARCH_URL, {\n        method: \"POST\",\n        headers: {\n          \"Content-Type\": \"application/x-www-form-urlencoded\",\n          \"User-Agent\": USER_AGENT\n        },\n        body: body.toString(),\n        signal,\n        redirect: \"follow\"\n      });\n      if (!response.ok) {\n        throw new Error(\n          `DuckDuckGo search failed (${response.status}): ${response.statusText}`\n        );\n      }\n      const html = await response.text();\n      if (/anomaly|captcha|bot.?check/i.test(html) && !/result__a/i.test(html)) {\n        throw new Error(\"DuckDuckGo blocked the search request (bot check)\");\n      }\n      const results = parseResults(html, limit);\n      if (results.length === 0) {\n        throw new Error(\"DuckDuckGo returned no parseable results\");\n      }\n      return { providerId: DUCKDUCKGO_WEB_SEARCH_ID, results };\n    }\n  };\n}\nvar plugin = {\n  manifest: {\n    id: \"readergo.web-search.duckduckgo\",\n    name: \"Web Search (DuckDuckGo)\",\n    version: \"0.1.0\",\n    sdkVersion: \"0.1.0\",\n    description: \"Free DuckDuckGo web search for agents. No API key.\",\n    category: \"ai\",\n    provides: [\"web-search.duckduckgo\"],\n    requires: [WEB_SEARCH_CAPABILITY_ID],\n    permissions: [\"ai:use\", \"network:request\"],\n    trust: \"trusted\",\n    source: \"external\"\n  },\n  async activate(context) {\n    const registry = await context.getCapability(\n      WEB_SEARCH_CAPABILITY_ID\n    );\n    if (!registry) throw new Error(\"web-search capability is not available\");\n    registry.register(createDuckDuckGoSearch());\n    context.log.info(\"DuckDuckGo web search registered\");\n  }\n};\nvar runtime_default = plugin;\nexport {\n  DUCKDUCKGO_WEB_SEARCH_ID,\n  runtime_default as default\n};\n"
+  }
+}

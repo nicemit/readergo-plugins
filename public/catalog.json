@@ -592,7 +592,7 @@
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "bfce5bb47ec57662"
+      "runtimeBundleHash": "54bacd9a89b3ddba"
     },
     {
       "id": "readergo.features.pin-notes",
@@ -894,6 +894,18 @@
       ],
       "runtimeBundleUrl": "vector-store-lancedb.runtime.json",
       "runtimeBundleHash": "5b23cae874e057f7"
+    },
+    {
+      "id": "readergo.web-search.duckduckgo",
+      "name": "Web Search (DuckDuckGo)",
+      "description": "Free DuckDuckGo web search for agents. No API key.",
+      "category": "ai",
+      "version": "0.1.0",
+      "provides": [
+        "web-search.duckduckgo"
+      ],
+      "runtimeBundleUrl": "web-search-duckduckgo.runtime.json",
+      "runtimeBundleHash": "2c63e27f3fa28997"
     },
     {
       "id": "readergo.editor.whiteboard",
