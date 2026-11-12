@@ -133,18 +133,29 @@ function createSqliteProvider(): ChatStoreProvider {
       const content = String(input.content ?? '').slice(0, 32_000);
       const existing = db
         .prepare(
-          `SELECT id, role, created_at FROM messages
+          `SELECT id, role, created_at, metadata FROM messages
            WHERE id = ? AND conversation_id = ?`,
         )
         .get(input.messageId, input.conversationId) as
-        | { id: string; role: string; created_at: number }
+        | { id: string; role: string; created_at: number; metadata: string | null }
         | undefined;
       if (!existing) {
         throw new Error(`Chat message ${input.messageId} not found`);
       }
+      const nextMetadata =
+        input.metadata && typeof input.metadata === 'object'
+          ? {
+              ...(parseMetadata(existing.metadata) ?? {}),
+              ...input.metadata,
+            }
+          : parseMetadata(existing.metadata);
+      const metadataJson =
+        nextMetadata && typeof nextMetadata === 'object'
+          ? JSON.stringify(nextMetadata)
+          : null;
       db.prepare(
-        `UPDATE messages SET content = ? WHERE id = ? AND conversation_id = ?`,
-      ).run(content, input.messageId, input.conversationId);
+        `UPDATE messages SET content = ?, metadata = ? WHERE id = ? AND conversation_id = ?`,
+      ).run(content, metadataJson, input.messageId, input.conversationId);
       db.prepare(
         `UPDATE conversations SET updated_at = ? WHERE id = ?`,
       ).run(now, input.conversationId);
@@ -153,6 +164,7 @@ function createSqliteProvider(): ChatStoreProvider {
         role: existing.role as ChatMessageRecord['role'],
         content,
         createdAt: Number(existing.created_at) || now,
+        metadata: nextMetadata ?? undefined,
       };
     },
     async listConversations(input) {
