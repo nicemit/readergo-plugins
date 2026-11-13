@@ -31,6 +31,30 @@ function agentDataRoot(): string {
   return path.join(os.homedir(), '.readergo', resolveReadergoEnv(), 'agent');
 }
 
+function tableColumns(db: DatabaseSync, table: string): Set<string> {
+  const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{
+    name?: string;
+  }>;
+  return new Set(
+    rows
+      .map((row) => (typeof row.name === 'string' ? row.name : ''))
+      .filter(Boolean),
+  );
+}
+
+function ensureColumn(
+  db: DatabaseSync,
+  table: string,
+  column: string,
+  alterSql: string,
+): void {
+  if (tableColumns(db, table).has(column)) return;
+  db.exec(alterSql);
+  if (!tableColumns(db, table).has(column)) {
+    throw new Error(`chat-store-sqlite failed to add ${table}.${column}`);
+  }
+}
+
 function openDb(): DatabaseSync {
   const dir = agentDataRoot();
   fs.mkdirSync(dir, { recursive: true });
@@ -57,18 +81,25 @@ function openDb(): DatabaseSync {
     CREATE INDEX IF NOT EXISTS idx_messages_conversation
       ON messages(conversation_id, created_at);
   `);
-  const alters = [
+  // Existing DBs were created before these columns; verify after ALTER.
+  ensureColumn(
+    db,
+    'conversations',
+    'agent_sdk_id',
     'ALTER TABLE conversations ADD COLUMN agent_sdk_id TEXT',
+  );
+  ensureColumn(
+    db,
+    'conversations',
+    'agent_label',
     'ALTER TABLE conversations ADD COLUMN agent_label TEXT',
+  );
+  ensureColumn(
+    db,
+    'messages',
+    'metadata',
     'ALTER TABLE messages ADD COLUMN metadata TEXT',
-  ];
-  for (const sql of alters) {
-    try {
-      db.exec(sql);
-    } catch {
-      // Column already exists.
-    }
-  }
+  );
   return db;
 }
 
