@@ -1,7 +1,7 @@
 {
   "id": "readergo.vector-store.lancedb",
   "name": "Vector Store (Local)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "sdkVersion": "0.1.0",
   "description": "Local file vector store under ~/.readergo/<env>/agent/vectors (provider id lancedb).",
   "category": "ai",
