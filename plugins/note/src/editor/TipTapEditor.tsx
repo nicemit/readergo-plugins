@@ -131,6 +131,9 @@ function TipTapEditorContent({
   const titleRef = useRef<HTMLTextAreaElement | null>(null)
   const isUserTypingRef = useRef(false)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // Same bind contract as canvas/spreadsheet: host props win unless this is
+  // our own onChange echo. Agent and human writes share that host path.
+  const lastEmittedContentRef = useRef<string | null>(null)
 
   // Custom hooks
   const { offset: keyboardOffset, isOpen: isKeyboardOpen } = useVirtualKeyboard()
@@ -199,6 +202,7 @@ function TipTapEditorContent({
   // Handle editor updates
   const handleUpdate = useCallback(({ editor: e }: { editor: Editor }) => {
     const currentContent = safeGetHTML(e)
+    lastEmittedContentRef.current = currentContent
 
     // Move updates to a microtask/timeout to prevent React flushSync errors
     setTimeout(() => {
@@ -423,53 +427,45 @@ function TipTapEditorContent({
     }
   }, [editor])
 
-  // Update content when prop changes and keep title height in sync
+  // Host bind: content prop is source of truth after storage / note:updated /
+  // tab switch. Skip only our own onChange echo (canvas/spreadsheet pattern).
   useEffect(() => {
-    if (editor && !editor.isDestroyed && editor.schema && content !== safeGetHTML(editor)) {
-      const editorText = safeGetHTML(editor)
-        .replace(/<br[^>]*>/gi, '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/gi, ' ')
-        .trim()
-      const incomingText = (content || '')
-        .replace(/<br[^>]*>/gi, '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/gi, ' ')
-        .trim()
-      // The editor's own mount reports an update. That is not typing, and it
-      // must not block the saved body from being applied onto a blank doc.
-      const fillingBlankEditor = editorText.length === 0 && incomingText.length > 0
-      if (isUserTypingRef.current && !fillingBlankEditor) {
-        return
+    if (!editor || editor.isDestroyed || !editor.schema) return
+    const incoming = content ?? ''
+    if (incoming === lastEmittedContentRef.current) return
+    if (incoming === safeGetHTML(editor)) {
+      lastEmittedContentRef.current = incoming
+      return
+    }
+
+    const { from, to } = editor.state.selection
+    // Avoid flushSync-from-lifecycle; emitUpdate:false so this is not typed as a user edit.
+    setTimeout(() => {
+      if (!editor || editor.isDestroyed) return
+      isUserTypingRef.current = false
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = null
       }
-
-      // Save current cursor position
-      const { from, to } = editor.state.selection
-
-      // Update content without emitting update event
-      // Wrap in setTimeout to avoid "flushSync was called from inside a lifecycle method" error
-      setTimeout(() => {
-        if (!editor || editor.isDestroyed) return
-
-        editor.commands.setContent(content, { emitUpdate: false })
-
-        // Restore cursor position if it's still valid
-        try {
-          const docSize = editor.state.doc.content.size
-          if (from <= docSize && to <= docSize) {
-            editor.commands.setTextSelection({ from, to })
-          }
-        } catch (e) {
-          // If position is invalid, just focus at the end
+      editor.commands.setContent(incoming, { emitUpdate: false })
+      lastEmittedContentRef.current = safeGetHTML(editor)
+      try {
+        const docSize = editor.state.doc.content.size
+        if (from <= docSize && to <= docSize) {
+          editor.commands.setTextSelection({ from, to })
         }
-      }, 0)
-    }
-    if (titleRef.current) {
-      const el = titleRef.current
-      el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight}px`
-    }
-  }, [content, editor, currentNote?.title])
+      } catch {
+        // Selection may be invalid after a full replace.
+      }
+    }, 0)
+  }, [content, editor])
+
+  useEffect(() => {
+    if (!titleRef.current) return
+    const el = titleRef.current
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [currentNote?.title])
 
   // Link dialog handlers
   const openLinkDialog = () => {
