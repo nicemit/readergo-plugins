@@ -150,7 +150,7 @@ await window.readergo.installPlugin("https://raw.githubusercontent.com/nicemit/r
 3. Write the plugin in `src/index.tsx`, importing from `@readergo/plugin-sdk`.
 4. Run `npm run build` to compile it and add it to `public/catalog.json`.
 
-`@readergo/plugin-sdk` and `@readergo/plugin-contracts` are linked from the sibling host repo via `file:../readergo/packages/...` (Phase 1 of the [SDK distribution plan](https://github.com/nicemit/readergo/blob/dev/docs/plans/11-PLUGIN_SDK_DISTRIBUTION_PLAN.md)). Keep `readergo` and `readergo-plugins` side by side. `npm run check:sdk` (also runs on `prebuild` / `typecheck`) fails if the link is missing or a vendored copy drifts back in.
+Keep `readergo` and `readergo-plugins` side by side for local authoring. TypeScript resolves `@readergo/plugin-sdk` / `@readergo/plugin-contracts` through `tsconfig` paths into `../readergo/packages/...` (Phase 1 of the [SDK distribution plan](https://github.com/nicemit/readergo/blob/dev/docs/plans/11-PLUGIN_SDK_DISTRIBUTION_PLAN.md)). Catalog compile does **not** ship those packages - they stay host externals - so CI on this public repo can build without cloning the private host. `npm run check:sdk` enforces the sibling layout locally and no-ops in CI when the host is absent.
 
 ---
 

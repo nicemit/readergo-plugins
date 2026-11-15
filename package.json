@@ -21,8 +21,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@readergo/plugin-contracts": "file:../readergo/packages/plugin-contracts",
-    "@readergo/plugin-sdk": "file:../readergo/packages/plugin-sdk",
     "@earendil-works/pi-agent-core": "^1.3.0",
     "@earendil-works/pi-ai": "^1.3.0",
     "@tiptap/core": "^3.32.0",
