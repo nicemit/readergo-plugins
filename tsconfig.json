@@ -19,10 +19,16 @@
     "baseUrl": ".",
     "paths": {
       "@readergo/plugin-sdk": [
-        "./packages/plugin-sdk/src/index.ts"
+        "../readergo/packages/plugin-sdk/src/index.ts"
       ],
       "@readergo/plugin-sdk/*": [
-        "./packages/plugin-sdk/src/*"
+        "../readergo/packages/plugin-sdk/src/*"
+      ],
+      "@readergo/plugin-contracts": [
+        "../readergo/packages/plugin-contracts/src/index.ts"
+      ],
+      "@readergo/plugin-contracts/*": [
+        "../readergo/packages/plugin-contracts/src/*"
       ],
       "@/*": [
         "../readergo/src/*"
@@ -31,7 +37,6 @@
   },
   "include": [
     "plugins",
-    "packages",
     "types"
   ]
 }
