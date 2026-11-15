@@ -2,11 +2,14 @@ import {
   AGENT_CHAT_PANEL_CAPABILITY_ID,
   definePlugin,
   WellKnownPlaces,
+  withAiCue,
   type AgentChatPanelCapability,
   type EditorProvider,
   type PluginContext,
 } from '@readergo/plugin-sdk';
 import { GraduationCap } from 'lucide-react';
+
+const LearnIcon = withAiCue(GraduationCap);
 import { ConceptEditor } from './ConceptEditor';
 import { ConceptTutorPanel } from './ConceptTutorPanel';
 import { conceptSummary, createConceptDocument, emptyConceptData } from './schema';
@@ -40,7 +43,7 @@ export default definePlugin({
     context.registerDocumentType({
       type: CONCEPT_TYPE,
       label: 'Concept',
-      icon: GraduationCap,
+      icon: LearnIcon,
       create: () => createConceptDocument(),
     });
 
@@ -56,7 +59,7 @@ export default definePlugin({
       id: 'concept-learn-new',
       label: 'Learn',
       noteType: CONCEPT_TYPE,
-      icon: GraduationCap,
+      icon: LearnIcon,
       position: 'top',
       order: 7,
     });

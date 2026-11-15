@@ -1,8 +1,16 @@
 import React from 'react';
-import type { Plugin, PluginContext, PluginManifest, SidebarPanel } from '@readergo/plugin-sdk';
+import {
+  withAiCue,
+  type Plugin,
+  type PluginContext,
+  type PluginManifest,
+  type SidebarPanel,
+} from '@readergo/plugin-sdk';
 import { Brain } from 'lucide-react';
 import { ThinkingPartnerPanel } from './ThinkingPartnerPanel';
 import { extractProfile, findRelatedNotes } from './engine';
+
+const ThinkingPartnerIcon = withAiCue(Brain);
 
 const manifest: PluginManifest = {
   id: 'readergo.features.thinking-partner',
@@ -28,7 +36,7 @@ export const ThinkingPartnerPlugin: Plugin = {
     const thinkingPanel: SidebarPanel = {
       id: 'readergo.thinking-partner.panel',
       name: 'Thinking Partner',
-      icon: Brain,
+      icon: ThinkingPartnerIcon,
       position: 'right',
       order: 5, // Top priority right below outline/scrollspy
       render: (props) => <ThinkingPartnerPanel {...props} />,
