@@ -150,7 +150,7 @@ await window.readergo.installPlugin("https://raw.githubusercontent.com/nicemit/r
 3. Write the plugin in `src/index.tsx`, importing from `@readergo/plugin-sdk`.
 4. Run `npm run build` to compile it and add it to `public/catalog.json`.
 
-`packages/plugin-sdk` in this repo is a vendored copy of the host SDK. Keep it in step with [`readergo/packages/plugin-sdk`](https://github.com/nicemit/readergo/tree/dev/packages/plugin-sdk). See the [SDK distribution plan](https://github.com/nicemit/readergo/blob/dev/docs/plans/11-PLUGIN_SDK_DISTRIBUTION_PLAN.md) in the host repo.
+`@readergo/plugin-sdk` and `@readergo/plugin-contracts` are linked from the sibling host repo via `file:../readergo/packages/...` (Phase 1 of the [SDK distribution plan](https://github.com/nicemit/readergo/blob/dev/docs/plans/11-PLUGIN_SDK_DISTRIBUTION_PLAN.md)). Keep `readergo` and `readergo-plugins` side by side. `npm run check:sdk` (also runs on `prebuild` / `typecheck`) fails if the link is missing or a vendored copy drifts back in.
 
 ---
 
