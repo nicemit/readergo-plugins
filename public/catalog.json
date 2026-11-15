@@ -151,12 +151,12 @@
       "name": "Chat Store (SQLite)",
       "description": "Stores agent conversations in SQLite under ~/.readergo/<env>/agent.",
       "category": "ai",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "provides": [
         "chat-store.sqlite"
       ],
       "runtimeBundleUrl": "chat-store-sqlite.runtime.json",
-      "runtimeBundleHash": "adee7e1b2090928f"
+      "runtimeBundleHash": "bac7289f9ff232e3"
     },
     {
       "id": "readergo.features.concept-learn",
@@ -169,8 +169,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "concept-learn.bundle.json",
-      "bundleHash": "ed0ad7141f29c5f0",
-      "hash": "ed0ad7141f29c5f0"
+      "bundleHash": "5f39fd4aa4bac107",
+      "hash": "5f39fd4aa4bac107"
     },
     {
       "id": "readergo.features.dashboard",
@@ -866,8 +866,8 @@
         "thinking-partner-service"
       ],
       "bundleUrl": "thinking-partner.bundle.json",
-      "bundleHash": "345b1c3ba64b1fdd",
-      "hash": "345b1c3ba64b1fdd"
+      "bundleHash": "271802a192da4a5f",
+      "hash": "271802a192da4a5f"
     },
     {
       "id": "readergo.editor.note",
@@ -880,20 +880,20 @@
         "activity-bar-item"
       ],
       "bundleUrl": "note.bundle.json",
-      "bundleHash": "5cb964f2e9e14af4",
-      "hash": "5cb964f2e9e14af4"
+      "bundleHash": "98f6cadf74e8c0a4",
+      "hash": "98f6cadf74e8c0a4"
     },
     {
       "id": "readergo.vector-store.lancedb",
       "name": "Vector Store (Local)",
       "description": "Local file vector store under ~/.readergo/<env>/agent/vectors (provider id lancedb).",
       "category": "ai",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "provides": [
         "vector-store.lancedb"
       ],
       "runtimeBundleUrl": "vector-store-lancedb.runtime.json",
-      "runtimeBundleHash": "5b23cae874e057f7"
+      "runtimeBundleHash": "b54d1d3e7105bf44"
     },
     {
       "id": "readergo.web-search.duckduckgo",
