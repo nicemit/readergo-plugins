@@ -88,6 +88,12 @@ const THEME = {
       );
   `,
   stylesheetScoped: true,
+  chrome: {
+    // Editorial blue rule - distinct from black primary
+    aiAccent: 'hsl(210 55% 38%)',
+    aiAccentMuted: 'hsl(210 55% 38% / 0.14)',
+    aiAccentFg: 'hsl(0 0% 100%)',
+  },
 };
 
 export const NewsprintThemePlugin: Plugin = {

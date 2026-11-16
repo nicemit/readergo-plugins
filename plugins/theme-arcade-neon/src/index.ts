@@ -72,6 +72,12 @@ const THEME = {
       linear-gradient(180deg, transparent 60%, rgb(0 0 0 / 0.35));
   `,
   stylesheetScoped: true,
+  chrome: {
+    // Neon cyan - distinct from magenta primary
+    aiAccent: 'hsl(168 100% 48%)',
+    aiAccentMuted: 'hsl(168 100% 48% / 0.20)',
+    aiAccentFg: 'hsl(260 40% 8%)',
+  },
 };
 
 export const ArcadeNeonThemePlugin: Plugin = {

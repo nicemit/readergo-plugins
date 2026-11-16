@@ -47,6 +47,12 @@ const THEME = {
     display: IBM_PLEX,
     body: IBM_PLEX,
   },
+  chrome: {
+    // Aqua - distinct from orange primary
+    aiAccent: 'hsl(157 16% 58%)',
+    aiAccentMuted: 'hsl(157 16% 58% / 0.20)',
+    aiAccentFg: 'hsl(0 0% 16%)',
+  },
 }
 
 export const GruvboxThemePlugin: Plugin = {

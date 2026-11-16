@@ -47,6 +47,12 @@ const THEME = {
     display: NUNITO,
     body: NUNITO,
   },
+  chrome: {
+    // Teal - distinct from mauve primary
+    aiAccent: 'hsl(171 57% 68%)',
+    aiAccentMuted: 'hsl(171 57% 68% / 0.20)',
+    aiAccentFg: 'hsl(240 21% 15%)',
+  },
 }
 
 export const CatppuccinThemePlugin: Plugin = {

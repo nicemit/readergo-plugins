@@ -66,6 +66,12 @@ const THEME = {
       radial-gradient(ellipse at 85% 80%, rgb(20 40 20 / 0.35), transparent 50%);
   `,
   stylesheetScoped: true,
+  chrome: {
+    // Amber lichen - distinct from green primary
+    aiAccent: 'hsl(40 70% 52%)',
+    aiAccentMuted: 'hsl(40 70% 52% / 0.18)',
+    aiAccentFg: 'hsl(140 20% 8%)',
+  },
 };
 
 export const ForestMossThemePlugin: Plugin = {

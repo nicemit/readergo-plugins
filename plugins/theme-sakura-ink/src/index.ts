@@ -67,6 +67,12 @@ const THEME = {
       radial-gradient(ellipse at 10% 90%, rgb(180 210 230 / 0.12), transparent 45%);
   `,
   stylesheetScoped: true,
+  chrome: {
+    // Indigo ink - distinct from sakura pink primary
+    aiAccent: 'hsl(220 35% 42%)',
+    aiAccentMuted: 'hsl(220 35% 42% / 0.16)',
+    aiAccentFg: 'hsl(0 0% 100%)',
+  },
 };
 
 export const SakuraInkThemePlugin: Plugin = {

@@ -50,6 +50,12 @@ const AMBER_THEME = {
     mono: VT323_FONT,
     editor: VT323_FONT,
   },
+  chrome: {
+    // Cyan phosphor - distinct from amber primary
+    aiAccent: 'hsl(190 90% 52%)',
+    aiAccentMuted: 'hsl(190 90% 52% / 0.18)',
+    aiAccentFg: 'hsl(0 0% 8%)',
+  },
 };
 
 export const AmberThemePlugin: Plugin = {

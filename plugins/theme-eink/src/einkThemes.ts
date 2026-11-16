@@ -75,6 +75,12 @@ export const EINK_PAPER_THEME = {
     editor: EINK_FONT_LITERATA,
     mono: EINK_FONT_COURIER_PRIME,
   },
+  chrome: {
+    // Mid ink blue - readable on paper, distinct from black primary
+    aiAccent: 'hsl(210 25% 35%)',
+    aiAccentMuted: 'hsl(210 25% 35% / 0.12)',
+    aiAccentFg: 'hsl(0 0% 100%)',
+  },
   customVars: {
     'eink-mode': 'paper',
     'eink-border-width': '1.5px',
@@ -121,6 +127,11 @@ export const EINK_WARM_THEME = {
     body: EINK_FONT_ATKINSON,
     editor: EINK_FONT_LITERATA,
     mono: EINK_FONT_COURIER_PRIME,
+  },
+  chrome: {
+    aiAccent: 'hsl(200 20% 32%)',
+    aiAccentMuted: 'hsl(200 20% 32% / 0.14)',
+    aiAccentFg: 'hsl(40 28% 96%)',
   },
   customVars: {
     'eink-mode': 'warm',
@@ -169,6 +180,11 @@ export const EINK_NIGHT_THEME = {
     editor: EINK_FONT_LITERATA,
     mono: EINK_FONT_COURIER_PRIME,
   },
+  chrome: {
+    aiAccent: 'hsl(200 15% 70%)',
+    aiAccentMuted: 'hsl(200 15% 70% / 0.18)',
+    aiAccentFg: 'hsl(0 0% 0%)',
+  },
   customVars: {
     'eink-mode': 'night',
     'eink-border-width': '1.5px',
@@ -215,6 +231,12 @@ export const EINK_HIGH_CONTRAST_THEME = {
     body: EINK_FONT_ATKINSON,
     editor: EINK_FONT_ATKINSON,
     mono: EINK_FONT_COURIER_PRIME,
+  },
+  chrome: {
+    // 1-bit: use a dashed-feel via mid stroke still black - use thick corner only
+    aiAccent: 'hsl(0 0% 0%)',
+    aiAccentMuted: 'hsl(0 0% 0% / 0.10)',
+    aiAccentFg: 'hsl(0 0% 100%)',
   },
   customVars: {
     'eink-mode': 'high-contrast',

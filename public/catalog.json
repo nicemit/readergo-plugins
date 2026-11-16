@@ -29,8 +29,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-abyss-teal.bundle.json",
-      "bundleHash": "72d25faeb1e95c7d",
-      "hash": "72d25faeb1e95c7d",
+      "bundleHash": "44f05bd28e19fd3d",
+      "hash": "44f05bd28e19fd3d",
       "screenshot": "screenshots/theme-abyss-teal.svg"
     },
     {
@@ -62,8 +62,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-amber-terminal.bundle.json",
-      "bundleHash": "c958f7e0ac0d48fb",
-      "hash": "c958f7e0ac0d48fb",
+      "bundleHash": "9ea5dac83fda93c5",
+      "hash": "9ea5dac83fda93c5",
       "screenshot": "screenshots/theme-amber-terminal.svg"
     },
     {
@@ -95,8 +95,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-arcade-neon.bundle.json",
-      "bundleHash": "78c81ce2cf449768",
-      "hash": "78c81ce2cf449768",
+      "bundleHash": "8a351040e86611da",
+      "hash": "8a351040e86611da",
       "screenshot": "screenshots/theme-arcade-neon.svg"
     },
     {
@@ -142,8 +142,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-catppuccin.bundle.json",
-      "bundleHash": "77ba839cadf37be3",
-      "hash": "77ba839cadf37be3",
+      "bundleHash": "ac6630ba70099ddd",
+      "hash": "ac6630ba70099ddd",
       "screenshot": "screenshots/theme-catppuccin.svg"
     },
     {
@@ -239,8 +239,8 @@
         "type": "light"
       },
       "bundleUrl": "theme-eink.bundle.json",
-      "bundleHash": "116deeac1c76fa28",
-      "hash": "116deeac1c76fa28",
+      "bundleHash": "9d81ebcf86671c4c",
+      "hash": "9d81ebcf86671c4c",
       "screenshot": "screenshots/theme-eink.svg"
     },
     {
@@ -349,8 +349,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-forest-moss.bundle.json",
-      "bundleHash": "89ab70eec0a56abf",
-      "hash": "89ab70eec0a56abf",
+      "bundleHash": "393f8e9bbae2deee",
+      "hash": "393f8e9bbae2deee",
       "screenshot": "screenshots/theme-forest-moss.svg"
     },
     {
@@ -397,8 +397,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-gruvbox.bundle.json",
-      "bundleHash": "6e64a4f7c025aad1",
-      "hash": "6e64a4f7c025aad1",
+      "bundleHash": "6cba3b87d260c6d4",
+      "hash": "6cba3b87d260c6d4",
       "screenshot": "screenshots/theme-gruvbox.svg"
     },
     {
@@ -494,8 +494,8 @@
         "type": "light"
       },
       "bundleUrl": "theme-newsprint.bundle.json",
-      "bundleHash": "7add2857ab45efc4",
-      "hash": "7add2857ab45efc4",
+      "bundleHash": "f769ea36802fbf40",
+      "hash": "f769ea36802fbf40",
       "screenshot": "screenshots/theme-newsprint.svg"
     },
     {
@@ -527,8 +527,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-nord.bundle.json",
-      "bundleHash": "c32773343075cece",
-      "hash": "c32773343075cece",
+      "bundleHash": "6f416642bb4350b8",
+      "hash": "6f416642bb4350b8",
       "screenshot": "screenshots/theme-nord.svg"
     },
     {
@@ -676,8 +676,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-rose-pine.bundle.json",
-      "bundleHash": "f9816a7dee125cbd",
-      "hash": "f9816a7dee125cbd",
+      "bundleHash": "f7c4f3bf24f2ec34",
+      "hash": "f7c4f3bf24f2ec34",
       "screenshot": "screenshots/theme-rose-pine.svg"
     },
     {
@@ -709,8 +709,8 @@
         "type": "light"
       },
       "bundleUrl": "theme-sakura-ink.bundle.json",
-      "bundleHash": "27187e36a83a7bfe",
-      "hash": "27187e36a83a7bfe",
+      "bundleHash": "a4efa02542cea8ac",
+      "hash": "a4efa02542cea8ac",
       "screenshot": "screenshots/theme-sakura-ink.svg"
     },
     {
@@ -792,8 +792,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-skeuomorph.bundle.json",
-      "bundleHash": "3c17a8e057adfeb0",
-      "hash": "3c17a8e057adfeb0",
+      "bundleHash": "685f2411b860d29e",
+      "hash": "685f2411b860d29e",
       "screenshot": "screenshots/theme-skeuomorph.svg"
     },
     {
@@ -825,8 +825,8 @@
         "type": "dark"
       },
       "bundleUrl": "theme-solarized.bundle.json",
-      "bundleHash": "d31a592e6bd2700e",
-      "hash": "d31a592e6bd2700e",
+      "bundleHash": "bf4f329c2181f03c",
+      "hash": "bf4f329c2181f03c",
       "screenshot": "screenshots/theme-solarized.svg"
     },
     {
