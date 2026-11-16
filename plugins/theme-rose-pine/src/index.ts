@@ -57,6 +57,12 @@ const THEME = {
     body: INTER,
     editor: INSTRUMENT,
   },
+  chrome: {
+    // Foam cyan - distinct from love/rose primary
+    aiAccent: 'hsl(189 43% 73%)',
+    aiAccentMuted: 'hsl(189 43% 73% / 0.20)',
+    aiAccentFg: 'hsl(249 22% 12%)',
+  },
 }
 
 export const RosePineThemePlugin: Plugin = {

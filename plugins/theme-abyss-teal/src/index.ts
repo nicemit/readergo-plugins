@@ -51,6 +51,12 @@ const THEME = {
     surfaceBlur: '8px',
     shadowMd: '0 4px 18px rgb(0 40 50 / 0.45)',
   },
+  chrome: {
+    // Violet - distinct from teal primary
+    aiAccent: 'hsl(280 55% 62%)',
+    aiAccentMuted: 'hsl(280 55% 62% / 0.20)',
+    aiAccentFg: 'hsl(198 40% 6%)',
+  },
 };
 
 export const AbyssTealThemePlugin: Plugin = {

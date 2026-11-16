@@ -48,6 +48,12 @@ const NORD_THEME = {
     display: JAKARTA_FONT,
     body: JAKARTA_FONT,
   },
+  chrome: {
+    // Nord 15 purple - distinct from frost cyan primary
+    aiAccent: 'hsl(311 32% 65%)',
+    aiAccentMuted: 'hsl(311 32% 65% / 0.20)',
+    aiAccentFg: 'hsl(220 16% 14%)',
+  },
 };
 
 export const NordThemePlugin: Plugin = {

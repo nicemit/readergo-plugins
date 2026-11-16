@@ -154,6 +154,10 @@ export const LEATHER_DESK_THEME = {
     scrollbarThumb: 'hsl(30 22% 32%)',
     scrollbarTrack: 'transparent',
     density: 'comfortable' as const,
+    // Teal - distinct from brass/amber primary
+    aiAccent: 'hsl(174 45% 42%)',
+    aiAccentMuted: 'hsl(174 45% 42% / 0.18)',
+    aiAccentFg: 'hsl(25 40% 10%)',
   },
   settingsSchema: [
     {
@@ -275,6 +279,12 @@ export const BRUSHED_STEEL_THEME = {
   },
   stylesheet: `${STEEL_BRUSH}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Copper - distinct from steel cyan primary
+    aiAccent: 'hsl(28 65% 52%)',
+    aiAccentMuted: 'hsl(28 65% 52% / 0.18)',
+    aiAccentFg: 'hsl(210 30% 8%)',
+  },
 };
 
 export const BOUND_JOURNAL_THEME = {
@@ -336,6 +346,12 @@ export const BOUND_JOURNAL_THEME = {
   },
   stylesheet: `${JOURNAL_FIBER}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Teal ink - distinct from navy primary
+    aiAccent: 'hsl(174 45% 38%)',
+    aiAccentMuted: 'hsl(174 45% 38% / 0.16)',
+    aiAccentFg: 'hsl(40 30% 96%)',
+  },
 };
 
 export const WALNUT_LIBRARY_THEME = {
@@ -397,6 +413,12 @@ export const WALNUT_LIBRARY_THEME = {
   },
   stylesheet: `${WALNUT_GRAIN}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Sage - distinct from walnut orange primary
+    aiAccent: 'hsl(150 28% 42%)',
+    aiAccentMuted: 'hsl(150 28% 42% / 0.18)',
+    aiAccentFg: 'hsl(28 40% 8%)',
+  },
 };
 
 export const SOFT_PORCELAIN_THEME = {
@@ -458,6 +480,12 @@ export const SOFT_PORCELAIN_THEME = {
   },
   stylesheet: `${PORCELAIN_GLOSS}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Coral - distinct from porcelain blue primary
+    aiAccent: 'hsl(12 62% 52%)',
+    aiAccentMuted: 'hsl(12 62% 52% / 0.16)',
+    aiAccentFg: 'hsl(0 0% 100%)',
+  },
 };
 
 export const CINNABAR_LACQUER_THEME = {
@@ -519,6 +547,12 @@ export const CINNABAR_LACQUER_THEME = {
   },
   stylesheet: `${LACQUER_SHEEN}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Gold - distinct from cinnabar red primary
+    aiAccent: 'hsl(42 70% 48%)',
+    aiAccentMuted: 'hsl(42 70% 48% / 0.18)',
+    aiAccentFg: 'hsl(6 40% 10%)',
+  },
 };
 
 export const DENIM_BENCH_THEME = {
@@ -580,6 +614,12 @@ export const DENIM_BENCH_THEME = {
   },
   stylesheet: `${DENIM_TWILL}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Copper rivet - distinct from indigo primary
+    aiAccent: 'hsl(28 65% 52%)',
+    aiAccentMuted: 'hsl(28 65% 52% / 0.18)',
+    aiAccentFg: 'hsl(218 40% 10%)',
+  },
 };
 
 export const BRASS_CONSOLE_THEME = {
@@ -641,6 +681,12 @@ export const BRASS_CONSOLE_THEME = {
   },
   stylesheet: `${BRASS_PATINA}\n${SHARED_CHROME}`,
   stylesheetScoped: true,
+  chrome: {
+    // Cyan - distinct from brass gold primary
+    aiAccent: 'hsl(190 55% 48%)',
+    aiAccentMuted: 'hsl(190 55% 48% / 0.18)',
+    aiAccentFg: 'hsl(40 40% 8%)',
+  },
 };
 
 export const SKEUO_THEMES = [

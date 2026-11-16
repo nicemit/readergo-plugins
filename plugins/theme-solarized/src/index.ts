@@ -57,6 +57,12 @@ const THEME = {
     body: SOURCE_SANS,
     editor: SOURCE_SERIF,
   },
+  chrome: {
+    // Magenta - distinct from cyan primary
+    aiAccent: 'hsl(331 64% 42%)',
+    aiAccentMuted: 'hsl(331 64% 42% / 0.16)',
+    aiAccentFg: 'hsl(44 87% 94%)',
+  },
 }
 
 export const SolarizedThemePlugin: Plugin = {
