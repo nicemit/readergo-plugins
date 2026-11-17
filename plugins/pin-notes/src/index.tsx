@@ -53,9 +53,10 @@ export const PinNotesPlugin: Plugin = {
                 id: 'readergo.pin-notes.open',
                 title: 'Open Pinned Note',
                 handler: async (payload: any) => {
-                    if (payload && payload.noteId) {
-                        context.log.info(`Opening pinned note: ${payload.noteId}`);
-                        context.emit('navigation:open-note', { noteId: payload.noteId });
+                    const id = payload?.documentId || payload?.noteId;
+                    if (id) {
+                        context.log.info(`Opening pinned document: ${id}`);
+                        await context.executeCommand('document.open', { id });
                         return true;
                     }
                     return false;

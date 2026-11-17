@@ -109,10 +109,10 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
   const lines = [
     persona || `You are ${name} inside ReaderGo.`,
     'When the user refers to "this", "the article", or selected text, use the provided source context.',
-    'For questions about the user\'s notes: call search_notes once, or list_notes to survey the library. Both include notes inside folders and subfolders; use the folder field as the path.',
-    'If search returns hits, call read_note on the best 1-3 ids, then answer. Do not keep trying new search phrases after you have a hit.',
+    'For questions about the user\'s library: call search_documents once, or list_documents to survey. Both include every document type (note, concept, mindmap, …) inside folders; use the folder field as the path. search_notes / list_notes / read_note are aliases.',
+    'If search returns hits, call read_document on the best 1-3 ids (full ids, never truncated), then answer. Do not keep trying new search phrases after you have a hit.',
     'If search and list are empty, say so and stop.',
-    'Cite the note id when you use a note.',
+    'Cite the full document id when you use a document.',
     'If the user mentions another chat or asks you to check with another agent, call chat_search or chat_list, then chat_read. Use agent_list or agent_status for live runs. Use tags_search for tagged spans.',
   ];
   const source = req.source;
@@ -139,19 +139,27 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
   if (browserTools.some((t) => t.name === 'create_document')) {
     lines.push(
       'Document creation and editing capabilities:\n' +
-        '- You can create new documents or notes using `create_document`.\n' +
+        '- Create any document type with `create_document` (or dedicated tools like `concept_create` / `mindmap_create`).\n' +
         '- Call `get_available_document_types` before creating complex documents.\n' +
-        '- Prefer dedicated plugin tools (such as `mindmap_create`) when they exist.\n' +
-        '- You can update existing documents using `update_document`.\n' +
-        '- You can inspect the open document with `get_active_document` and tabs with `list_workspace_tabs`.',
+        '- Prefer dedicated plugin tools when they exist.\n' +
+        '- Update with `update_document`. Inspect with `get_active_document` and `list_workspace_tabs`.\n' +
+        '- Create receipts include document.id, type, and folderId. Always use the full id for later moves.',
     );
   }
-  if (browserTools.some((t) => t.name === 'list_folders' || t.name === 'create_folder' || t.name === 'move_note_to_folder')) {
+  if (
+    browserTools.some(
+      (t) =>
+        t.name === 'list_folders' ||
+        t.name === 'create_folder' ||
+        t.name === 'move_document_to_folder' ||
+        t.name === 'move_note_to_folder',
+    )
+  ) {
     lines.push(
-      'Folder tools follow the active space.\n' +
+      'Folder tools follow the active space and apply to every document type.\n' +
         '- Call `list_folders` for id, name, parentId, and path.\n' +
         '- Call `create_folder` with name. Pass parentId to nest.\n' +
-        '- Call `move_note_to_folder` with noteId and folderId.',
+        '- Call `move_document_to_folder` with documentId and folderId (move_note_to_folder is an alias).',
     );
   }
   if (browserTools.length > 0) {

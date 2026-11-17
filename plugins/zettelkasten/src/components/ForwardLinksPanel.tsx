@@ -96,7 +96,7 @@ export function ForwardLinksPanel({
         if (onNavigateToNote) {
             onNavigateToNote(targetId);
         } else {
-            void executeCommand('readergo.core.openNote', { noteId: targetId });
+            void executeCommand('document.open', { id: targetId });
         }
     };
 
@@ -107,15 +107,16 @@ export function ForwardLinksPanel({
             if (onCreateNote) {
                 onCreateNote(title);
             } else {
-                const newId = crypto.randomUUID();
-                await executeCommand('readergo.note.create', {
-                    id: newId,
+                const created = await executeCommand('document.create', {
                     title,
                     content: '',
                     type: 'note',
                     status: 'draft',
-                });
-                await executeCommand('readergo.core.openNote', { noteId: newId });
+                }) as { id?: string; data?: { id?: string } } | null;
+                const newId = created?.id || created?.data?.id;
+                if (newId) {
+                    await executeCommand('document.open', { id: newId });
+                }
             }
         } finally {
             setCreatingTitle(null);

@@ -132,7 +132,7 @@ export async function registerMindmapTools(context: PluginContext): Promise<void
           ? crypto.randomUUID()
           : `map_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-      const createRes = await context.executeCommand('readergo.note.create', {
+      const createRes = await context.executeCommand('document.create', {
         id,
         title,
         type: 'mindmap',
@@ -147,12 +147,20 @@ export async function registerMindmapTools(context: PluginContext): Promise<void
         };
       }
 
-      const createdDoc = createRes?.data;
+      const createdDoc =
+        createRes && typeof createRes === 'object' && 'data' in createRes
+          ? (createRes as { data?: { id?: string; title?: string; folderId?: string | null; folders?: Array<{ folderId?: string }> } }).data
+          : (createRes as { id?: string; title?: string; folderId?: string | null; folders?: Array<{ folderId?: string }> } | null);
       const targetId = createdDoc?.id || id;
+      const persistedFolderId =
+        (typeof createdDoc?.folderId === 'string' && createdDoc.folderId) ||
+        createdDoc?.folders?.[0]?.folderId ||
+        folderId ||
+        null;
 
       if (openAfterCreate) {
         try {
-          await context.executeCommand('readergo.core.openNote', { noteId: targetId });
+          await context.executeCommand('document.open', { id: targetId });
         } catch {
           // Non-fatal navigation failure
         }
@@ -162,8 +170,9 @@ export async function registerMindmapTools(context: PluginContext): Promise<void
         success: true,
         document: {
           id: targetId,
-          title,
+          title: createdDoc?.title || title,
           type: 'mindmap',
+          folderId: persistedFolderId,
           nodeCount: Object.keys(nodes).length,
           opened: openAfterCreate,
         },
