@@ -158,7 +158,7 @@ export function BacklinksPanel({ noteId, onNavigateToNote, className = '' }: Bac
         if (onNavigateToNote) {
             onNavigateToNote(targetId);
         } else {
-            void executeCommand('readergo.core.openNote', { noteId: targetId });
+            void executeCommand('document.open', { id: targetId });
         }
     };
 

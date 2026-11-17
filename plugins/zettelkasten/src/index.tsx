@@ -88,7 +88,7 @@ export const ZettelkastenPlugin: Plugin = {
         // 4. Register Command: open or create note by title
         await context.registerCommand({
             id: 'readergo.zettelkasten.openOrCreate',
-            title: 'Open or Create Note by Title',
+            title: 'Open or Create Document by Title',
             handler: async (payload?: { title?: string }) => {
                 const title = payload?.title?.trim();
                 if (!title) return { success: false, error: 'Title is required' };
@@ -99,22 +99,20 @@ export const ZettelkastenPlugin: Plugin = {
                 );
 
                 if (target) {
-                    await context.executeCommand('readergo.core.openNote', { noteId: target.id });
-                    return { success: true, noteId: target.id, created: false };
+                    await context.executeCommand('document.open', { id: target.id });
+                    return { success: true, documentId: target.id, noteId: target.id, created: false };
                 }
 
-                // If note does not exist, ask user to create it
+                // If document does not exist, ask user to create it
                 const shouldCreate = typeof window !== 'undefined'
-                    ? window.confirm(`Note "${title}" does not exist. Create it now?`)
+                    ? window.confirm(`Document "${title}" does not exist. Create it now?`)
                     : true;
 
                 if (!shouldCreate) {
                     return { success: false, cancelled: true };
                 }
 
-                const newId = crypto.randomUUID();
-                const createResult = (await context.executeCommand('readergo.note.create', {
-                    id: newId,
+                const createResult = (await context.executeCommand('document.create', {
                     title,
                     content: '',
                     type: 'note',
@@ -124,9 +122,17 @@ export const ZettelkastenPlugin: Plugin = {
                 if (createResult && createResult.success === false) {
                     return { success: false, error: createResult.error };
                 }
+                const created =
+                    createResult && typeof createResult === 'object' && 'data' in createResult
+                        ? createResult.data
+                        : createResult;
+                const newId = created?.id;
+                if (!newId) {
+                    return { success: false, error: 'Failed to create document' };
+                }
 
-                await context.executeCommand('readergo.core.openNote', { noteId: newId });
-                return { success: true, noteId: newId, created: true };
+                await context.executeCommand('document.open', { id: newId });
+                return { success: true, documentId: newId, noteId: newId, created: true };
             },
         });
 

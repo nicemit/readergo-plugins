@@ -37,7 +37,7 @@ export function LinkClipperComponent() {
             setSuccess(`Successfully clipped to note: ${newNote.title}`);
             setUrl('');
 
-            // Note: Navigation is now handled by the command emitting navigation:open-note event
+            // Navigation is handled by the clip command via document.open
             // which the host application router listens for.
 
         } catch (err: unknown) {

@@ -215,7 +215,7 @@ export function FolderContextMenu({
       <ContextMenuContent className="w-48">
         <ContextMenuItem onClick={onCreateNote}>
           <FileText className="mr-2 h-4 w-4" />
-          <span>New Note</span>
+          <span>New Doc</span>
         </ContextMenuItem>
         <ContextMenuItem onClick={onCreateSubfolder}>
           <Folder className="mr-2 h-4 w-4" />

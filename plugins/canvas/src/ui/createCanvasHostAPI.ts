@@ -79,12 +79,12 @@ export function createCanvasHostAPI(opts: {
       opts.onNavigateToNote(id);
       return;
     }
-    void executeCommand('readergo.core.openNote', { noteId: id });
+    void executeCommand('document.open', { id });
   };
 
   const updateNote: CanvasHostAPI['updateNote'] = async (id: string, content: string) => {
     if (!id) return;
-    await CapabilityClient.saveNote({ id, content });
+    await CapabilityClient.saveDocument({ id, content });
   };
 
   return { listNotes, getNote, openNote, updateNote };

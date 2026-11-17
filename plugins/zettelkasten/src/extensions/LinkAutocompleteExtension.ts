@@ -196,8 +196,7 @@ export const LinkAutocompleteExtension = Extension.create({
             if (isCreateOption) {
                 noteTitleToInsert = queryText;
                 // Optionally execute note create in the background
-                void executeCommand('readergo.note.create', {
-                    id: crypto.randomUUID(),
+                void executeCommand('document.create', {
                     title: queryText,
                     content: '',
                     type: 'note',

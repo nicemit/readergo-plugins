@@ -186,7 +186,7 @@ export async function registerConceptTools(context: PluginContext): Promise<void
           ? crypto.randomUUID()
           : `concept_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-      const createRes = await context.executeCommand('readergo.note.create', {
+      const createRes = await context.executeCommand('document.create', {
         id,
         title,
         type: CONCEPT_TYPE,
@@ -202,12 +202,20 @@ export async function registerConceptTools(context: PluginContext): Promise<void
         };
       }
 
-      const targetId = createRes?.data?.id || id;
+      const created =
+        createRes && typeof createRes === 'object' && 'data' in createRes
+          ? (createRes as { data?: { id?: string; title?: string; folderId?: string | null; folders?: Array<{ folderId?: string }> } }).data
+          : (createRes as { id?: string; title?: string; folderId?: string | null; folders?: Array<{ folderId?: string }> } | null);
+      const targetId = created?.id || id;
+      const persistedFolderId =
+        (typeof created?.folderId === 'string' && created.folderId) ||
+        created?.folders?.[0]?.folderId ||
+        folderId ||
+        null;
+
       if (openAfterCreate) {
         try {
-          await context.executeCommand('readergo.core.openNote', {
-            noteId: targetId,
-          });
+          await context.executeCommand('document.open', { id: targetId });
         } catch {
           // non-fatal
         }
@@ -217,8 +225,9 @@ export async function registerConceptTools(context: PluginContext): Promise<void
         success: true,
         document: {
           id: targetId,
-          title,
+          title: created?.title || title,
           type: CONCEPT_TYPE,
+          folderId: persistedFolderId,
           opened: openAfterCreate,
         },
         message: `Created concept "${title}". Open it and tap Learn to build the map (or rebuild in the editor).`,

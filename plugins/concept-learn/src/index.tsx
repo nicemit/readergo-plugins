@@ -82,7 +82,7 @@ export default definePlugin({
             ? crypto.randomUUID()
             : `concept_${Date.now()}`;
 
-        const createRes = await context.executeCommand('readergo.note.create', {
+        const createRes = await context.executeCommand('document.create', {
           id,
           title: topic,
           type: CONCEPT_TYPE,
@@ -95,15 +95,17 @@ export default definePlugin({
             error: createRes.error || 'Failed to create concept',
           };
         }
-        const targetId = createRes?.data?.id || id;
+        const created =
+          createRes && typeof createRes === 'object' && 'data' in createRes
+            ? (createRes as { data?: { id?: string } }).data
+            : (createRes as { id?: string } | null);
+        const targetId = created?.id || id;
         try {
-          await context.executeCommand('readergo.core.openNote', {
-            noteId: targetId,
-          });
+          await context.executeCommand('document.open', { id: targetId });
         } catch {
           // non-fatal
         }
-        return { success: true, noteId: targetId };
+        return { success: true, documentId: targetId, noteId: targetId };
       },
     });
 

@@ -52,8 +52,7 @@ export const LinkClipperPlugin: Plugin = {
                     }
                 }
 
-                // Save note using command pipeline
-                const newNote = await context.executeCommand('readergo.note.create', {
+                const created = await context.executeCommand('document.create', {
                     id: crypto.randomUUID(),
                     title: titleToSet,
                     content: htmlContent,
@@ -62,14 +61,17 @@ export const LinkClipperPlugin: Plugin = {
                     status: 'draft'
                 });
 
-                if (!newNote || !(newNote as any).id) {
-                    throw new Error('Failed to create note');
+                const doc =
+                    created && typeof created === 'object' && 'data' in (created as object)
+                        ? (created as { data?: { id?: string } }).data
+                        : (created as { id?: string } | null);
+                if (!doc?.id) {
+                    throw new Error('Failed to create document');
                 }
 
-                // Trigger navigation
-                context.emit('navigation:open-note', { noteId: (newNote as any).id });
+                await context.executeCommand('document.open', { id: doc.id });
 
-                return newNote;
+                return doc;
             }
         });
 
