@@ -12,6 +12,7 @@ import { GraduationCap } from 'lucide-react';
 const LearnIcon = withAiCue(GraduationCap);
 import { ConceptEditor } from './ConceptEditor';
 import { ConceptTutorPanel } from './ConceptTutorPanel';
+import { getConceptSession } from './conceptSession';
 import { conceptSummary, createConceptDocument, emptyConceptData } from './schema';
 import { registerConceptTools } from './tools';
 import { CONCEPT_TYPE } from './types';
@@ -128,7 +129,15 @@ export default definePlugin({
       id: 'readergo.concept-learn.tutor',
       order: 10,
       title: 'Tutor',
-      match: (input) => input.documentType === CONCEPT_TYPE,
+      match: (input) => {
+        if (input.documentType === CONCEPT_TYPE) return true;
+        // A cold start can publish the chat source before the note type is
+        // known. The live editor session still knows the document is a concept.
+        return Boolean(
+          input.documentId &&
+            getConceptSession()?.documentId === input.documentId,
+        );
+      },
       Panel: ConceptTutorPanel,
     });
     if (!panels) {
