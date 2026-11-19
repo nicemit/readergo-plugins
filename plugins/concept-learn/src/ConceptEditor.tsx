@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { EditorProps } from '@readergo/plugin-sdk';
+import { AGENT_CHAT_UI_COMMAND_OPEN, type EditorProps } from '@readergo/plugin-sdk';
 import { Loader2 } from 'lucide-react';
 import { ExtensionSlot } from '@/components/layout/ExtensionSlot';
 import { executeCommand } from '@/lib/platform/actions';
@@ -106,7 +106,7 @@ export function ConceptEditor(props: EditorProps) {
     if (!note?.id) return;
     if (typeof window === 'undefined') return;
     if (!window.matchMedia(LG_MQ).matches) return;
-    void executeCommand('readergo.agent-chat-ui.open');
+    void executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
   }, [note?.id]);
 
   useEffect(() => {
@@ -237,6 +237,17 @@ export function ConceptEditor(props: EditorProps) {
           )}
         </div>
         <div className="relative z-10 flex shrink-0 items-center gap-2">
+          {!isLg ? (
+            <button
+              type="button"
+              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted/50"
+              onClick={() => {
+                void executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
+              }}
+            >
+              Tutor
+            </button>
+          ) : null}
           <button
             type="button"
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted/50"
