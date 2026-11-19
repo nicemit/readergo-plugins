@@ -138,7 +138,6 @@ async function runAgentTurn(input: {
 }): Promise<string> {
   const provider = loadLlmProviderSelection();
   const memory = loadMemorySelection();
-  const chatStoreId = resolveTutorChatStoreId();
   const agentId = loadAgentSdkId();
 
   if (!provider.id || !provider.apiKey.trim()) {
@@ -167,7 +166,9 @@ async function runAgentTurn(input: {
         model: provider.model.trim() || OPENROUTER_DEFAULT_MODEL,
       },
       memory: {
-        chatStoreId,
+        // The tutor owns its transcript: it persists the user turn and the
+        // final reply. Passing chatStoreId also makes the runtime persist the
+        // assistant turn, which duplicated every tutor reply on reload.
         embeddingsId: memory.embeddingsId || undefined,
         vectorStoreId: memory.vectorStoreId || undefined,
         embeddingsApiKey:
@@ -288,12 +289,20 @@ export async function loadTutorHistory(
       conversationId: tutorThreadId,
     });
     if (!conversation?.messages?.length) return [];
-    return conversation.messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        text: m.content,
-      }));
+    const history: TutorMessage[] = [];
+    for (const message of conversation.messages) {
+      if (message.role !== 'user' && message.role !== 'assistant') continue;
+      const text = message.content.trim();
+      if (!text) continue;
+      const previous = history[history.length - 1];
+      // Older builds persisted each tutor reply twice (runtime turn + tutor
+      // append). Collapse the adjacent duplicate so existing threads read clean.
+      if (previous && previous.role === message.role && previous.text === text) {
+        continue;
+      }
+      history.push({ role: message.role, text });
+    }
+    return history;
   } catch {
     return [];
   }
