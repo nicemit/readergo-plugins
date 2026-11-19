@@ -107,7 +107,7 @@ interface FolderTreeProps {
     updatedAt: string
     folderId?: string | null
   }>
-  onNoteSelect?: (noteId: string) => void
+  onNoteSelect?: (noteId: string, options?: { mode?: 'preview' | 'permanent' }) => void
   selectedNoteId?: string | null
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
@@ -141,7 +141,7 @@ interface FolderNodeProps {
   onDelete: (folderId: string) => void
   onCreateSubfolder: (parentId: string) => void
   onCreateNote: (folderId: string) => void
-  onNoteSelect?: (noteId: string) => void
+  onNoteSelect?: (noteId: string, options?: { mode?: 'preview' | 'permanent' }) => void
   selectedNoteId?: string | null
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
@@ -171,7 +171,7 @@ interface NoteItemProps {
   }
   level?: number
   selectedNoteId?: string | null
-  onNoteSelect?: (noteId: string) => void
+  onNoteSelect?: (noteId: string, options?: { mode?: 'preview' | 'permanent' }) => void
   onDuplicateNote?: (noteId: string, noteTitle: string) => void
   onMoveNote?: (noteId: string, noteTitle: string) => void
   onDeleteNote?: (noteId: string, noteTitle: string) => void
@@ -223,6 +223,7 @@ function NoteItem({
       noteId={note.id}
       noteTitle={displayTitle}
       onEdit={() => onNoteSelect?.(note.id)}
+      onPreview={() => onNoteSelect?.(note.id, { mode: 'preview' })}
       onDuplicate={() => onDuplicateNote?.(note.id, displayTitle)}
       onMove={() => onMoveNote?.(note.id, displayTitle)}
       onDelete={() => onDeleteNote?.(note.id, displayTitle)}

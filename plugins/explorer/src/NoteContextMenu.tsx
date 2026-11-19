@@ -7,6 +7,7 @@ import {
   Move,
   Trash2,
   Edit,
+  Eye,
   MoreHorizontal,
 } from 'lucide-react'
 import { WellKnownPlaces } from '@readergo/plugin-sdk'
@@ -219,6 +220,8 @@ interface NoteContextMenuProps {
   noteId: string
   noteTitle: string
   onEdit?: () => void
+  /** Open in the replaceable preview slot instead of a permanent tab. */
+  onPreview?: () => void
   onDuplicate?: () => void
   onMove?: () => void
   onDelete?: () => void
@@ -229,6 +232,7 @@ export function NoteContextMenu({
   noteId,
   noteTitle,
   onEdit,
+  onPreview,
   onDuplicate,
   onMove,
   onDelete,
@@ -245,6 +249,12 @@ export function NoteContextMenu({
           <Edit className="mr-2 h-4 w-4" />
           <span>Edit</span>
         </ContextMenuItem>
+        {onPreview && (
+          <ContextMenuItem onClick={onPreview}>
+            <Eye className="mr-2 h-4 w-4" />
+            <span>Open in preview</span>
+          </ContextMenuItem>
+        )}
         <ExplorerNoteMenuContributions noteId={noteId} />
         <ContextMenuItem onClick={onDuplicate}>
           <Copy className="mr-2 h-4 w-4" />
