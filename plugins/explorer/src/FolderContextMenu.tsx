@@ -9,8 +9,10 @@ import {
   Edit2, 
   Trash2, 
   FileText,
+  Copy,
   MoreHorizontal
 } from 'lucide-react'
+import { executeCommand } from '@/lib/platform/actions'
 import { cn } from './cn'
 
 const ContextMenu = ContextMenuPrimitive.Root
@@ -198,6 +200,21 @@ interface FolderContextMenuProps {
   onDelete?: () => void
 }
 
+async function copyText(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    void executeCommand('readergo.toast.show', {
+      type: 'success',
+      message: `Copied ${label}`,
+    })
+  } catch {
+    void executeCommand('readergo.toast.show', {
+      type: 'error',
+      message: `Could not copy ${label}`,
+    })
+  }
+}
+
 export function FolderContextMenu({
   children,
   folderId,
@@ -225,6 +242,10 @@ export function FolderContextMenu({
         <ContextMenuItem onClick={onRename}>
           <Edit2 className="mr-2 h-4 w-4" />
           <span>Rename</span>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => void copyText(folderName, 'folder name')}>
+          <Copy className="mr-2 h-4 w-4" />
+          <span>Copy name</span>
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">

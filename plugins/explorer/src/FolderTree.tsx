@@ -808,7 +808,7 @@ export function FolderTree({
   }
 
   return (
-    <div className="p-1">
+    <div className="p-1" data-rg-no-select="true">
       {/* Search + view/sort (create folder lives on the activity bar) */}
       <div className="flex flex-col gap-2 mb-2 px-2 mt-1">
         <button

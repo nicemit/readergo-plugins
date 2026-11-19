@@ -189,8 +189,22 @@ const ContextMenuShortcut = ({
 }
 ContextMenuShortcut.displayName = 'ContextMenuShortcut'
 
-function ExplorerNoteMenuContributions({ noteId }: { noteId: string }) {
-  const contributions = usePlaceContributions({
+async function copyText(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    void executeCommand('readergo.toast.show', {
+      type: 'success',
+      message: `Copied ${label}`,
+    })
+  } catch {
+    void executeCommand('readergo.toast.show', {
+      type: 'error',
+      message: `Could not copy ${label}`,
+    })
+  }
+}
+
+function ExplorerNoteMenuContributions({ noteId }: { noteId: string }) {  const contributions = usePlaceContributions({
     place: WellKnownPlaces.EXPLORER_NOTE_CONTEXT_MENU,
     surface: { capabilities: [] },
   })
@@ -255,6 +269,10 @@ export function NoteContextMenu({
             <span>Open in preview</span>
           </ContextMenuItem>
         )}
+        <ContextMenuItem onClick={() => void copyText(noteTitle, 'note title')}>
+          <Copy className="mr-2 h-4 w-4" />
+          <span>Copy title</span>
+        </ContextMenuItem>
         <ExplorerNoteMenuContributions noteId={noteId} />
         <ContextMenuItem onClick={onDuplicate}>
           <Copy className="mr-2 h-4 w-4" />
