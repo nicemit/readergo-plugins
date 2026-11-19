@@ -127,6 +127,7 @@ export default definePlugin({
     const unregisterTutor = panels?.register({
       id: 'readergo.concept-learn.tutor',
       order: 10,
+      title: 'Tutor',
       match: (input) => input.documentType === CONCEPT_TYPE,
       Panel: ConceptTutorPanel,
     });
