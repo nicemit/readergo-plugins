@@ -10,7 +10,10 @@ import type {
   VectorStoreCapability,
   WebSearchCapability,
 } from '@readergo/plugin-contracts';
-import { createSharedAgentTools } from '@readergo/plugin-contracts';
+import {
+  composeAgentSystemPrompt,
+  createSharedAgentTools,
+} from '@readergo/plugin-contracts';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
 import type { TSchema } from 'typebox';
 
@@ -88,26 +91,41 @@ function capText(text: string): string {
   return `${text.slice(0, TOOL_RESULT_CHAR_CAP)}\n[truncated]`;
 }
 
+/**
+ * Agent SDK owns prompt composition. UI ships persona + uiMechanics as facts;
+ * this function (via contracts.composeAgentSystemPrompt) builds the final
+ * system string. Future agent SDKs must call the same helper - do not assemble
+ * prompts in the chat UI.
+ */
 export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[]): string {
   const persona = req.assistant?.systemPrompt?.trim();
-  const name = req.assistant?.name?.trim() || 'a helpful assistant';
+  const personaName = req.assistant?.name?.trim() || 'a helpful assistant';
+
   if (req.disableTools === true) {
     if (browserTools.length === 0) {
-      return [
-        persona || `You are ${name} inside ReaderGo.`,
-        'Tools are disabled for this turn. Answer directly from the user message.',
-        'Follow the output format in the user message exactly. Do not call tools.',
-      ].join('\n\n');
+      return composeAgentSystemPrompt({
+        persona,
+        personaName,
+        uiMechanics: req.uiMechanics,
+        runtimeLines: [
+          'Tools are disabled for this turn. Answer directly from the user message.',
+          'Follow the output format in the user message exactly. Do not call tools.',
+        ],
+      });
     }
-    return [
-      persona || `You are ${name} inside ReaderGo.`,
-      'Built-in note and filesystem tools are disabled for this turn.',
-      `You may ONLY call these tools: ${browserTools.map((t) => t.name).join(', ')}.`,
-      'Do not invent other tools. Call a tool when you need current document state; otherwise answer briefly.',
-    ].join('\n\n');
+    return composeAgentSystemPrompt({
+      persona,
+      personaName,
+      uiMechanics: req.uiMechanics,
+      runtimeLines: [
+        'Built-in note and filesystem tools are disabled for this turn.',
+        `You may ONLY call these tools: ${browserTools.map((t) => t.name).join(', ')}.`,
+        'Do not invent other tools. Call a tool when you need current document state; otherwise answer briefly.',
+      ],
+    });
   }
-  const lines = [
-    persona || `You are ${name} inside ReaderGo.`,
+
+  const runtimeLines: string[] = [
     'When the user refers to "this", "the article", or selected text, use the provided source context.',
     'For questions about the user\'s library: call search_documents once, or list_documents to survey. Both include every document type (note, concept, mindmap, …) inside folders; use the folder field as the path. search_notes / list_notes / read_note are aliases.',
     'If search returns hits, call read_document on the best 1-3 ids (full ids, never truncated), then answer. Do not keep trying new search phrases after you have a hit.',
@@ -115,29 +133,40 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
     'Cite the full document id when you use a document.',
     'If the user mentions another chat or asks you to check with another agent, call chat_search or chat_list, then chat_read. Use agent_list or agent_status for live runs. Use tags_search for tagged spans.',
   ];
+
   const source = req.source;
-  if (source?.title) lines.push(`Title: ${source.title}`);
-  if (source?.documentId) lines.push(`Document id: ${source.documentId}`);
-  if (source?.selection?.text) lines.push(`Selected text:\n${source.selection.text}`);
-  if (source?.content) lines.push(`Document content:\n${source.content}`);
+  if (source?.title) runtimeLines.push(`Title: ${source.title}`);
+  if (source?.documentId) runtimeLines.push(`Document id: ${source.documentId}`);
+  if (source?.selection?.text) {
+    runtimeLines.push(`Selected text:\n${source.selection.text}`);
+  }
+  if (source?.content) {
+    runtimeLines.push(`Document content:\n${source.content}`);
+  }
   if (req.space?.access === 'runtime') {
-    lines.push('You can list and read files in the active runtime folder.');
+    runtimeLines.push('You can list and read files in the active runtime folder.');
   }
   if (req.memory?.chatStoreId) {
-    lines.push('You can list, search, and read saved agent chats with chat_list, chat_search, and chat_read.');
+    runtimeLines.push(
+      'You can list, search, and read saved agent chats with chat_list, chat_search, and chat_read.',
+    );
   }
   if (req.memory?.embeddingsId && req.memory?.vectorStoreId) {
-    lines.push('You can search indexed chat memory with memory_search.');
+    runtimeLines.push('You can search indexed chat memory with memory_search.');
   }
   if (req.webSearch?.providerId) {
-    lines.push(
+    runtimeLines.push(
       'You can search the public web with web_search for current facts outside the user library. Cite result URLs when you use them.',
     );
   }
-  lines.push('You can list agent activity with agent_list and agent_status when those tools are present.');
-  lines.push('You can query and create tags and relations with tags_list, tags_search, tags_annotate, links_search, and links_relate.');
+  runtimeLines.push(
+    'You can list agent activity with agent_list and agent_status when those tools are present.',
+  );
+  runtimeLines.push(
+    'You can query and create tags and relations with tags_list, tags_search, tags_annotate, links_search, and links_relate.',
+  );
   if (browserTools.some((t) => t.name === 'create_document')) {
-    lines.push(
+    runtimeLines.push(
       'Document creation and editing capabilities:\n' +
         '- Create any document type with `create_document` (or dedicated tools like `concept_create` / `mindmap_create`).\n' +
         '- Call `get_available_document_types` before creating complex documents.\n' +
@@ -155,7 +184,7 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
         t.name === 'move_note_to_folder',
     )
   ) {
-    lines.push(
+    runtimeLines.push(
       'Folder tools follow the active space and apply to every document type.\n' +
         '- Call `list_folders` for id, name, parentId, and path.\n' +
         '- Call `create_folder` with name. Pass parentId to nest.\n' +
@@ -163,7 +192,15 @@ export function systemPrompt(req: AgentChatRequest, browserTools: AgentToolSpec[
     );
   }
   if (browserTools.length > 0) {
-    lines.push(`Extra tools: ${browserTools.map((item) => item.name).join(', ')}.`);
+    runtimeLines.push(
+      `Extra tools: ${browserTools.map((item) => item.name).join(', ')}.`,
+    );
   }
-  return lines.join('\n\n');
+
+  return composeAgentSystemPrompt({
+    persona,
+    personaName,
+    uiMechanics: req.uiMechanics,
+    runtimeLines,
+  });
 }
