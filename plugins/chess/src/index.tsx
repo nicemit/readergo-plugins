@@ -7,7 +7,7 @@ import { registerChessTools } from './tools';
 const manifest = {
     id: 'readergo.game.chess',
     name: 'Chess',
-    version: '0.2.5',
+    version: '0.2.6',
     description: 'Play chess in your workspace. Engine or chat-agent opponent, or two players.',
     category: 'editor' as const,
     provides: ['editor-provider', 'activity-bar-item'],
