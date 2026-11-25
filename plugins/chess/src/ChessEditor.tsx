@@ -188,10 +188,11 @@ export function ChessEditor(props: EditorProps) {
             const history = g.history();
             const last = history.length > 0 ? history[history.length - 1] : null;
             const text =
-                `It is your turn in the chess game. You play ${colorName(opponentSide())}. ` +
-                `Current position (FEN): ${currentFen}.` +
-                (last ? ` The last move was ${last}.` : '') +
-                ` Call chess_get_state to see your legal moves, then play with chess_move.`;
+                `CHESS GAME UPDATE: It is your turn. You are playing as ${colorName(opponentSide())}. ` +
+                `Current FEN: ${currentFen}. ` +
+                (last ? `Last move was ${last}. ` : '') +
+                `INSTRUCTIONS: 1) Call chess_get_state() to see the board and legal moves. 2) Pick a move. 3) Call chess_move() to play it. ` +
+                `Do not just describe the move in text; you MUST use the tools to update the board.`;
 
             lastPromptFenRef.current = currentFen;
 
