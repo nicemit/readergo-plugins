@@ -163,14 +163,14 @@
       "name": "Chess",
       "description": "Play chess in your workspace. Engine or chat-agent opponent, or two players.",
       "category": "editor",
-      "version": "0.2.4",
+      "version": "0.2.5",
       "provides": [
         "editor-provider",
         "activity-bar-item"
       ],
       "bundleUrl": "chess.bundle.json",
-      "bundleHash": "9b9f7bc78ce85651",
-      "hash": "9b9f7bc78ce85651"
+      "bundleHash": "9a6cbe620a64b395",
+      "hash": "9a6cbe620a64b395"
     },
     {
       "id": "readergo.features.concept-learn",
