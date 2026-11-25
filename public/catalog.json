@@ -169,8 +169,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "chess.bundle.json",
-      "bundleHash": "425dbfd26a4a58ff",
-      "hash": "425dbfd26a4a58ff"
+      "bundleHash": "1e129bd04748032e",
+      "hash": "1e129bd04748032e"
     },
     {
       "id": "readergo.features.concept-learn",
@@ -880,8 +880,8 @@
         "thinking-partner-service"
       ],
       "bundleUrl": "thinking-partner.bundle.json",
-      "bundleHash": "271802a192da4a5f",
-      "hash": "271802a192da4a5f"
+      "bundleHash": "36243fb156ccaca1",
+      "hash": "36243fb156ccaca1"
     },
     {
       "id": "readergo.editor.note",

@@ -91,6 +91,7 @@ export function ChessEditor(props: EditorProps) {
     const [sidePref, setSidePref] = useState<SidePref>('w');
     const [botThinking, setBotThinking] = useState(false);
     const [botError, setBotError] = useState<string | null>(null);
+    const lastPromptFenRef = useRef<string | null>(null);
 
     // Hydrate from the document when a different note opens.
     useEffect(() => {
@@ -106,20 +107,28 @@ export function ChessEditor(props: EditorProps) {
         } catch {
             gameRef.current = new Chess();
         }
-        setFen(gameRef.current.fen());
+        const currentFen = gameRef.current.fen();
+        setFen(currentFen);
         setSelected(null);
         setTargets([]);
         setPromotion(null);
         setMode(data?.mode === 'bot' || data?.mode === 'hotseat' ? data.mode : 'cpu');
         setSide(data?.side === 'b' ? 'b' : 'w');
         setSidePref(data?.sidePref === 'b' || data?.sidePref === 'random' ? data.sidePref : 'w');
+
+        // If we hydrated a FEN that matches our last prompt, keep thinking;
+        // otherwise, we've moved past it.
+        if (currentFen !== lastPromptFenRef.current) {
+            setBotThinking(false);
+        }
     }, [currentNote?.id]);
 
     const opponentSide = (): Side => (side === 'w' ? 'b' : 'w');
 
     const persist = () => {
+        const currentFen = gameRef.current!.fen();
         onDataChange?.({
-            fen: gameRef.current!.fen(),
+            fen: currentFen,
             pgn: gameRef.current!.pgn(),
             mode,
             side,
@@ -151,7 +160,15 @@ export function ChessEditor(props: EditorProps) {
      * the generative-ui capability hands the text to the chat composer, the
      * agent thinks visibly in the panel, and its chess_move lands here.
      */
-    const triggerBot = async (): Promise<'submitted' | 'missing-capability' | 'failed'> => {
+    const triggerBot = async (): Promise<'submitted' | 'missing-capability' | 'failed' | 'already-prompted'> => {
+        const g = gameRef.current!;
+        const currentFen = g.fen();
+
+        // Don't prompt twice for the same position.
+        if (lastPromptFenRef.current === currentFen) {
+            return 'already-prompted';
+        }
+
         // Open the chat panel first so the thinking is visible.
         try {
             await pluginContext?.executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
@@ -165,14 +182,17 @@ export function ChessEditor(props: EditorProps) {
             if (!genUi?.dispatchAction) {
                 return 'missing-capability';
             }
-            const g = gameRef.current!;
+
             const history = g.history();
             const last = history.length > 0 ? history[history.length - 1] : null;
             const text =
                 `It is your turn in the chess game. You play ${colorName(opponentSide())}. ` +
-                `Current position (FEN): ${g.fen()}.` +
+                `Current position (FEN): ${currentFen}.` +
                 (last ? ` The last move was ${last}.` : '') +
                 ` Call chess_get_state to see your legal moves, then play with chess_move.`;
+
+            lastPromptFenRef.current = currentFen;
+
             // The chat panel registers its submit handler on mount; retry
             // while it catches up so the bot prompt never gets dropped.
             for (let attempt = 0; attempt < 12; attempt++) {
@@ -195,10 +215,10 @@ export function ChessEditor(props: EditorProps) {
      * why the board is waiting.
      */
     const applyBotOutcome = (
-        outcome: 'submitted' | 'missing-capability' | 'failed',
+        outcome: 'submitted' | 'missing-capability' | 'failed' | 'already-prompted',
         side: () => Side,
     ) => {
-        if (outcome === 'submitted') return;
+        if (outcome === 'submitted' || outcome === 'already-prompted') return;
         setBotThinking(false);
         const gNow = gameRef.current;
         if (!gNow || gNow.isGameOver() || gNow.turn() !== side()) return;
@@ -212,7 +232,10 @@ export function ChessEditor(props: EditorProps) {
     /** After a move, let the opponent answer in cpu or bot mode. */
     const maybeOpponentReply = () => {
         const g = gameRef.current!;
-        if (mode === 'hotseat' || g.isGameOver() || g.turn() !== opponentSide()) return;
+        if (mode === 'hotseat' || g.isGameOver() || g.turn() !== opponentSide()) {
+            setBotThinking(false);
+            return;
+        }
         if (mode === 'cpu') {
             const best = findBestMove(g.fen(), 2);
             if (best) g.move(best);
@@ -220,6 +243,7 @@ export function ChessEditor(props: EditorProps) {
             setSelected(null);
             setTargets([]);
             setPromotion(null);
+            setBotThinking(false);
             persist();
         } else {
             setFen(g.fen());
@@ -246,11 +270,14 @@ export function ChessEditor(props: EditorProps) {
     const newGame = () => {
         const resolved = sidePref === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePref;
         gameRef.current!.reset();
+        lastPromptFenRef.current = null;
         setSide(resolved);
         setFen(gameRef.current!.fen());
         setSelected(null);
         setTargets([]);
         setPromotion(null);
+        setBotThinking(false);
+        setBotError(null);
         persist();
         // Opponent opens when the human picked black.
         if (mode !== 'hotseat' && resolved === 'b') {
