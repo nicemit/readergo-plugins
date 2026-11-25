@@ -33,7 +33,7 @@ function rewriteClause(clause, expr) {
 
 export function rewriteHostImports(code) {
   return code.replace(
-    /(?:^|[\n;])\s*import\s+([^'"]*?)\s+from\s*(['"])([^'"]+)\2\s*;?/g,
+    /(?:^|[\n;])\s*import\s+([\s\S]*?)\s+from\s*(['"])([^'"]+)\2\s*;?/g,
     (full, clause, _quote, spec) => {
       if (!isHostSpec(spec)) return full;
       const expr = `__readergoModule(${JSON.stringify(spec)})`;

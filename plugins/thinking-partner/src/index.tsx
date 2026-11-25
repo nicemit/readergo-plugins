@@ -15,7 +15,7 @@ const ThinkingPartnerIcon = withAiCue(Brain);
 const manifest: PluginManifest = {
   id: 'readergo.features.thinking-partner',
   name: 'Thinking Partner',
-  version: '1.0.7',
+  version: '1.0.9',
   description: 'In-editor intelligence: automatic knowledge connection discovery, unlinked mention linking, and dynamic content-aware actions',
   category: 'ai',
   provides: ['sidebar-panel', 'thinking-partner-service'],
