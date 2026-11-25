@@ -228,7 +228,7 @@ export function ChessEditor(props: EditorProps) {
         setBotError(
             outcome === 'missing-capability'
                 ? 'chat agent unavailable: the generative-ui capability is not registered in this workspace.'
-                : 'no reply yet - the chat panel is open. If it stays quiet, check the chat connection or the LLM settings.',
+                : 'no reply yet - the chat panel is open. If it stays quiet or echos, check your Agent SDK settings.',
         );
     };
 
