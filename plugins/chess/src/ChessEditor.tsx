@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import type { EditorProps } from '@readergo/plugin-sdk';
+import type { EditorProps, PluginContext } from '@readergo/plugin-sdk';
+import { GENERATIVE_UI_CAPABILITY_ID } from '@readergo/plugin-sdk';
 import { Chess, type Square } from 'chess.js';
+import { findBestMove } from './cpu';
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -15,18 +17,40 @@ const LIGHT = '#eeeed2';
 const DARK = '#769656';
 const HIGHLIGHT = '#f6f669';
 
+type GameMode = 'cpu' | 'bot' | 'hotseat';
+type Side = 'w' | 'b';
+type SidePref = Side | 'random';
+
 function squareAt(row: number, col: number): Square {
     return `${FILES[col]}${8 - row}` as Square;
 }
 
+function statusFor(game: Chess): string {
+    if (game.isCheckmate()) {
+        return `checkmate. ${game.turn() === 'w' ? 'black' : 'white'} wins.`;
+    }
+    if (game.isStalemate()) return 'stalemate. draw.';
+    if (game.isDraw()) return 'draw.';
+    const side = game.turn() === 'w' ? 'white' : 'black';
+    return game.inCheck() ? `${side} to move - in check.` : `${side} to move.`;
+}
+
+function colorName(side: Side): string {
+    return side === 'w' ? 'white' : 'black';
+}
+
 /**
- * Chess document editor. Two-player hotseat on one board; game state is
- * persisted into the note's data (fen) and content (pgn) on every move.
- * Rules come from chess.js, which esbuild bundles into the plugin.
+ * Chess document editor.
+ * - cpu mode: the minimax engine answers automatically after your move.
+ * - bot mode: your move triggers the agent in chat (the same path as typing
+ *   a message) - it thinks out loud and plays via chess_move.
+ * - hotseat: two players on one board, no automatic moves.
+ * Side is picked before the game (white, black, or random).
  */
 export function ChessEditor(props: EditorProps) {
     const { currentNote, onSave, readOnly } = props;
     const onDataChange = (props as { onDataChange?: (data: unknown) => void }).onDataChange;
+    const context = (props as { context?: PluginContext }).context;
 
     const gameRef = useRef<Chess | null>(null);
     if (!gameRef.current) gameRef.current = new Chess();
@@ -36,10 +60,18 @@ export function ChessEditor(props: EditorProps) {
     const [selected, setSelected] = useState<Square | null>(null);
     const [targets, setTargets] = useState<Square[]>([]);
     const [promotion, setPromotion] = useState<{ from: Square; to: Square } | null>(null);
+    const [mode, setMode] = useState<GameMode>('cpu');
+    const [side, setSide] = useState<Side>('w');
+    const [sidePref, setSidePref] = useState<SidePref>('w');
 
     // Hydrate from the document when a different note opens.
     useEffect(() => {
-        const data = (currentNote?.data ?? null) as { fen?: string } | null;
+        const data = (currentNote?.data ?? null) as {
+            fen?: string;
+            mode?: GameMode;
+            side?: Side;
+            sidePref?: SidePref;
+        } | null;
         const fen = data?.fen && data.fen !== 'start' ? data.fen : undefined;
         try {
             gameRef.current = fen ? new Chess(fen) : new Chess();
@@ -50,22 +82,131 @@ export function ChessEditor(props: EditorProps) {
         setSelected(null);
         setTargets([]);
         setPromotion(null);
+        setMode(data?.mode === 'bot' || data?.mode === 'hotseat' ? data.mode : 'cpu');
+        setSide(data?.side === 'b' ? 'b' : 'w');
+        setSidePref(data?.sidePref === 'b' || data?.sidePref === 'random' ? data.sidePref : 'w');
     }, [currentNote?.id]);
 
+    const opponentSide = (): Side => (side === 'w' ? 'b' : 'w');
+
     const persist = () => {
-        onDataChange?.({ fen: gameRef.current!.fen(), pgn: gameRef.current!.pgn() });
+        onDataChange?.({
+            fen: gameRef.current!.fen(),
+            pgn: gameRef.current!.pgn(),
+            mode,
+            side,
+            sidePref,
+        });
         onSave?.(gameRef.current!.pgn());
     };
 
+    const getState = () => {
+        const g = gameRef.current!;
+        return {
+            fen: g.fen(),
+            turn: g.turn(),
+            isGameOver: g.isGameOver(),
+            status: statusFor(g),
+            mode,
+            side,
+            legalMoves: g.moves({ verbose: true }).map((m) => ({
+                from: m.from,
+                to: m.to,
+                san: m.san,
+                promotion: m.promotion,
+            })),
+        };
+    };
+
+    /**
+     * Ask the chat agent to play. Same path as the user typing the message:
+     * the generative-ui capability hands the text to the chat composer, the
+     * agent thinks visibly in the panel, and its chess_move lands here.
+     */
+    const triggerBot = async (): Promise<boolean> => {
+        try {
+            const genUi = (await context?.getCapability(GENERATIVE_UI_CAPABILITY_ID)) as {
+                dispatchAction?: (name: string, params?: Record<string, unknown>) => Promise<unknown>;
+            } | null;
+            if (!genUi?.dispatchAction) return false;
+            const g = gameRef.current!;
+            const history = g.history();
+            const last = history.length > 0 ? history[history.length - 1] : null;
+            const text =
+                `It is your turn in the chess game. You play ${colorName(opponentSide())}. ` +
+                `Current position (FEN): ${g.fen()}.` +
+                (last ? ` The last move was ${last}.` : '') +
+                ` Call chess_get_state to see your legal moves, then play with chess_move.`;
+            await genUi.dispatchAction('submit_to_chat', { text });
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    /** After a move, let the opponent answer in cpu or bot mode. */
+    const maybeOpponentReply = () => {
+        const g = gameRef.current!;
+        if (mode === 'hotseat' || g.isGameOver() || g.turn() !== opponentSide()) return;
+        if (mode === 'cpu') {
+            const best = findBestMove(g.fen(), 2);
+            if (best) g.move(best);
+            setFen(g.fen());
+            setSelected(null);
+            setTargets([]);
+            setPromotion(null);
+            persist();
+        } else {
+            setFen(g.fen());
+            persist();
+            void triggerBot();
+        }
+    };
+
     const doMove = (from: Square, to: Square, promo?: string) => {
-        const move = gameRef.current!.move({ from, to, promotion: promo });
-        if (!move) return;
+        const g = gameRef.current!;
+        try {
+            g.move({ from, to, promotion: promo });
+        } catch (error) {
+            return { ok: false, error: error instanceof Error ? error.message : 'invalid move' };
+        }
+        maybeOpponentReply();
+        return { ok: true, ...getState() };
+    };
+
+    const newGame = () => {
+        const resolved = sidePref === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePref;
+        gameRef.current!.reset();
+        setSide(resolved);
         setFen(gameRef.current!.fen());
         setSelected(null);
         setTargets([]);
         setPromotion(null);
         persist();
+        // Opponent opens when the human picked black.
+        if (mode !== 'hotseat' && resolved === 'b') {
+            maybeOpponentReply();
+        }
+        return getState();
     };
+
+    // Expose actions for commands and agent tools on the active board.
+    useEffect(() => {
+        if (!context || !currentNote?.id) return;
+        const instanceId = `chess-${currentNote.id}`;
+        const cleanup = context.registerEditorCapability?.(instanceId, {
+            actions: {
+                getState,
+                move: (args: { from: string; to: string; promotion?: string }) =>
+                    doMove(args.from as Square, args.to as Square, args.promotion),
+                newGame,
+                bestMove: (depth?: number) => findBestMove(gameRef.current!.fen(), depth ?? 2),
+            },
+            getState,
+        } as any);
+        context.setActiveEditor?.(instanceId);
+        return cleanup;
+    }, [context, currentNote?.id, mode, side, sidePref]);
 
     const onSquareClick = (square: Square) => {
         if (readOnly || promotion) return;
@@ -99,20 +240,63 @@ export function ChessEditor(props: EditorProps) {
         }
     };
 
-    const status = game.isCheckmate()
-        ? `checkmate. ${game.turn() === 'w' ? 'black' : 'white'} wins.`
-        : game.isStalemate()
-          ? 'stalemate. draw.'
-          : game.isDraw()
-            ? 'draw.'
-            : game.inCheck()
-              ? `${game.turn() === 'w' ? 'white' : 'black'} to move - in check.`
-              : `${game.turn() === 'w' ? 'white' : 'black'} to move.`;
+    const switchMode = (next: GameMode) => {
+        setMode(next);
+        onDataChange?.({ fen: game.fen(), pgn: game.pgn(), mode: next, side, sidePref });
+        onSave?.(game.pgn());
+        // If the opponent is to move right now, let it answer immediately.
+        if (next !== 'hotseat' && !game.isGameOver() && game.turn() === opponentSide()) {
+            if (next === 'cpu') {
+                const best = findBestMove(game.fen(), 2);
+                if (best) {
+                    game.move(best);
+                    setFen(game.fen());
+                    persist();
+                }
+            } else {
+                void triggerBot();
+            }
+        }
+    };
+
+    const pickSide = (pref: SidePref) => {
+        setSidePref(pref);
+        onDataChange?.({ fen: game.fen(), pgn: game.pgn(), mode, side, sidePref: pref });
+        onSave?.(game.pgn());
+        // Restart so the pick applies cleanly before the next game.
+        newGame();
+    };
 
     const recent = game.history().slice(-8);
 
+    const buttonStyle: React.CSSProperties = {
+        border: '1px solid rgba(128,128,128,0.4)',
+        borderRadius: 4,
+        padding: '0.2rem 0.7rem',
+        background: 'transparent',
+        cursor: readOnly ? 'default' : 'pointer',
+        fontSize: '0.8rem',
+    };
+
+    const activeButtonStyle: React.CSSProperties = {
+        ...buttonStyle,
+        borderColor: 'rgba(128,128,128,0.9)',
+        background: 'rgba(128,128,128,0.18)',
+    };
+
     return (
-        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 480 }}>
+        <div
+            style={{
+                padding: '1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                maxWidth: 480,
+                width: '100%',
+                margin: '0 auto',
+                alignItems: 'center',
+            }}
+        >
             <div
                 style={{
                     display: 'grid',
@@ -187,14 +371,7 @@ export function ChessEditor(props: EditorProps) {
                             key={p}
                             type="button"
                             onClick={() => doMove(promotion.from, promotion.to, p)}
-                            style={{
-                                border: '1px solid rgba(128,128,128,0.4)',
-                                borderRadius: 4,
-                                padding: '0.15rem 0.6rem',
-                                background: 'transparent',
-                                cursor: 'pointer',
-                                fontSize: '1.25rem',
-                            }}
+                            style={{ ...buttonStyle, fontSize: '1.25rem' }}
                         >
                             {PIECES[`${gameRef.current!.turn()}${p.toUpperCase()}`]}
                         </button>
@@ -202,7 +379,12 @@ export function ChessEditor(props: EditorProps) {
                 </div>
             )}
 
-            <p style={{ fontSize: '0.8rem', opacity: 0.7, margin: 0 }}>{status}</p>
+            <p style={{ fontSize: '0.8rem', opacity: 0.7, margin: 0 }}>
+                {statusFor(game)}
+                {mode !== 'hotseat' && !game.isGameOver()
+                    ? ` · ${mode === 'cpu' ? 'engine' : 'chat'} plays ${colorName(opponentSide())}`
+                    : ''}
+            </p>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
@@ -215,38 +397,43 @@ export function ChessEditor(props: EditorProps) {
                         setTargets([]);
                         persist();
                     }}
-                    style={{
-                        border: '1px solid rgba(128,128,128,0.4)',
-                        borderRadius: 4,
-                        padding: '0.2rem 0.7rem',
-                        background: 'transparent',
-                        cursor: readOnly ? 'default' : 'pointer',
-                        fontSize: '0.8rem',
-                    }}
+                    style={buttonStyle}
                 >
                     undo
                 </button>
-                <button
-                    type="button"
-                    disabled={readOnly}
-                    onClick={() => {
-                        gameRef.current!.reset();
-                        setFen(gameRef.current!.fen());
-                        setSelected(null);
-                        setTargets([]);
-                        persist();
-                    }}
-                    style={{
-                        border: '1px solid rgba(128,128,128,0.4)',
-                        borderRadius: 4,
-                        padding: '0.2rem 0.7rem',
-                        background: 'transparent',
-                        cursor: readOnly ? 'default' : 'pointer',
-                        fontSize: '0.8rem',
-                    }}
-                >
+                <button type="button" disabled={readOnly} onClick={newGame} style={buttonStyle}>
                     new game
                 </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>opponent:</span>
+                {(['cpu', 'bot', 'hotseat'] as const).map((m) => (
+                    <button
+                        key={m}
+                        type="button"
+                        disabled={readOnly}
+                        onClick={() => switchMode(m)}
+                        style={mode === m ? activeButtonStyle : buttonStyle}
+                    >
+                        {m === 'hotseat' ? '2 players' : m}
+                    </button>
+                ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>you play:</span>
+                {(['w', 'b', 'random'] as const).map((p) => (
+                    <button
+                        key={p}
+                        type="button"
+                        disabled={readOnly}
+                        onClick={() => pickSide(p)}
+                        style={sidePref === p ? activeButtonStyle : buttonStyle}
+                    >
+                        {p === 'w' ? 'white' : p === 'b' ? 'black' : 'random'}
+                    </button>
+                ))}
             </div>
 
             {recent.length > 0 && (

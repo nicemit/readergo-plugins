@@ -1,8 +1,8 @@
 {
   "id": "readergo.game.chess",
   "name": "Chess",
-  "version": "0.1.0",
-  "description": "Play chess in your workspace. A document type with a playable board.",
+  "version": "0.2.0",
+  "description": "Play chess in your workspace. Engine or chat-agent opponent, or two players.",
   "category": "editor",
   "provides": [
     "editor-provider",

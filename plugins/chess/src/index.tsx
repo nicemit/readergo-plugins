@@ -2,12 +2,13 @@ import { PluginContext, EditorProvider, definePlugin } from '@readergo/plugin-sd
 import { Castle } from 'lucide-react';
 import React from 'react';
 import { ChessEditor } from './ChessEditor';
+import { registerChessTools } from './tools';
 
 const manifest = {
     id: 'readergo.game.chess',
     name: 'Chess',
-    version: '0.1.0',
-    description: 'Play chess in your workspace. A document type with a playable board.',
+    version: '0.2.0',
+    description: 'Play chess in your workspace. Engine or chat-agent opponent, or two players.',
     category: 'editor' as const,
     provides: ['editor-provider', 'activity-bar-item'],
     permissions: [],
@@ -51,5 +52,8 @@ export default definePlugin({
             position: 'top',
             noteType: 'chess',
         });
+
+        // Agent/MCP tools so a chat agent can play on the active board.
+        await registerChessTools(context);
     },
 });
