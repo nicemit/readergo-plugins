@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import type { EditorProps, PluginContext } from '@readergo/plugin-sdk';
-import { GENERATIVE_UI_CAPABILITY_ID } from '@readergo/plugin-sdk';
+import { AGENT_CHAT_UI_COMMAND_OPEN, GENERATIVE_UI_CAPABILITY_ID } from '@readergo/plugin-sdk';
 import { Chess, type Square } from 'chess.js';
 import { findBestMove } from './cpu';
 
@@ -63,6 +63,8 @@ export function ChessEditor(props: EditorProps) {
     const [mode, setMode] = useState<GameMode>('cpu');
     const [side, setSide] = useState<Side>('w');
     const [sidePref, setSidePref] = useState<SidePref>('w');
+    const [botThinking, setBotThinking] = useState(false);
+    const [botError, setBotError] = useState<string | null>(null);
 
     // Hydrate from the document when a different note opens.
     useEffect(() => {
@@ -124,9 +126,15 @@ export function ChessEditor(props: EditorProps) {
      * agent thinks visibly in the panel, and its chess_move lands here.
      */
     const triggerBot = async (): Promise<boolean> => {
+        // Open the chat panel first so the thinking is visible.
+        try {
+            await context?.executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
+        } catch {
+            // Best effort - the dispatch below still tries.
+        }
         try {
             const genUi = (await context?.getCapability(GENERATIVE_UI_CAPABILITY_ID)) as {
-                dispatchAction?: (name: string, params?: Record<string, unknown>) => Promise<unknown>;
+                dispatchAction?: (name: string, params?: Record<string, unknown>) => Promise<any>;
             } | null;
             if (!genUi?.dispatchAction) return false;
             const g = gameRef.current!;
@@ -137,8 +145,16 @@ export function ChessEditor(props: EditorProps) {
                 `Current position (FEN): ${g.fen()}.` +
                 (last ? ` The last move was ${last}.` : '') +
                 ` Call chess_get_state to see your legal moves, then play with chess_move.`;
-            await genUi.dispatchAction('submit_to_chat', { text });
-            return true;
+            // The chat panel registers its submit handler on mount; retry
+            // while it catches up so the bot prompt never gets dropped.
+            for (let attempt = 0; attempt < 12; attempt++) {
+                const result = await genUi.dispatchAction('submit_to_chat', { text });
+                if (result?.ok !== false) return true;
+                const error = String(result?.error ?? '');
+                if (!error.includes('not registered')) return false;
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            }
+            return false;
         } catch {
             return false;
         }
@@ -159,7 +175,16 @@ export function ChessEditor(props: EditorProps) {
         } else {
             setFen(g.fen());
             persist();
-            void triggerBot();
+            setBotError(null);
+            setBotThinking(true);
+            void triggerBot().then((ok) => {
+                const gNow = gameRef.current;
+                if (!ok && gNow && !gNow.isGameOver() && gNow.turn() === opponentSide()) {
+                    setBotError(
+                        'no reply yet - the chat panel is open. check the LLM provider if it stays quiet.',
+                    );
+                }
+            });
         }
     };
 
@@ -170,6 +195,8 @@ export function ChessEditor(props: EditorProps) {
         } catch (error) {
             return { ok: false, error: error instanceof Error ? error.message : 'invalid move' };
         }
+        setBotThinking(false);
+        setBotError(null);
         maybeOpponentReply();
         return { ok: true, ...getState() };
     };
@@ -254,7 +281,16 @@ export function ChessEditor(props: EditorProps) {
                     persist();
                 }
             } else {
-                void triggerBot();
+                setBotError(null);
+                setBotThinking(true);
+                void triggerBot().then((ok) => {
+                    const gNow = gameRef.current;
+                    if (!ok && gNow && !gNow.isGameOver() && gNow.turn() === opponentSide()) {
+                        setBotError(
+                            'no reply yet - the chat panel is open. check the LLM provider if it stays quiet.',
+                        );
+                    }
+                });
             }
         }
     };
@@ -380,11 +416,28 @@ export function ChessEditor(props: EditorProps) {
             )}
 
             <p style={{ fontSize: '0.8rem', opacity: 0.7, margin: 0 }}>
-                {statusFor(game)}
-                {mode !== 'hotseat' && !game.isGameOver()
-                    ? ` · ${mode === 'cpu' ? 'engine' : 'chat'} plays ${colorName(opponentSide())}`
-                    : ''}
+                {botThinking ? (
+                    <>
+                        chat is thinking
+                        <span style={{ animation: 'chess-think 1.2s ease-in-out infinite' }}>
+                            ...
+                        </span>
+                    </>
+                ) : (
+                    <>
+                        {statusFor(game)}
+                        {mode !== 'hotseat' && !game.isGameOver()
+                            ? ` · ${mode === 'cpu' ? 'engine' : 'chat'} plays ${colorName(opponentSide())}`
+                            : ''}
+                    </>
+                )}
             </p>
+
+            {botError && (
+                <p style={{ fontSize: '0.75rem', opacity: 0.6, margin: 0 }}>{botError}</p>
+            )}
+
+            <style>{'@keyframes chess-think { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }'}</style>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
