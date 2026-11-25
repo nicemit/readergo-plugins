@@ -15,9 +15,10 @@ const PIECES: Record<string, string> = {
     bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟',
 };
 
-const LIGHT = '#eeeed2';
-const DARK = '#769656';
-const HIGHLIGHT = '#f6f669';
+const LIGHT = '#f0f1f2';
+const DARK = '#5c707d';
+const HIGHLIGHT = 'rgba(34, 211, 238, 0.4)'; // Cyan-400 with alpha
+const LAST_MOVE = 'rgba(251, 191, 36, 0.3)'; // Amber-400 with alpha
 
 type GameMode = 'cpu' | 'bot' | 'hotseat';
 type Side = 'w' | 'b';
@@ -54,6 +55,7 @@ const CHESS_PLUGIN_ID = 'readergo.game.chess';
 export function ChessEditor(props: EditorProps) {
     const { currentNote, onSave, readOnly } = props;
     const onDataChange = (props as { onDataChange?: (data: unknown) => void }).onDataChange;
+    const context = (props as { context?: PluginContext }).context;
 
     // The host passes the *navigation context* (e.g. { focusNodeId }) in
     // props.context, not a PluginContext. Resolve the real PluginContext from
@@ -261,8 +263,14 @@ export function ChessEditor(props: EditorProps) {
         } catch (error) {
             return { ok: false, error: error instanceof Error ? error.message : 'invalid move' };
         }
+
+        setFen(g.fen());
+        setSelected(null);
+        setTargets([]);
+        setPromotion(null);
         setBotThinking(false);
         setBotError(null);
+
         maybeOpponentReply();
         return { ok: true, ...getState() };
     };
@@ -365,6 +373,9 @@ export function ChessEditor(props: EditorProps) {
         newGame();
     };
 
+    const history = game.history({ verbose: true });
+    const lastMove = history.length > 0 ? history[history.length - 1] : null;
+
     const recent = game.history().slice(-8);
 
     const buttonStyle: React.CSSProperties = {
@@ -388,7 +399,7 @@ export function ChessEditor(props: EditorProps) {
                 padding: '1rem',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem',
+                gap: '1rem',
                 maxWidth: 480,
                 width: '100%',
                 margin: '0 auto',
@@ -401,9 +412,10 @@ export function ChessEditor(props: EditorProps) {
                     gridTemplateColumns: 'repeat(8, 1fr)',
                     width: '100%',
                     aspectRatio: '1',
-                    border: '1px solid rgba(128,128,128,0.35)',
-                    borderRadius: 4,
+                    border: '2px solid rgba(128,128,128,0.3)',
+                    borderRadius: 6,
                     overflow: 'hidden',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 }}
             >
                 {Array.from({ length: 64 }, (_, i) => {
@@ -412,6 +424,8 @@ export function ChessEditor(props: EditorProps) {
                     const isLight = (Math.floor(i / 8) + (i % 8)) % 2 === 0;
                     const isSelected = selected === square;
                     const isTarget = targets.includes(square);
+                    const isLastMove = lastMove && (lastMove.from === square || lastMove.to === square);
+
                     return (
                         <button
                             key={square}
@@ -424,13 +438,13 @@ export function ChessEditor(props: EditorProps) {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: 'clamp(1.4rem, 4vw, 2rem)',
+                                fontSize: 'clamp(1.5rem, 4.5vw, 2.2rem)',
                                 lineHeight: 1,
                                 background: isLight ? LIGHT : DARK,
                                 boxShadow: isSelected
-                                    ? `inset 0 0 0 3px ${HIGHLIGHT}`
-                                    : isTarget
-                                      ? `inset 0 0 0 2px rgba(246,246,105,0.8)`
+                                    ? `inset 0 0 0 4px ${HIGHLIGHT}`
+                                    : isLastMove
+                                      ? `inset 0 0 0 3px ${LAST_MOVE}`
                                       : 'none',
                                 position: 'relative',
                             }}
@@ -438,21 +452,23 @@ export function ChessEditor(props: EditorProps) {
                             {piece && (
                                 <span
                                     style={{
-                                        color: piece.color === 'w' ? '#f9f9f9' : '#1a1a1a',
-                                        textShadow: piece.color === 'w' ? '0 1px 2px rgba(0,0,0,0.5)' : 'none',
+                                        color: piece.color === 'w' ? '#ffffff' : '#1e293b',
+                                        textShadow: piece.color === 'w' ? '0 1px 3px rgba(0,0,0,0.4)' : 'none',
+                                        zIndex: 1,
                                     }}
                                 >
                                     {PIECES[`${piece.color}${piece.type.toUpperCase()}`]}
                                 </span>
                             )}
-                            {isTarget && !piece && (
+                            {isTarget && (
                                 <span
                                     style={{
                                         position: 'absolute',
-                                        width: '25%',
-                                        height: '25%',
+                                        width: piece ? '85%' : '25%',
+                                        height: piece ? '85%' : '25%',
                                         borderRadius: '50%',
-                                        background: 'rgba(0,0,0,0.25)',
+                                        background: piece ? 'transparent' : 'rgba(34, 211, 238, 0.4)',
+                                        border: piece ? '4px solid rgba(34, 211, 238, 0.4)' : 'none',
                                     }}
                                 />
                             )}
@@ -463,7 +479,7 @@ export function ChessEditor(props: EditorProps) {
 
             {promotion && (
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>promote to:</span>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.8 }}>promote to:</span>
                     {(['q', 'r', 'b', 'n'] as const).map((p) => (
                         <button
                             key={p}
@@ -477,27 +493,29 @@ export function ChessEditor(props: EditorProps) {
                 </div>
             )}
 
-            <p style={{ fontSize: '0.8rem', opacity: 0.7, margin: 0 }}>
-                {botThinking ? (
-                    <>
-                        chat is thinking
-                        <span style={{ animation: 'chess-think 1.2s ease-in-out infinite' }}>
-                            ...
+            <div style={{ textAlign: 'center', minHeight: '2.5rem' }}>
+                <p style={{ fontSize: '0.85rem', fontWeight: 500, margin: 0 }}>
+                    {botThinking ? (
+                        <span style={{ color: 'rgba(34, 211, 238, 0.9)' }}>
+                            chat is thinking
+                            <span style={{ animation: 'chess-think 1.2s ease-in-out infinite' }}>
+                                ...
+                            </span>
                         </span>
-                    </>
-                ) : (
-                    <>
-                        {statusFor(game)}
-                        {mode !== 'hotseat' && !game.isGameOver()
-                            ? ` · ${mode === 'cpu' ? 'engine' : 'chat'} plays ${colorName(opponentSide())}`
-                            : ''}
-                    </>
-                )}
-            </p>
+                    ) : (
+                        <>
+                            {statusFor(game)}
+                            {mode !== 'hotseat' && !game.isGameOver()
+                                ? ` · ${mode === 'cpu' ? 'engine' : 'chat'} plays ${colorName(opponentSide())}`
+                                : ''}
+                        </>
+                    )}
+                </p>
 
-            {botError && (
-                <p style={{ fontSize: '0.75rem', opacity: 0.6, margin: 0 }}>{botError}</p>
-            )}
+                {botError && (
+                    <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.25rem', color: '#f87171' }}>{botError}</p>
+                )}
+            </div>
 
             <style>{'@keyframes chess-think { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }'}</style>
 
@@ -552,7 +570,7 @@ export function ChessEditor(props: EditorProps) {
             </div>
 
             {recent.length > 0 && (
-                <p style={{ fontFamily: 'monospace', fontSize: '0.75rem', opacity: 0.6, margin: 0 }}>
+                <p style={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.75rem', opacity: 0.6, margin: 0, letterSpacing: '0.05em' }}>
                     {recent.join(' ')}
                 </p>
             )}
