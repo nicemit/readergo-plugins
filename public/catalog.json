@@ -110,8 +110,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "canvas.bundle.json",
-      "bundleHash": "ae2a38d41e265428",
-      "hash": "ae2a38d41e265428"
+      "bundleHash": "49dd4b27412153e8",
+      "hash": "49dd4b27412153e8"
     },
     {
       "id": "readergo.theme.catppuccin",
@@ -159,6 +159,20 @@
       "runtimeBundleHash": "bac7289f9ff232e3"
     },
     {
+      "id": "readergo.game.chess",
+      "name": "Chess",
+      "description": "Play chess in your workspace. A document type with a playable board.",
+      "category": "editor",
+      "version": "0.1.0",
+      "provides": [
+        "editor-provider",
+        "activity-bar-item"
+      ],
+      "bundleUrl": "chess.bundle.json",
+      "bundleHash": "52201c1eaec254bc",
+      "hash": "52201c1eaec254bc"
+    },
+    {
       "id": "readergo.features.concept-learn",
       "name": "Concept Learn",
       "description": "Interactive concept workspace with learning map, playgrounds, and a Socratic tutor on the shared AI backend.",
@@ -169,8 +183,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "concept-learn.bundle.json",
-      "bundleHash": "5f39fd4aa4bac107",
-      "hash": "5f39fd4aa4bac107"
+      "bundleHash": "6016ea9ad6c8a186",
+      "hash": "6016ea9ad6c8a186"
     },
     {
       "id": "readergo.features.dashboard",
@@ -291,8 +305,8 @@
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "d9c2e0b132625c2c",
-      "hash": "d9c2e0b132625c2c"
+      "bundleHash": "88606d6091657501",
+      "hash": "88606d6091657501"
     },
     {
       "id": "readergo.filesystem",
@@ -437,8 +451,8 @@
         "sidebar-panel"
       ],
       "bundleUrl": "link-clipper.bundle.json",
-      "bundleHash": "36fc91c931cd0c43",
-      "hash": "36fc91c931cd0c43"
+      "bundleHash": "8c14011419f8a49d",
+      "hash": "8c14011419f8a49d"
     },
     {
       "id": "readergo.plugin.readergolocalbackup",
@@ -462,8 +476,8 @@
         "activity-bar-item"
       ],
       "bundleUrl": "mindmap.bundle.json",
-      "bundleHash": "d45ac80ab01da340",
-      "hash": "d45ac80ab01da340"
+      "bundleHash": "f7d339ddb7cb4314",
+      "hash": "f7d339ddb7cb4314"
     },
     {
       "id": "readergo.theme.newsprint",
@@ -592,7 +606,7 @@
         "agent-sdk.pi"
       ],
       "runtimeBundleUrl": "pi.runtime.json",
-      "runtimeBundleHash": "9a88a230e360e071"
+      "runtimeBundleHash": "227e3e4e748b4b5e"
     },
     {
       "id": "readergo.features.pin-notes",
@@ -605,8 +619,8 @@
         "pin-note-service"
       ],
       "bundleUrl": "pin-notes.bundle.json",
-      "bundleHash": "9ca1850b464212a7",
-      "hash": "9ca1850b464212a7"
+      "bundleHash": "2296c47b05c705b9",
+      "hash": "2296c47b05c705b9"
     },
     {
       "id": "readergo.plugin.readergodevtools",
@@ -933,8 +947,8 @@
         "zettelkasten-service"
       ],
       "bundleUrl": "zettelkasten.bundle.json",
-      "bundleHash": "fe63de21bfad1f51",
-      "hash": "fe63de21bfad1f51"
+      "bundleHash": "199ed04367c4ef49",
+      "hash": "199ed04367c4ef49"
     }
   ]
 }
