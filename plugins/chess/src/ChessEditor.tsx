@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EditorProps, PluginContext } from '@readergo/plugin-sdk';
 import { AGENT_CHAT_UI_COMMAND_OPEN, GENERATIVE_UI_CAPABILITY_ID } from '@readergo/plugin-sdk';
+// audit-ignore: sdk-boundary
+import { usePluginManager } from '@/app/providers/PluginProvider';
 import { Chess, type Square } from 'chess.js';
 import { findBestMove } from './cpu';
 
@@ -39,6 +41,8 @@ function colorName(side: Side): string {
     return side === 'w' ? 'white' : 'black';
 }
 
+const CHESS_PLUGIN_ID = 'readergo.game.chess';
+
 /**
  * Chess document editor.
  * - cpu mode: the minimax engine answers automatically after your move.
@@ -50,7 +54,29 @@ function colorName(side: Side): string {
 export function ChessEditor(props: EditorProps) {
     const { currentNote, onSave, readOnly } = props;
     const onDataChange = (props as { onDataChange?: (data: unknown) => void }).onDataChange;
-    const context = (props as { context?: PluginContext }).context;
+
+    // The host passes the *navigation context* (e.g. { focusNodeId }) in
+    // props.context, not a PluginContext. Resolve the real PluginContext from
+    // the host manager so the board can reach the chat capability and
+    // commands. A PluginContext handed in as props still wins when present.
+    let manager: ReturnType<typeof usePluginManager> | null = null;
+    try {
+        manager = usePluginManager();
+    } catch {
+        manager = null;
+    }
+
+    const pluginContext = useMemo<PluginContext | null>(() => {
+        const passed = (props as { context?: PluginContext }).context;
+        if (passed && typeof passed.getCapability === 'function') {
+            return passed;
+        }
+        try {
+            return manager?.getPluginContext(CHESS_PLUGIN_ID) ?? null;
+        } catch {
+            return null;
+        }
+    }, [manager, props.context]);
 
     const gameRef = useRef<Chess | null>(null);
     if (!gameRef.current) gameRef.current = new Chess();
@@ -125,18 +151,20 @@ export function ChessEditor(props: EditorProps) {
      * the generative-ui capability hands the text to the chat composer, the
      * agent thinks visibly in the panel, and its chess_move lands here.
      */
-    const triggerBot = async (): Promise<boolean> => {
+    const triggerBot = async (): Promise<'submitted' | 'missing-capability' | 'failed'> => {
         // Open the chat panel first so the thinking is visible.
         try {
-            await context?.executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
-        } catch {
-            // Best effort - the dispatch below still tries.
+            await pluginContext?.executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
+        } catch (error) {
+            console.warn('[chess-bot] chat panel open failed', error);
         }
         try {
-            const genUi = (await context?.getCapability(GENERATIVE_UI_CAPABILITY_ID)) as {
+            const genUi = await pluginContext?.getCapability<{
                 dispatchAction?: (name: string, params?: Record<string, unknown>) => Promise<any>;
-            } | null;
-            if (!genUi?.dispatchAction) return false;
+            }>(GENERATIVE_UI_CAPABILITY_ID);
+            if (!genUi?.dispatchAction) {
+                return 'missing-capability';
+            }
             const g = gameRef.current!;
             const history = g.history();
             const last = history.length > 0 ? history[history.length - 1] : null;
@@ -149,15 +177,36 @@ export function ChessEditor(props: EditorProps) {
             // while it catches up so the bot prompt never gets dropped.
             for (let attempt = 0; attempt < 12; attempt++) {
                 const result = await genUi.dispatchAction('submit_to_chat', { text });
-                if (result?.ok !== false) return true;
+                if (result?.ok !== false) return 'submitted';
                 const error = String(result?.error ?? '');
-                if (!error.includes('not registered')) return false;
+                if (!error.includes('not registered')) return 'failed';
                 await new Promise((resolve) => setTimeout(resolve, 250));
             }
-            return false;
-        } catch {
-            return false;
+            return 'failed';
+        } catch (error) {
+            console.error('[chess-bot] trigger failed', error);
+            return 'failed';
         }
+    };
+
+    /**
+     * After triggerBot settles: a submitted prompt keeps the agent thinking
+     * until its chess_move lands; a failure clears the spinner and explains
+     * why the board is waiting.
+     */
+    const applyBotOutcome = (
+        outcome: 'submitted' | 'missing-capability' | 'failed',
+        side: () => Side,
+    ) => {
+        if (outcome === 'submitted') return;
+        setBotThinking(false);
+        const gNow = gameRef.current;
+        if (!gNow || gNow.isGameOver() || gNow.turn() !== side()) return;
+        setBotError(
+            outcome === 'missing-capability'
+                ? 'chat agent unavailable: the generative-ui capability is not registered in this workspace.'
+                : 'no reply yet - the chat panel is open. If it stays quiet, check the chat connection or the LLM settings.',
+        );
     };
 
     /** After a move, let the opponent answer in cpu or bot mode. */
@@ -177,14 +226,7 @@ export function ChessEditor(props: EditorProps) {
             persist();
             setBotError(null);
             setBotThinking(true);
-            void triggerBot().then((ok) => {
-                const gNow = gameRef.current;
-                if (!ok && gNow && !gNow.isGameOver() && gNow.turn() === opponentSide()) {
-                    setBotError(
-                        'no reply yet - the chat panel is open. check the LLM provider if it stays quiet.',
-                    );
-                }
-            });
+            void triggerBot().then((outcome) => applyBotOutcome(outcome, opponentSide));
         }
     };
 
@@ -219,9 +261,9 @@ export function ChessEditor(props: EditorProps) {
 
     // Expose actions for commands and agent tools on the active board.
     useEffect(() => {
-        if (!context || !currentNote?.id) return;
+        if (!pluginContext || !currentNote?.id) return;
         const instanceId = `chess-${currentNote.id}`;
-        const cleanup = context.registerEditorCapability?.(instanceId, {
+        const cleanup = pluginContext.registerEditorCapability?.(instanceId, {
             actions: {
                 getState,
                 move: (args: { from: string; to: string; promotion?: string }) =>
@@ -231,9 +273,9 @@ export function ChessEditor(props: EditorProps) {
             },
             getState,
         } as any);
-        context.setActiveEditor?.(instanceId);
+        pluginContext.setActiveEditor?.(instanceId);
         return cleanup;
-    }, [context, currentNote?.id, mode, side, sidePref]);
+    }, [pluginContext, currentNote?.id, mode, side, sidePref]);
 
     const onSquareClick = (square: Square) => {
         if (readOnly || promotion) return;
@@ -283,14 +325,7 @@ export function ChessEditor(props: EditorProps) {
             } else {
                 setBotError(null);
                 setBotThinking(true);
-                void triggerBot().then((ok) => {
-                    const gNow = gameRef.current;
-                    if (!ok && gNow && !gNow.isGameOver() && gNow.turn() === opponentSide()) {
-                        setBotError(
-                            'no reply yet - the chat panel is open. check the LLM provider if it stays quiet.',
-                        );
-                    }
-                });
+                void triggerBot().then((outcome) => applyBotOutcome(outcome, () => opponentSide()));
             }
         }
     };
