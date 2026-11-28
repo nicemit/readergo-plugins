@@ -156,21 +156,21 @@
         "chat-store.sqlite"
       ],
       "runtimeBundleUrl": "chat-store-sqlite.runtime.json",
-      "runtimeBundleHash": "bac7289f9ff232e3"
+      "runtimeBundleHash": "d58879563095e504"
     },
     {
       "id": "readergo.game.chess",
       "name": "Chess",
       "description": "Play chess in your workspace. Engine or chat-agent opponent, or two players.",
       "category": "editor",
-      "version": "0.2.6",
+      "version": "0.3.0",
       "provides": [
         "editor-provider",
         "activity-bar-item"
       ],
       "bundleUrl": "chess.bundle.json",
-      "bundleHash": "923af0ce49a426a8",
-      "hash": "923af0ce49a426a8"
+      "bundleHash": "f7aa3a57aa0d1ff8",
+      "hash": "f7aa3a57aa0d1ff8"
     },
     {
       "id": "readergo.features.concept-learn",
@@ -305,8 +305,8 @@
         "left-explorer"
       ],
       "bundleUrl": "explorer.bundle.json",
-      "bundleHash": "88606d6091657501",
-      "hash": "88606d6091657501"
+      "bundleHash": "bb6338f6c3362fad",
+      "hash": "bb6338f6c3362fad"
     },
     {
       "id": "readergo.filesystem",
