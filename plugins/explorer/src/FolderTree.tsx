@@ -222,6 +222,7 @@ function NoteItem({
       key={note.id}
       noteId={note.id}
       noteTitle={displayTitle}
+      noteType={note.type}
       onEdit={() => onNoteSelect?.(note.id)}
       onPreview={() => onNoteSelect?.(note.id, { mode: 'preview' })}
       onDuplicate={() => onDuplicateNote?.(note.id, displayTitle)}

@@ -9,11 +9,39 @@ import {
   Edit,
   Eye,
   MoreHorizontal,
+  Save,
 } from 'lucide-react'
-import { WellKnownPlaces } from '@readergo/plugin-sdk'
+import {
+  WellKnownPlaces,
+  normalizeWritePolicy,
+  writePolicyLabel,
+} from '@readergo/plugin-sdk'
 import { executeCommand } from '@/lib/platform/actions'
 import { usePlaceContributions } from '@/hooks/usePlaceContributions'
 import { cn } from './cn'
+
+/**
+ * Type metadata is static for a session, so the explorer caches the
+ * type-to-policy map. A replacement tree gets the same data from the command.
+ */
+let typePolicyCache: Promise<Record<string, string>> | null = null
+
+function loadTypePolicies(): Promise<Record<string, string>> {
+  if (!typePolicyCache) {
+    typePolicyCache = executeCommand<Array<{ type?: string; writePolicy?: string }>>(
+      'readergo.core.getAvailableNoteTypes',
+    )
+      .then((types) => {
+        const map: Record<string, string> = {}
+        for (const type of types ?? []) {
+          if (type?.type) map[type.type] = normalizeWritePolicy(type.writePolicy)
+        }
+        return map
+      })
+      .catch(() => ({}))
+  }
+  return typePolicyCache
+}
 
 const ContextMenu = ContextMenuPrimitive.Root
 
@@ -233,6 +261,7 @@ interface NoteContextMenuProps {
   children: React.ReactNode
   noteId: string
   noteTitle: string
+  noteType?: string
   onEdit?: () => void
   /** Open in the replaceable preview slot instead of a permanent tab. */
   onPreview?: () => void
@@ -245,6 +274,7 @@ export function NoteContextMenu({
   children,
   noteId,
   noteTitle,
+  noteType,
   onEdit,
   onPreview,
   onDuplicate,
@@ -253,12 +283,31 @@ export function NoteContextMenu({
   onPin,
   isPinned
 }: NoteContextMenuProps & { onPin?: () => void; isPinned?: boolean }) {
+  const [writePolicy, setWritePolicy] = React.useState<string | undefined>(undefined)
+
+  React.useEffect(() => {
+    if (!noteType) return
+    let cancelled = false
+    void loadTypePolicies().then((map) => {
+      if (!cancelled) setWritePolicy(map[noteType])
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [noteType])
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         {children}
       </ContextMenuTrigger>
       <ContextMenuContent className="w-48">
+        {writePolicy && (
+          <div className="flex select-none items-center gap-2 rounded-sm px-2 py-1.5 text-[11px] text-muted-foreground">
+            <Save className="h-4 w-4" />
+            <span>{writePolicyLabel(writePolicy)}</span>
+          </div>
+        )}
         <ContextMenuItem onClick={onEdit}>
           <Edit className="mr-2 h-4 w-4" />
           <span>Edit</span>
