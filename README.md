@@ -11,7 +11,7 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 
 ---
 
-## Included Plugins (40)
+## Included Plugins (41)
 
 ### Document Editors
 - **TipTap Note Editor** (`readergo.editor.note`): Rich text notes with markdown, tables, and collapsible headings. This is the default note editor; it is not bundled in the host.
@@ -23,6 +23,7 @@ Work happens on the `dev` branch. A push to `dev` is what every ReaderGo `dev` /
 - **Simple Text Editor** (`readergo.editor.simple`): Lightweight plaintext editor.
 - **Spreadsheet** (`readergo.editor.spreadsheet`): Grid-based spreadsheet editor.
 - **Whiteboard** (`readergo.editor.whiteboard`): Infinite canvas whiteboard.
+- **Chess** (`readergo.game.chess`): Playable board with a local engine, hotseat play, or a chat-agent opponent. Each move writes through `document.update` with `expectedVersion`; the `chess.bot-move` agent trigger starts one run per position. Tools accept a `documentId`, so an agent can play a document that is not on screen.
 
 ### Knowledge and Productivity
 - **Zettelkasten** (`readergo.features.zettelkasten`): Bidirectional `[[Note Title]]` links, autocomplete, backlinks, and unlinked mentions.
