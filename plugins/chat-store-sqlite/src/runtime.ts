@@ -96,6 +96,18 @@ function openDb(): DatabaseSync {
   );
   ensureColumn(
     db,
+    'conversations',
+    'surface_id',
+    'ALTER TABLE conversations ADD COLUMN surface_id TEXT',
+  );
+  ensureColumn(
+    db,
+    'conversations',
+    'document_id',
+    'ALTER TABLE conversations ADD COLUMN document_id TEXT',
+  );
+  ensureColumn(
+    db,
     'messages',
     'metadata',
     'ALTER TABLE messages ADD COLUMN metadata TEXT',
@@ -116,16 +128,20 @@ function createSqliteProvider(): ChatStoreProvider {
       const spaceId = input.spaceId?.trim() || null;
       const agentSdkId = input.agentSdkId?.trim() || null;
       const agentLabel = input.agentLabel?.trim() || null;
+      const surfaceId = input.surfaceId?.trim() || null;
+      const documentId = input.documentId?.trim() || null;
       db.prepare(
-        `INSERT INTO conversations (id, title, space_id, agent_sdk_id, agent_label, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      ).run(id, title, spaceId, agentSdkId, agentLabel, now, now);
+        `INSERT INTO conversations (id, title, space_id, agent_sdk_id, agent_label, surface_id, document_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).run(id, title, spaceId, agentSdkId, agentLabel, surfaceId, documentId, now, now);
       return {
         id,
         title,
         spaceId: spaceId || undefined,
         agentSdkId: agentSdkId || undefined,
         agentLabel: agentLabel || undefined,
+        surfaceId: surfaceId || undefined,
+        documentId: documentId || undefined,
         createdAt: now,
         updatedAt: now,
         messageCount: 0,
@@ -202,21 +218,35 @@ function createSqliteProvider(): ChatStoreProvider {
       const limit = Math.min(Math.max(input.limit ?? 50, 1), 200);
       const spaceId = input.spaceId?.trim() || null;
       const agentSdkId = input.agentSdkId?.trim() || null;
+      const surfaceId = input.surfaceId?.trim() || null;
+      const documentId = input.documentId?.trim() || null;
       const query = input.query?.trim() ? `%${input.query.trim()}%` : null;
       const rows = db
         .prepare(
-          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.created_at, c.updated_at,
+          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.surface_id, c.document_id, c.created_at, c.updated_at,
                   (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id) AS message_count
            FROM conversations c
            WHERE (? IS NULL OR c.space_id = ?)
              AND (? IS NULL OR c.agent_sdk_id = ?)
+             AND (? IS NULL OR c.surface_id = ?)
+             AND (? IS NULL OR c.document_id = ?)
              AND (? IS NULL OR c.title LIKE ?)
            ORDER BY c.updated_at DESC
            LIMIT ?`,
         )
-        .all(spaceId, spaceId, agentSdkId, agentSdkId, query, query, limit) as Array<
-        Record<string, unknown>
-      >;
+        .all(
+          spaceId,
+          spaceId,
+          agentSdkId,
+          agentSdkId,
+          surfaceId,
+          surfaceId,
+          documentId,
+          documentId,
+          query,
+          query,
+          limit,
+        ) as Array<Record<string, unknown>>;
       return rows.map(toSummary);
     },
     async search(input) {
@@ -224,13 +254,17 @@ function createSqliteProvider(): ChatStoreProvider {
       const q = `%${input.query.trim()}%`;
       const spaceId = input.spaceId?.trim() || null;
       const agentSdkId = input.agentSdkId?.trim() || null;
+      const surfaceId = input.surfaceId?.trim() || null;
+      const documentId = input.documentId?.trim() || null;
       const rows = db
         .prepare(
-          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.created_at, c.updated_at,
+          `SELECT c.id, c.title, c.space_id, c.agent_sdk_id, c.agent_label, c.surface_id, c.document_id, c.created_at, c.updated_at,
                   (SELECT COUNT(*) FROM messages m2 WHERE m2.conversation_id = c.id) AS message_count
            FROM conversations c
            WHERE (? IS NULL OR c.space_id = ?)
              AND (? IS NULL OR c.agent_sdk_id = ?)
+             AND (? IS NULL OR c.surface_id = ?)
+             AND (? IS NULL OR c.document_id = ?)
              AND (
                c.title LIKE ?
                OR EXISTS (
@@ -246,6 +280,10 @@ function createSqliteProvider(): ChatStoreProvider {
           spaceId,
           agentSdkId,
           agentSdkId,
+          surfaceId,
+          surfaceId,
+          documentId,
+          documentId,
           q,
           q,
           limit,
@@ -255,7 +293,7 @@ function createSqliteProvider(): ChatStoreProvider {
     async get(input) {
       const row = db
         .prepare(
-          `SELECT id, title, space_id, agent_sdk_id, agent_label, created_at, updated_at
+          `SELECT id, title, space_id, agent_sdk_id, agent_label, surface_id, document_id, created_at, updated_at
            FROM conversations WHERE id = ?`,
         )
         .get(input.conversationId) as Record<string, unknown> | undefined;
@@ -307,12 +345,16 @@ function toSummary(row: Record<string, unknown>): ChatConversationSummary {
   const spaceId = row.space_id == null ? undefined : String(row.space_id);
   const agentSdkId = row.agent_sdk_id == null ? undefined : String(row.agent_sdk_id);
   const agentLabel = row.agent_label == null ? undefined : String(row.agent_label);
+  const surfaceId = row.surface_id == null ? undefined : String(row.surface_id);
+  const documentId = row.document_id == null ? undefined : String(row.document_id);
   return {
     id: String(row.id),
     title: String(row.title ?? 'Chat'),
     spaceId: spaceId || undefined,
     agentSdkId: agentSdkId || undefined,
     agentLabel: agentLabel || undefined,
+    surfaceId: surfaceId || undefined,
+    documentId: documentId || undefined,
     createdAt: Number(row.created_at) || 0,
     updatedAt: Number(row.updated_at) || 0,
     messageCount: Number(row.message_count) || 0,
@@ -323,7 +365,7 @@ const plugin: RuntimePlugin = {
   manifest: {
     id: 'readergo.chat-store.sqlite',
     name: 'Chat Store (SQLite)',
-    version: '0.1.1',
+    version: '0.2.0',
     sdkVersion: '0.1.0',
     description: 'Stores agent conversations in SQLite under ~/.readergo/<env>/agent.',
     category: 'ai',
