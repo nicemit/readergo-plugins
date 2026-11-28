@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { EditorProps, PluginContext } from '@readergo/plugin-sdk';
-import { AGENT_CHAT_UI_COMMAND_OPEN, GENERATIVE_UI_CAPABILITY_ID } from '@readergo/plugin-sdk';
 // audit-ignore: sdk-boundary
 import { usePluginManager } from '@/app/providers/PluginProvider';
 import { Chess, type Square } from 'chess.js';
@@ -93,7 +92,7 @@ export function ChessEditor(props: EditorProps) {
     const [sidePref, setSidePref] = useState<SidePref>('w');
     const [botThinking, setBotThinking] = useState(false);
     const [botError, setBotError] = useState<string | null>(null);
-    const lastPromptFenRef = useRef<string | null>(null);
+    const lastSeenVersionRef = useRef<number>(0);
 
     // Hydrate from the document when a different note opens.
     useEffect(() => {
@@ -117,26 +116,27 @@ export function ChessEditor(props: EditorProps) {
         setMode(data?.mode === 'bot' || data?.mode === 'hotseat' ? data.mode : 'cpu');
         setSide(data?.side === 'b' ? 'b' : 'w');
         setSidePref(data?.sidePref === 'b' || data?.sidePref === 'random' ? data.sidePref : 'w');
-
-        // If we hydrated a FEN that matches our last prompt, keep thinking;
-        // otherwise, we've moved past it.
-        if (currentFen !== lastPromptFenRef.current) {
-            setBotThinking(false);
-        }
+        lastSeenVersionRef.current =
+            typeof currentNote?.version === 'number' ? currentNote.version : 0;
+        setBotThinking(false);
     }, [currentNote?.id]);
 
     const opponentSide = (): Side => (side === 'w' ? 'b' : 'w');
 
-    const persist = () => {
-        const currentFen = gameRef.current!.fen();
+    const persist = (overrides?: {
+        mode?: GameMode;
+        side?: Side;
+        sidePref?: SidePref;
+    }) => {
+        const g = gameRef.current!;
         onDataChange?.({
-            fen: currentFen,
-            pgn: gameRef.current!.pgn(),
-            mode,
-            side,
-            sidePref,
+            fen: g.fen(),
+            pgn: g.pgn(),
+            mode: overrides?.mode ?? mode,
+            side: overrides?.side ?? side,
+            sidePref: overrides?.sidePref ?? sidePref,
         });
-        onSave?.(gameRef.current!.pgn());
+        onSave?.(g.pgn());
     };
 
     const getState = () => {
@@ -157,80 +157,68 @@ export function ChessEditor(props: EditorProps) {
         };
     };
 
-    /**
-     * Ask the chat agent to play. Same path as the user typing the message:
-     * the generative-ui capability hands the text to the chat composer, the
-     * agent thinks visibly in the panel, and its chess_move lands here.
-     */
-    const triggerBot = async (): Promise<'submitted' | 'missing-capability' | 'failed' | 'already-prompted'> => {
-        const g = gameRef.current!;
-        const currentFen = g.fen();
+    // The host starts the agent run from the document type's trigger. The
+    // editor only listens for status so it can show "chat is thinking".
+    useEffect(() => {
+        const ctx = pluginContext as any;
+        const noteId = currentNote?.id;
+        if (!ctx?.subscribe || !noteId) return;
+        let startedSub: string | null = null;
+        let finishedSub: string | null = null;
 
-        // Don't prompt twice for the same position.
-        if (lastPromptFenRef.current === currentFen) {
-            return 'already-prompted';
+        void ctx
+            .subscribe('agent-run:started', (payload: any) => {
+                if (payload?.documentId !== noteId) return;
+                setBotThinking(true);
+                setBotError(null);
+            })
+            .then((id: string) => {
+                startedSub = id;
+            });
+        void ctx
+            .subscribe('agent-run:finished', (payload: any) => {
+                if (payload?.documentId !== noteId) return;
+                setBotThinking(false);
+                if (payload?.ok === false) {
+                    setBotError(payload.error || 'the chat agent did not reply');
+                }
+            })
+            .then((id: string) => {
+                finishedSub = id;
+            });
+
+        return () => {
+            if (startedSub) void ctx.unsubscribe?.(startedSub);
+            if (finishedSub) void ctx.unsubscribe?.(finishedSub);
+        };
+    }, [pluginContext, currentNote?.id]);
+
+    // The saved document is truth. When another writer (the agent) commits a
+    // newer version, rehydrate so the move shows without a click.
+    const noteData = (currentNote?.data ?? null) as { fen?: string } | null;
+    const incomingFen = typeof noteData?.fen === 'string' ? noteData.fen : undefined;
+    useEffect(() => {
+        const note = currentNote;
+        if (!note?.id || !incomingFen || incomingFen === 'start') return;
+        const version = typeof note.version === 'number' ? note.version : 0;
+        const local = gameRef.current?.fen();
+        if (incomingFen === local) {
+            lastSeenVersionRef.current = version;
+            return;
         }
-
-        // Open the chat panel first so the thinking is visible.
+        if (version <= lastSeenVersionRef.current) return;
         try {
-            await pluginContext?.executeCommand(AGENT_CHAT_UI_COMMAND_OPEN);
-        } catch (error) {
-            console.warn('[chess-bot] chat panel open failed', error);
+            gameRef.current = new Chess(incomingFen);
+        } catch {
+            return;
         }
-        try {
-            const genUi = await pluginContext?.getCapability<{
-                dispatchAction?: (name: string, params?: Record<string, unknown>) => Promise<any>;
-            }>(GENERATIVE_UI_CAPABILITY_ID);
-            if (!genUi?.dispatchAction) {
-                return 'missing-capability';
-            }
-
-            const history = g.history();
-            const last = history.length > 0 ? history[history.length - 1] : null;
-            const text =
-                `CHESS GAME UPDATE: It is your turn. You are playing as ${colorName(opponentSide())}. ` +
-                `Current FEN: ${currentFen}. ` +
-                (last ? `Last move was ${last}. ` : '') +
-                `INSTRUCTIONS: 1) Call chess_get_state() to see the board and legal moves. 2) Pick a move. 3) Call chess_move() to play it. ` +
-                `Do not just describe the move in text; you MUST use the tools to update the board.`;
-
-            lastPromptFenRef.current = currentFen;
-
-            // The chat panel registers its submit handler on mount; retry
-            // while it catches up so the bot prompt never gets dropped.
-            for (let attempt = 0; attempt < 12; attempt++) {
-                const result = await genUi.dispatchAction('submit_to_chat', { text });
-                if (result?.ok !== false) return 'submitted';
-                const error = String(result?.error ?? '');
-                if (!error.includes('not registered')) return 'failed';
-                await new Promise((resolve) => setTimeout(resolve, 250));
-            }
-            return 'failed';
-        } catch (error) {
-            console.error('[chess-bot] trigger failed', error);
-            return 'failed';
-        }
-    };
-
-    /**
-     * After triggerBot settles: a submitted prompt keeps the agent thinking
-     * until its chess_move lands; a failure clears the spinner and explains
-     * why the board is waiting.
-     */
-    const applyBotOutcome = (
-        outcome: 'submitted' | 'missing-capability' | 'failed' | 'already-prompted',
-        side: () => Side,
-    ) => {
-        if (outcome === 'submitted' || outcome === 'already-prompted') return;
+        lastSeenVersionRef.current = version;
+        setFen(incomingFen);
+        setSelected(null);
+        setTargets([]);
+        setPromotion(null);
         setBotThinking(false);
-        const gNow = gameRef.current;
-        if (!gNow || gNow.isGameOver() || gNow.turn() !== side()) return;
-        setBotError(
-            outcome === 'missing-capability'
-                ? 'chat agent unavailable: the generative-ui capability is not registered in this workspace.'
-                : 'no reply yet - the chat panel is open. If it stays quiet or echos, check your Agent SDK settings.',
-        );
-    };
+    }, [currentNote?.id, currentNote?.version, incomingFen]);
 
     /** After a move, let the opponent answer in cpu or bot mode. */
     const maybeOpponentReply = () => {
@@ -248,13 +236,9 @@ export function ChessEditor(props: EditorProps) {
             setPromotion(null);
             setBotThinking(false);
             persist();
-        } else {
-            setFen(g.fen());
-            persist();
-            setBotError(null);
-            setBotThinking(true);
-            void triggerBot().then((outcome) => applyBotOutcome(outcome, opponentSide));
         }
+        // Bot mode: the human's committed write already let the host turn
+        // rule start the agent. Do not write or prompt again here.
     };
 
     const doMove = (from: Square, to: Square, promo?: string) => {
@@ -272,14 +256,17 @@ export function ChessEditor(props: EditorProps) {
         setBotThinking(false);
         setBotError(null);
 
+        // Persist the human move first: in bot mode this committed write is
+        // what lets the host agent trigger ask the agent to answer.
+        persist();
         maybeOpponentReply();
         return { ok: true, ...getState() };
     };
 
-    const newGame = () => {
-        const resolved = sidePref === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : sidePref;
+    const newGame = (prefOverride?: SidePref) => {
+        const pref = prefOverride ?? sidePref;
+        const resolved = pref === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : pref;
         gameRef.current!.reset();
-        lastPromptFenRef.current = null;
         setSide(resolved);
         setFen(gameRef.current!.fen());
         setSelected(null);
@@ -287,9 +274,10 @@ export function ChessEditor(props: EditorProps) {
         setPromotion(null);
         setBotThinking(false);
         setBotError(null);
-        persist();
-        // Opponent opens when the human picked black.
-        if (mode !== 'hotseat' && resolved === 'b') {
+        persist({ side: resolved, sidePref: pref });
+        // Opponent opens when the human picked black. The cpu needs a real
+        // first move; in bot mode the committed write triggers the rule.
+        if (mode !== 'hotseat' && resolved === 'b' && mode === 'cpu') {
             maybeOpponentReply();
         }
         return getState();
@@ -347,8 +335,7 @@ export function ChessEditor(props: EditorProps) {
 
     const switchMode = (next: GameMode) => {
         setMode(next);
-        onDataChange?.({ fen: game.fen(), pgn: game.pgn(), mode: next, side, sidePref });
-        onSave?.(game.pgn());
+        persist({ mode: next });
         // If the opponent is to move right now, let it answer immediately.
         if (next !== 'hotseat' && !game.isGameOver() && game.turn() === opponentSide()) {
             if (next === 'cpu') {
@@ -356,22 +343,20 @@ export function ChessEditor(props: EditorProps) {
                 if (best) {
                     game.move(best);
                     setFen(game.fen());
-                    persist();
+                    persist({ mode: next });
                 }
             } else {
+                // Bot mode: the committed mode change lets the host agent trigger
+                // start the agent for this version.
                 setBotError(null);
-                setBotThinking(true);
-                void triggerBot().then((outcome) => applyBotOutcome(outcome, () => opponentSide()));
             }
         }
     };
 
     const pickSide = (pref: SidePref) => {
         setSidePref(pref);
-        onDataChange?.({ fen: game.fen(), pgn: game.pgn(), mode, side, sidePref: pref });
-        onSave?.(game.pgn());
         // Restart so the pick applies cleanly before the next game.
-        newGame();
+        newGame(pref);
     };
 
     const history = game.history({ verbose: true });
@@ -535,7 +520,7 @@ export function ChessEditor(props: EditorProps) {
                 >
                     undo
                 </button>
-                <button type="button" disabled={readOnly} onClick={newGame} style={buttonStyle}>
+                <button type="button" disabled={readOnly} onClick={() => newGame()} style={buttonStyle}>
                     new game
                 </button>
             </div>
